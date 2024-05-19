@@ -148,15 +148,21 @@ namespace sc
 -: 1: current = current - operand
 *: 1: current = current * operand
 /: 1: current = current / operand
+---
 sin: 1: current = sin(current)
 cos: 1: current = cos(current)
-stack: 0: list the stack
-current: 0: display the current value
-quit: 0: quit the REPL
-set: 1: current = operand
-clear: 0: empty the stack
+floor: 0: current = floor(current)
+ceil: 0: current = ceil(current)
+---
 zero: 0: current = 0
 one: 0: current = 1
+---
+stack: 0: list the stack
+current: 0: display the current value
+set: 1: current = operand
+clear: 0: empty the stack
+quit: 0: quit the REPL
+---
 help: 0: show this screen)" << std::endl;
 		}
 			break;
@@ -168,6 +174,16 @@ help: 0: show this screen)" << std::endl;
 			
 		case operator_t::cos: {
 			current = std::cos(current);
+		}
+			break;
+			
+		case operator_t::floor: {
+			current = std::floor(current);
+		}
+			break;
+			
+		case operator_t::ceil: {
+			current = std::ceil(current);
 		}
 			break;
 		}

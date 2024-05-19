@@ -30,7 +30,9 @@ namespace sc
 			stack, current, quit, set, clear,
 			zero, one,
 			help,
-			sin, cos
+			sin, cos,
+			floor, ceil,
+			_length
 		};
 		union element_t {
 			number_t n;
@@ -38,19 +40,21 @@ namespace sc
 		};
 
 	private:
-		static constexpr size_t operations_size = 14;
+		static constexpr size_t operations_size = 16;
 		static constexpr std::array<std::string_view, operations_size> operations {
 			"+", "-", "*", "/",
 			"stack", "current", "quit", "set", "clear",
 			"zero", "one",
 			"help",
-			"sin", "cos"
+			"sin", "cos",
+			"floor", "ceil"
 		};
 		static constexpr std::array<unsigned, operations_size> operand_size {
 			1, 1, 1, 1,
 			0, 0, 0, 1, 0,
 			0, 0,
 			0,
+			0, 0,
 			0, 0
 		};
 	
@@ -70,6 +74,7 @@ namespace sc
 	public:
 		simple_calculator(int argc, char** argv)
 		{
+			static_assert(operations_size == static_cast<int>(operator_t::_length));
 			parse_arguments(argc, argv);
 		}
 	};
