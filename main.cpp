@@ -9,6 +9,7 @@
 #include <vector>
 #include <stack>
 #include <array>
+#include <cmath>
 
 #include <readline/readline.h>
 
@@ -21,8 +22,10 @@ public:
 	enum class operator_t
 	{
 		add, subtract, multiply, divide,
-		stack, current, quit, set,
-		help
+		stack, current, quit, set, clear,
+		zero, one,
+		help,
+		sin, cos
 	};
 	union element_t {
 		number_t n;
@@ -30,16 +33,20 @@ public:
 	};
 
 private:
-	static constexpr size_t operations_size = 9;
+	static constexpr size_t operations_size = 14;
 	static constexpr std::array<std::string_view, operations_size> operations {
 		"+", "-", "*", "/",
-		"stack", "current", "quit", "set",
-		"help"
+		"stack", "current", "quit", "set", "clear",
+		"zero", "one",
+		"help",
+		"sin", "cos"
 	};
 	static constexpr std::array<unsigned, operations_size> operand_size {
 		1, 1, 1, 1,
-		0, 0, 0, 1,
-		0
+		0, 0, 0, 1, 0,
+		0, 0,
+		0,
+		0, 0
 	};
 	
 	std::vector<std::pair<element_t, bool>> elements;
@@ -171,6 +178,21 @@ private:
 		}
 			break;
 			
+		case operator_t::clear: {
+			elements.clear();
+		}
+			break;
+			
+		case operator_t::zero: {
+			current = 0.0l;
+		}
+			break;
+			
+		case operator_t::one: {
+			current = 1.0l;
+		}
+			break;
+			
 		case operator_t::help: {
 			std::cerr << R"(Operation: operand size: description:
 -------------------------------------
@@ -178,11 +200,26 @@ private:
 -: 1: current = current - operand
 *: 1: current = current * operand
 /: 1: current = current / operand
+sin: 1: current = sin(current)
+cos: 1: current = cos(current)
 stack: 0: list the stack
 current: 0: display the current value
 quit: 0: quit the REPL
 set: 1: current = operand
+clear: 0: empty the stack
+zero: 0: current = 0
+one: 0: current = 1
 help: 0: show this screen)" << std::endl;
+		}
+			break;
+			
+		case operator_t::sin: {
+			current = std::sin(current);
+		}
+			break;
+			
+		case operator_t::cos: {
+			current = std::cos(current);
 		}
 			break;
 		}
@@ -190,13 +227,15 @@ help: 0: show this screen)" << std::endl;
 
 	void reverse_polish()
 	{
-		while (!elements.empty())
+		unsigned i = 0;
+		while (i < elements.size())
 		{
 			auto e = elements.back();
-			elements.pop_back();
 
 			if (!e.second)
 			{
+				elements.pop_back();
+			
 				int i = static_cast<int>(e.first.o);
 				if (elements.size() < operand_size[i])
 				{
@@ -213,6 +252,7 @@ help: 0: show this screen)" << std::endl;
 					{
 						auto e = elements.back();
 						elements.pop_back();
+						i++;
 						
 						if (!e.second)
 						{
@@ -231,6 +271,12 @@ help: 0: show this screen)" << std::endl;
 					perform_operation(e.first.o, operands);
 				}
 			}
+
+			else
+			{
+			}
+
+			i++;
 		}
 	}
 	
@@ -384,8 +430,10 @@ int main(int argc, char** argv)
 	}
 	catch (const std::exception& e)
 	{
+		std::cerr << "Fatal standard exception";
 		if (e.what()[0] != '\0')
-			std::cerr << "Fatal standard exception: " << e.what() << std::endl;
+			std::cerr << ": " << e.what();
+		std::cerr << std::endl;
 		return 1;
 	}
 }
