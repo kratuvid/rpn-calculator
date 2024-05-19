@@ -32,7 +32,7 @@ namespace sc
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
 					auto e = match[1].str();
-					list_expr.push_back(e);
+					list_expr.push_back(std::move(e));
 				}
 				else
 				{
@@ -62,79 +62,87 @@ namespace sc
 		for (const auto& what : list_expr)
 			expr(what);
 		
-		std::cout << current << std::endl;
-
 		if (is_repl || argc == 1)
 			repl();
 	}
 
-	void simple_calculator::perform_operation(operator_t operation, std::stack<number_t>& operands)
+	void simple_calculator::perform_operation(operator_t operation)
 	{
 		switch (operation)
 		{
 		case operator_t::add: {			
-			auto o = operands.top();
-			operands.pop();
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			auto r = b + a;
 			if (verbose)
-				std::cerr << "current = " << current << " + " << o << std::endl;
-			current += o;
+				std::cerr << r << " = " << b << " + " << a << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::subtract: {
-			auto o = operands.top();
-			operands.pop();
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			auto r = b - a;
 			if (verbose)
-				std::cerr << "current = " << current << " - " << o << std::endl;
-			current -= o;
+				std::cerr << r << " = " << b << " - " << a << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::multiply: {
-			auto o = operands.top();
-			operands.pop();
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			auto r = b * a;
 			if (verbose)
-				std::cerr << "current = " << current << " * " << o << std::endl;
-			current *= o;
+				std::cerr << r << " = " << b << " * " << a << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::divide: {
-			auto o = operands.top();
-			operands.pop();
-			if (o == 0)
+			auto a = stack.back().first.n;
+			if (a == 0)
 				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			auto r = b / a;
 			if (verbose)
-				std::cerr << "current = " << current << " / " << o << std::endl;
-			current /= o;
+				std::cerr << r << " = " << b << " / " << a << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 
 		case operator_t::power: {
-			auto o = operands.top();
-			operands.pop();
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			auto r = std::pow(b, a);
 			if (verbose)
-				std::cerr << "current = " << current << " ^ " << o << std::endl;
-			current = std::pow(current, o);
+				std::cerr << r << " = " << b << " ^ " << a << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 
 		case operator_t::stack: {
-			std::cout << "Stack size: " << elements.size() << std::endl;
-			for (int i = elements.size()-1; i >= 0; i--)
+			std::cout << stack.size()  << " elements in stack" << std::endl;
+			for (unsigned i = 0; i < stack.size(); i++)
 			{
-				const auto& e = elements[i];
+				const auto& e = stack[i];
 				if (e.second)
-					std::cout << "N: " << e.first.n;
+					std::cout << i << ": " << e.first.n;
 				else
-					std::cout << "O: " << operations[static_cast<int>(e.first.o)];
+					throw std::logic_error("There shouldn't be operator on the stack");
 				std::cout << std::endl;
 			}
-		}
-			break;
-			
-		case operator_t::current: {
-			std::cout << current << std::endl;
 		}
 			break;
 			
@@ -143,49 +151,58 @@ namespace sc
 		}
 			break;
 			
-		case operator_t::set: {
-			auto o = operands.top();
-			operands.pop();
-			current = o;
+		case operator_t::replace: {
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			if (verbose)
+				std::cerr << "replace " << b << " -> " << a << std::endl;			
+			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
+		}
+			break;
+			
+		case operator_t::pop: {
+			auto a = stack.back();
+			if (verbose)
+				std::cerr << "pop " << a.first.n << std::endl;			
+			stack.pop_back();
 		}
 			break;
 			
 		case operator_t::clear: {
-			elements.clear();
+			stack.clear();
 		}
 			break;
 			
-		case operator_t::zero: {
-			current = 0.0l;
-		}
-			break;
-			
-		case operator_t::one: {
-			current = 1.0l;
+		case operator_t::neg: {
+			auto a = stack.back();
+			stack.pop_back();
+			a.first.n = -a.first.n;
+			if (verbose)
+				std::cerr << a.first.n << " = -(" << -a.first.n << ")" << std::endl;			
+			stack.push_back(a);
 		}
 			break;
 			
 		case operator_t::help: {
-			std::cerr << R"(Operation: operand size: description:
+			std::cerr << R"(operation: operand size: description:
 -------------------------------------
-+: 1: current = current + operand
--: 1: current = current - operand
-*: 1: current = current * operand
-/: 1: current = current / operand
-^: 1: current = current ^ operand
++: 2: addition
+-: 2: subtraction
+*: 2: multiplication
+/: 2: division
+^: 2: power
 ---
-sin: 1: current = sin(current)
-cos: 1: current = cos(current)
-floor: 0: current = floor(current)
-ceil: 0: current = ceil(current)
+sin: 1: sine
+cos: 1: cosine
+floor: 1: floor
+ceil: 1: ceiling
 ---
-zero: 0: current = 0
-one: 0: current = 1
----
-stack: 0: list the stack
-current: 0: display the current value
-set: 1: current = operand
+stack: 0: show the stack
 clear: 0: empty the stack
+pop: 1: pop the stack
+replace: 2: replaces the top of the stack
 quit: 0: quit the REPL
 ---
 help: 0: show this screen)" << std::endl;
@@ -193,23 +210,46 @@ help: 0: show this screen)" << std::endl;
 			break;
 			
 		case operator_t::sin: {
-			current = std::sin(current);
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto r = std::sin(a);
+			if (verbose)
+				std::cerr << r << " = sin(" << a << ")" << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::cos: {
-			current = std::cos(current);
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto r = std::cos(a);
+			if (verbose)
+				std::cerr << r << " = cos(" << a << ")" << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::floor: {
-			current = std::floor(current);
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto r = std::floor(a);
+			if (verbose)
+				std::cerr << r << " = floor(" << a << ")" << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
 			
 		case operator_t::ceil: {
-			current = std::ceil(current);
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			auto r = std::ceil(a);
+			if (verbose)
+				std::cerr << r << " = ceil(" << a << ")" << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
+			break;
+
+		case operator_t::_length: // unreachable code
 			break;
 		}
 	}
@@ -217,47 +257,37 @@ help: 0: show this screen)" << std::endl;
 	void simple_calculator::evaluate()
 	{
 		size_t i = 0;
-		auto og_size = elements.size();
-		while (i < og_size && elements.size() > 0)
+		auto og_size = stack.size();
+		while (i < og_size && stack.size() > 0)
 		{
-			if (!elements.back().second)
+			if (!stack.back().second)
 			{
-				auto e = std::move(elements.back());
-				elements.pop_back();
+				auto e = stack.back();
+				stack.pop_back();
 			
 				int op_i = static_cast<int>(e.first.o);
-				if (elements.size() < operand_size[op_i])
+				if (stack.size() < operand_size[op_i])
 				{
 					std::ostringstream oss;
 					oss << "Operation '" << operations[op_i] << "' requires "
 						<< operand_size[op_i] << " elements but only "
-						<< elements.size() << " are left";
+						<< stack.size() << " are left";
 					throw sc::exception(oss.str(), sc::error_type::expr);
 				}
 				else
 				{
-					std::stack<number_t> operands;
-					for (unsigned j=0; j < operand_size[op_i]; j++)
+					for (unsigned i = 0; i < operand_size[op_i]; i++)
 					{
-						auto e = std::move(elements.back());
-						elements.pop_back();
-						i++;
-						
-						if (!e.second)
+						if (!stack[stack.size()-i-1].second)
 						{
 							std::ostringstream oss;
-							oss << "Unexpected operation '" << operations[static_cast<int>(e.first.o)]
-								<< "' while processing current operation '" << operations[op_i]
-								<< "'";
+							oss << "Expected " << operand_size[op_i] << " numerical operands for"
+								<< " operation '" << operations[op_i] << "' in the stack";
 							throw sc::exception(oss.str(), sc::error_type::expr);
-						}
-						else
-						{
-							operands.push(e.first.n);
 						}
 					}
 					
-					perform_operation(e.first.o, operands);
+					perform_operation(e.first.o);
 				}
 			}
 
@@ -324,7 +354,10 @@ help: 0: show this screen)" << std::endl;
 			}
 
 			if (okay)
-				elements.push_back(std::move(elem));
+			{
+				stack.push_back(std::move(elem));
+				if (is_op) evaluate();
+			}
 			else
 			{
 				std::ostringstream oss; 
@@ -332,8 +365,6 @@ help: 0: show this screen)" << std::endl;
 				throw sc::exception(oss.str(), sc::error_type::expr);
 			}
 		}
-
-		evaluate();
 	}
 	
 	void simple_calculator::repl()
@@ -368,7 +399,10 @@ help: 0: show this screen)" << std::endl;
 					
 					try
 					{
-						what = readline("> ");
+						std::string prompt {std::to_string(stack.size())};
+						prompt += "> ";
+						
+						what = readline(prompt.c_str());
 						if (!what) throw sc::exception("", sc::error_type::repl_quit);
 
 						if (*what)
@@ -385,8 +419,11 @@ help: 0: show this screen)" << std::endl;
 					
 					cleanup_local();
 				}
-				
-				std::cout << current << std::endl;
+
+				if (stack.size() > 0)
+				{
+					std::cout << stack.back().first.n << std::endl;
+				}
 			}
 		}
 		catch (const sc::exception& e)

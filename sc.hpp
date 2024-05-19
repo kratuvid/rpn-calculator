@@ -24,12 +24,12 @@ namespace sc
 	class simple_calculator
 	{
 	public:
-		using number_t = long double;
+		using number_t = double;
 		enum class operator_t
 		{
 			add, subtract, multiply, divide, power,
-			stack, current, quit, set, clear,
-			zero, one,
+			stack, quit, replace, pop, clear,
+			neg,
 			help,
 			sin, cos,
 			floor, ceil,
@@ -41,33 +41,32 @@ namespace sc
 		};
 
 	private:
-		static constexpr size_t operations_size = 17;
+		static constexpr size_t operations_size = 16;
 		static constexpr std::array<std::string_view, operations_size> operations {
 			"+", "-", "*", "/", "^",
-			"stack", "current", "quit", "set", "clear",
-			"zero", "one",
+			"stack", "quit", "replace", "pop", "clear",
+			"neg",
 			"help",
 			"sin", "cos",
 			"floor", "ceil"
 		};
 		static constexpr std::array<unsigned, operations_size> operand_size {
-			1, 1, 1, 1, 1,
-			0, 0, 0, 1, 0,
-			0, 0,
+			2, 2, 2, 2, 2,
+			0, 0, 2, 1, 0,
+			1,
 			0,
-			0, 0,
-			0, 0
+			1, 1,
+			1, 1
 		};
 	
-		std::vector<std::pair<element_t, bool>> elements;
-		number_t current = 0;
+		std::vector<std::pair<element_t, bool>> stack;
 		bool verbose = false;
 
 	private:
 		void show_help(char* name);	
 		void parse_arguments(int argc, char** argv);
 		
-		void perform_operation(operator_t operation, std::stack<number_t>& operands);
+		void perform_operation(operator_t operation);
 		void evaluate();
 		
 		void expr(std::string_view what);
