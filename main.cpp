@@ -6,17 +6,20 @@
 #include <cstring>
 #include <exception>
 #include <regex>
+#include <vector>
 #include <stack>
 #include <array>
+
+#include "utility.hpp"
 
 class SimpleCalculator
 {
 public:
-	using number_t = long long;
+	using number_t = long double;
 	enum class operator_t
 	{
-		add, subtract,
-		multiply, divide
+		add, subtract, multiply, divide,
+		stack
 	};
 	union element_t {
 		number_t n;
@@ -24,14 +27,17 @@ public:
 	};
 
 private:
-	static constexpr std::array<std::string_view, 4> operations {
-		"+", "-", "*", "/"
+	static constexpr std::array<std::string_view, 5> operations {
+		"+", "-", "*", "/",
+		"stack"
 	};
-	static constexpr std::array<unsigned, 4> operand_size {
-		1, 1, 1, 1
+	static constexpr std::array<unsigned, 5> operand_size {
+		1, 1, 1, 1,
+		0
 	};
 	
-	std::stack<std::pair<element_t, bool>> elements;
+	std::vector<std::pair<element_t, bool>> elements;
+	number_t current = 0;
 	
 private:
 	void show_help(char* name)
@@ -39,6 +45,7 @@ private:
 		std::cerr << name << ": Arbitrary length calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits"
+				  << "\t-r, --repl: Start the REPL"
 				  << std::endl;
 	}
 	
@@ -49,7 +56,7 @@ private:
 			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 			{
 				show_help(argv[0]);
-				throw std::runtime_error("");
+				throw sc::exception("", sc::error_type::init_help);
 			}
 			
 			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
@@ -59,52 +66,87 @@ private:
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
 					auto e = match[1].str();
-					expr(e);
+					std::cout << expr(e) << std::endl;
 				}
 				else
 				{
-					throw std::runtime_error("Please supply an expression to calculate");
+					throw sc::exception("Please supply an expression to calculate", sc::error_type::init);
 				}
 			}
 
+			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
+			{
+				repl();
+				return;
+			}
+			
 			else
 			{
 				std::ostringstream oss;
 				oss << "Unknown argument: '" << argv[i] << "'";
 				show_help(argv[0]);
-				throw std::invalid_argument(oss.str());
+				throw sc::exception(oss.str(), sc::error_type::init);
 			}
 		}
 	}
 
 	void perform_operation(operator_t operation, std::stack<number_t>& operands, number_t& result)
 	{
-		auto o = operands.top();
-		operands.pop();
 		switch (operation)
 		{
-		case operator_t::add: result += o;
+		case operator_t::add: {			
+			auto o = operands.top();
+			operands.pop();
+			result += o;
+		}
 			break;
-		case operator_t::subtract: result -= o;
+			
+		case operator_t::subtract: {
+			auto o = operands.top();
+			operands.pop();
+			result -= o;
+		}
 			break;
-		case operator_t::multiply: result *= o;
+			
+		case operator_t::multiply: {
+			auto o = operands.top();
+			operands.pop();
+			result *= o;
+		}
 			break;
-		case operator_t::divide:
+			
+		case operator_t::divide: {
+			auto o = operands.top();
+			operands.pop();
 			if (o == 0)
-				throw std::runtime_error("Cannot divide by 0");
+				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
 			result /= o;
+		}
+			break;
+
+		case operator_t::stack: {
+			std::cout << "Stack size: " << elements.size() << std::endl;
+			std::cout << "Current: " << current << std::endl;
+			for (int i = elements.size()-1; i >= 0; i--)
+			{
+				const auto& e = elements[i];
+				if (e.second)
+					std::cout << "N: " << e.first.n;
+				else
+					std::cout << "O: " << operations[static_cast<int>(e.first.o)];
+				std::cout << std::endl;
+			}
+		}
 			break;
 		}
 	}
 
-	void reverse_polish()
+	number_t reverse_polish()
 	{
-		number_t result = 0;
-
 		while (!elements.empty())
 		{
-			auto e = elements.top();
-			elements.pop();
+			auto e = elements.back();
+			elements.pop_back();
 
 			if (!e.second)
 			{
@@ -115,15 +157,15 @@ private:
 					oss << "Operation '" << operations[i] << "' requires "
 						<< operand_size[i] << " elements but only "
 						<< elements.size() << " are left";
-					throw std::runtime_error(oss.str());
+					throw sc::exception(oss.str(), sc::error_type::expr);
 				}
 				else
 				{
 					std::stack<number_t> operands;
 					for (unsigned j=0; j < operand_size[i]; j++)
 					{
-						auto e = elements.top();
-						elements.pop();
+						auto e = elements.back();
+						elements.pop_back();
 						
 						if (!e.second)
 						{
@@ -131,7 +173,7 @@ private:
 							oss << "Unexpected operation '" << operations[static_cast<int>(e.first.o)]
 								<< "' while processing current operation '" << operations[i]
 								<< "'";
-							throw std::runtime_error(oss.str());
+							throw sc::exception(oss.str(), sc::error_type::expr);
 						}
 						else
 						{
@@ -139,33 +181,25 @@ private:
 						}
 					}
 					
-					perform_operation(e.first.o, operands, result);
+					perform_operation(e.first.o, operands, current);
 				}
 			}
 		}
 		
-		std::cout << "Result: " << result << std::endl;
+		return std::move(current);
 	}
-
-public:
-	SimpleCalculator(int argc, char** argv)
+	
+	number_t expr(std::string_view what)
 	{
-		parse_arguments(argc, argv);
-	}
-
-	void expr(std::string_view e)
-	{
-		bool okay = true;
-		
-		std::vector<std::string> sub;
+		std::vector<std::string> subs;
 		{
 			std::string tmp;
-			for (char c : e)
+			for (char c : what)
 			{
 				if (isspace(c))
 				{
 					if (!tmp.empty())
-						sub.push_back(std::move(tmp));
+						subs.push_back(std::move(tmp));
 				}
 				else
 				{
@@ -173,10 +207,11 @@ public:
 				}
 			}
 			if (!tmp.empty())
-				sub.push_back(std::move(tmp));
+				subs.push_back(std::move(tmp));
 		}
 
-		for (const auto& s : sub)
+		bool okay = true;
+		for (const auto& sub : subs)
 		{
 			okay = true;
 			auto elem {std::make_pair(static_cast<element_t>(0), false)};
@@ -185,14 +220,11 @@ public:
 			bool is_op = false;
 			for (unsigned i=0; i < operations.size(); i++)
 			{
-				if (s == operations[i])
+				if (sub == operations[i])
 				{
-					if (i >= 0 && i < 4)
-					{
-						elem.first.o = static_cast<operator_t>(i);
-						is_op = true;
-						break;
-					}
+					elem.first.o = static_cast<operator_t>(i);
+					is_op = true;
+					break;
 				}
 			}
 
@@ -201,7 +233,7 @@ public:
 				try
 				{
 					elem.second = true;
-					elem.first.n = std::stoll(s);
+					elem.first.n = std::stold(sub);
 				}
 				catch (const std::out_of_range& e) {
 					okay = false;
@@ -212,20 +244,26 @@ public:
 			}
 
 			if (okay)
-				elements.push(std::move(elem));
+				elements.push_back(std::move(elem));
 			else
 			{
-				std::ostringstream oss;
-				oss << "Garbage input: '" << s << "'";
-				throw std::invalid_argument(oss.str());
+				std::ostringstream oss; 
+				oss << "Garbage sub-expression: '" << sub << "'";
+				throw sc::exception(oss.str(), sc::error_type::expr);
 			}
 		}
 
-		reverse_polish();
+		return std::move(reverse_polish());
 	}
-
+	
 	void repl()
 	{
+	}
+
+public:
+	SimpleCalculator(int argc, char** argv)
+	{
+		parse_arguments(argc, argv);
 	}
 };
 
@@ -234,12 +272,21 @@ int main(int argc, char** argv)
 	try
 	{
 		SimpleCalculator sc(argc, argv);
-		sc.repl();
+	}
+	catch (const sc::exception& e)
+	{
+		if (e.type == sc::error_type::init_help)
+			return 0;
+		
+		std::ostringstream oss;
+		oss << "Fatal exception: ";
+		oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
+		std::cerr << oss.str() << e.what() << std::endl;
 	}
 	catch (const std::exception& e)
 	{
 		if (e.what()[0] != '\0')
-			std::cerr << "Fatal exception: " << e.what() << std::endl;
+			std::cerr << "Fatal standard exception: " << e.what() << std::endl;
 		return 1;
 	}
 }
