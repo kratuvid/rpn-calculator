@@ -9,13 +9,15 @@ namespace sc
 	enum class error_type
 	{
 		init, init_help,
-		expr, expr_divide_by_zero
+		expr, expr_divide_by_zero,
+		repl_quit
 	};
 
-	static constexpr std::array<std::string_view, 4> error_type_str
+	static constexpr std::array<std::string_view, 5> error_type_str
 	{
 		"init", "init_help",
-		"expr", "expr_divide_by_zero"
+		"expr", "expr_divide_by_zero",
+		"repl_quit"
 	};
 
 	class exception : public std::runtime_error

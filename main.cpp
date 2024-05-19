@@ -10,6 +10,8 @@
 #include <stack>
 #include <array>
 
+#include <readline/readline.h>
+
 #include "utility.hpp"
 
 class SimpleCalculator
@@ -19,7 +21,7 @@ public:
 	enum class operator_t
 	{
 		add, subtract, multiply, divide,
-		stack
+		stack, current, quit, set
 	};
 	union element_t {
 		number_t n;
@@ -27,18 +29,19 @@ public:
 	};
 
 private:
-	static constexpr std::array<std::string_view, 5> operations {
+	static constexpr size_t operations_size = 8;
+	static constexpr std::array<std::string_view, operations_size> operations {
 		"+", "-", "*", "/",
-		"stack"
+		"stack", "current", "quit", "set"
 	};
-	static constexpr std::array<unsigned, 5> operand_size {
+	static constexpr std::array<unsigned, operations_size> operand_size {
 		1, 1, 1, 1,
-		0
+		0, 0, 0, 1
 	};
 	
 	std::vector<std::pair<element_t, bool>> elements;
 	number_t current = 0;
-	
+
 private:
 	void show_help(char* name)
 	{
@@ -66,7 +69,8 @@ private:
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
 					auto e = match[1].str();
-					std::cout << expr(e) << std::endl;
+					expr(e);
+					std::cout << current << std::endl;
 				}
 				else
 				{
@@ -90,8 +94,10 @@ private:
 		}
 	}
 
-	void perform_operation(operator_t operation, std::stack<number_t>& operands, number_t& result)
+	void perform_operation(operator_t operation, std::stack<number_t>& operands)
 	{
+		auto& result = current;
+		
 		switch (operation)
 		{
 		case operator_t::add: {			
@@ -126,7 +132,6 @@ private:
 
 		case operator_t::stack: {
 			std::cout << "Stack size: " << elements.size() << std::endl;
-			std::cout << "Current: " << current << std::endl;
 			for (int i = elements.size()-1; i >= 0; i--)
 			{
 				const auto& e = elements[i];
@@ -138,10 +143,27 @@ private:
 			}
 		}
 			break;
+			
+		case operator_t::current: {
+			std::cout << current << std::endl;
+		}
+			break;
+			
+		case operator_t::quit: {
+			throw sc::exception("", sc::error_type::repl_quit);
+		}
+			break;
+			
+		case operator_t::set: {
+			auto o = operands.top();
+			operands.pop();
+			current = o;
+		}
+			break;
 		}
 	}
 
-	number_t reverse_polish()
+	void reverse_polish()
 	{
 		while (!elements.empty())
 		{
@@ -181,15 +203,13 @@ private:
 						}
 					}
 					
-					perform_operation(e.first.o, operands, current);
+					perform_operation(e.first.o, operands);
 				}
 			}
 		}
-		
-		return std::move(current);
 	}
 	
-	number_t expr(std::string_view what)
+	void expr(std::string_view what)
 	{
 		std::vector<std::string> subs;
 		{
@@ -253,11 +273,65 @@ private:
 			}
 		}
 
-		return std::move(reverse_polish());
+		reverse_polish();
 	}
 	
 	void repl()
 	{
+	  begin:
+		try
+		{
+			while (true)
+			{
+				if (false)
+				{					
+					std::string what;
+
+					std::cerr << "> ";
+					std::getline(std::cin, what);
+					
+					expr(what);
+				}
+				else
+				{
+					char* what = nullptr;
+					try {
+						what = readline("> ");
+						if (!what) throw sc::exception("", sc::error_type::repl_quit);
+							
+						expr(what);
+					} catch (...) {
+						if (what) free(what);
+						throw;
+					}
+					if (what) free(what);
+				}
+				
+				std::cout << current << std::endl;
+			}
+		}
+		catch (const sc::exception& e)
+		{
+			std::ostringstream oss;
+			oss << "Error: ";
+			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
+			oss << e.what();
+			
+			switch (e.type)
+			{
+			case sc::error_type::expr_divide_by_zero:
+			case sc::error_type::expr:
+				break;
+			case sc::error_type::repl_quit:
+				return;
+			default:
+				throw;
+			}
+			
+			std::cerr << oss.str() << std::endl;
+			
+			goto begin;
+		}
 	}
 
 public:
