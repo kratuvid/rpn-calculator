@@ -76,7 +76,7 @@ namespace sc
 			auto o = operands.top();
 			operands.pop();
 			if (verbose)
-				std::cerr << "Operation: current = " << current << " + " << o << std::endl;
+				std::cerr << "current = " << current << " + " << o << std::endl;
 			current += o;
 		}
 			break;
@@ -85,7 +85,7 @@ namespace sc
 			auto o = operands.top();
 			operands.pop();
 			if (verbose)
-				std::cerr << "Operation: current = " << current << " - " << o << std::endl;
+				std::cerr << "current = " << current << " - " << o << std::endl;
 			current -= o;
 		}
 			break;
@@ -94,7 +94,7 @@ namespace sc
 			auto o = operands.top();
 			operands.pop();
 			if (verbose)
-				std::cerr << "Operation: current = " << current << " * " << o << std::endl;
+				std::cerr << "current = " << current << " * " << o << std::endl;
 			current *= o;
 		}
 			break;
@@ -105,7 +105,7 @@ namespace sc
 			if (o == 0)
 				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
 			if (verbose)
-				std::cerr << "Operation: current = " << current << " / " << o << std::endl;
+				std::cerr << "current = " << current << " / " << o << std::endl;
 			current /= o;
 		}
 			break;
@@ -114,7 +114,7 @@ namespace sc
 			auto o = operands.top();
 			operands.pop();
 			if (verbose)
-				std::cerr << "Operation: current = " << current << " ^ " << o << std::endl;
+				std::cerr << "current = " << current << " ^ " << o << std::endl;
 			current = std::pow(current, o);
 		}
 			break;
@@ -338,6 +338,8 @@ help: 0: show this screen)" << std::endl;
 	
 	void simple_calculator::repl()
 	{
+		using_history();
+		
 	  begin:
 		try
 		{
@@ -355,15 +357,33 @@ help: 0: show this screen)" << std::endl;
 				else
 				{
 					char* what = nullptr;
-					try {
+
+					auto cleanup_local = [&]() {
+						if (what)
+						{
+							free(what);
+							what = nullptr;
+						}
+					};
+					
+					try
+					{
 						what = readline("> ");
 						if (!what) throw sc::exception("", sc::error_type::repl_quit);
-						expr(what);
-					} catch (...) {
-						if (what) free(what);
+
+						if (*what)
+						{
+							add_history(what);
+							expr(what);
+						}
+					}
+					catch (...)
+					{
+						cleanup_local();
 						throw;
 					}
-					if (what) free(what);
+					
+					cleanup_local();
 				}
 				
 				std::cout << current << std::endl;

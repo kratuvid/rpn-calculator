@@ -15,6 +15,7 @@
 #include <list>
 
 #include <readline/readline.h>
+#include <readline/history.h>
 
 #include "utility.hpp"
 
