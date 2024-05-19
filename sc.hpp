@@ -26,7 +26,7 @@ namespace sc
 		using number_t = long double;
 		enum class operator_t
 		{
-			add, subtract, multiply, divide,
+			add, subtract, multiply, divide, power,
 			stack, current, quit, set, clear,
 			zero, one,
 			help,
@@ -40,9 +40,9 @@ namespace sc
 		};
 
 	private:
-		static constexpr size_t operations_size = 16;
+		static constexpr size_t operations_size = 17;
 		static constexpr std::array<std::string_view, operations_size> operations {
-			"+", "-", "*", "/",
+			"+", "-", "*", "/", "^",
 			"stack", "current", "quit", "set", "clear",
 			"zero", "one",
 			"help",
@@ -50,7 +50,7 @@ namespace sc
 			"floor", "ceil"
 		};
 		static constexpr std::array<unsigned, operations_size> operand_size {
-			1, 1, 1, 1,
+			1, 1, 1, 1, 1,
 			0, 0, 0, 1, 0,
 			0, 0,
 			0,
@@ -60,6 +60,7 @@ namespace sc
 	
 		std::vector<std::pair<element_t, bool>> elements;
 		number_t current = 0;
+		bool verbose = false;
 
 	private:
 		void show_help(char* name);	

@@ -7,7 +7,8 @@ namespace sc
 		std::cerr << name << ": Arbitrary length calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits" << std::endl
-				  << "\t-r, --repl: Start the REPL"
+				  << "\t-r, --repl: Start the REPL" << std::endl
+				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
 
@@ -44,6 +45,11 @@ namespace sc
 				is_repl = true;
 			}
 			
+			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
+			{
+				verbose = true;
+			}
+			
 			else
 			{
 				std::ostringstream oss;
@@ -55,6 +61,7 @@ namespace sc
 
 		for (const auto& what : list_expr)
 			expr(what);
+		
 		std::cout << current << std::endl;
 
 		if (is_repl || argc == 1)
@@ -68,6 +75,8 @@ namespace sc
 		case operator_t::add: {			
 			auto o = operands.top();
 			operands.pop();
+			if (verbose)
+				std::cerr << "Operation: current = " << current << " + " << o << std::endl;
 			current += o;
 		}
 			break;
@@ -75,6 +84,8 @@ namespace sc
 		case operator_t::subtract: {
 			auto o = operands.top();
 			operands.pop();
+			if (verbose)
+				std::cerr << "Operation: current = " << current << " - " << o << std::endl;
 			current -= o;
 		}
 			break;
@@ -82,6 +93,8 @@ namespace sc
 		case operator_t::multiply: {
 			auto o = operands.top();
 			operands.pop();
+			if (verbose)
+				std::cerr << "Operation: current = " << current << " * " << o << std::endl;
 			current *= o;
 		}
 			break;
@@ -91,7 +104,18 @@ namespace sc
 			operands.pop();
 			if (o == 0)
 				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
+			if (verbose)
+				std::cerr << "Operation: current = " << current << " / " << o << std::endl;
 			current /= o;
+		}
+			break;
+
+		case operator_t::power: {
+			auto o = operands.top();
+			operands.pop();
+			if (verbose)
+				std::cerr << "Operation: current = " << current << " ^ " << o << std::endl;
+			current = std::pow(current, o);
 		}
 			break;
 
@@ -148,6 +172,7 @@ namespace sc
 -: 1: current = current - operand
 *: 1: current = current * operand
 /: 1: current = current / operand
+^: 1: current = current ^ operand
 ---
 sin: 1: current = sin(current)
 cos: 1: current = cos(current)
@@ -193,9 +218,9 @@ help: 0: show this screen)" << std::endl;
 	{
 		size_t i = 0;
 		auto og_size = elements.size();
-		while (i < og_size)
+		while (i < og_size && elements.size() > 0)
 		{
-			if (elements.size() > 0 && !elements.back().second)
+			if (!elements.back().second)
 			{
 				auto e = std::move(elements.back());
 				elements.pop_back();
@@ -333,7 +358,6 @@ help: 0: show this screen)" << std::endl;
 					try {
 						what = readline("> ");
 						if (!what) throw sc::exception("", sc::error_type::repl_quit);
-							
 						expr(what);
 					} catch (...) {
 						if (what) free(what);
