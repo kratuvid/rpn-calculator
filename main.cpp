@@ -57,84 +57,83 @@ private:
 	{
 		std::cerr << name << ": Arbitrary length calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
-				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits"
+				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits" << std::endl
 				  << "\t-r, --repl: Start the REPL"
 				  << std::endl;
 	}
 	
 	void parse_arguments(int argc, char** argv)
 	{
-		if (argc == 1)
+		std::vector<std::string> list_expr;
+		bool is_repl = false;
+			
+		for (int i=1; i < argc; i++)
 		{
-			repl();
-		}
-		else
-		{
-			for (int i=1; i < argc; i++)
+			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 			{
-				if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
-				{
-					show_help(argv[0]);
-					throw sc::exception("", sc::error_type::init_help);
-				}
+				show_help(argv[0]);
+				throw sc::exception("", sc::error_type::init_help);
+			}
 			
-				else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
+			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
+			{
+				std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
+				std::cmatch match;
+				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
-					std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
-					std::cmatch match;
-					if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
-					{
-						auto e = match[1].str();
-						expr(e);
-						std::cout << current << std::endl;
-					}
-					else
-					{
-						throw sc::exception("Please supply an expression to calculate", sc::error_type::init);
-					}
+					auto e = match[1].str();
+					list_expr.push_back(e);
 				}
-
-				else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
-				{
-					repl();
-					return;
-				}
-			
 				else
 				{
-					std::ostringstream oss;
-					oss << "Unknown argument: '" << argv[i] << "'";
-					show_help(argv[0]);
-					throw sc::exception(oss.str(), sc::error_type::init);
+					throw sc::exception("Please supply an expression to calculate", sc::error_type::init);
 				}
 			}
+
+			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
+			{
+				is_repl = true;
+			}
+			
+			else
+			{
+				std::ostringstream oss;
+				oss << "Unknown argument: '" << argv[i] << "'";
+				show_help(argv[0]);
+				throw sc::exception(oss.str(), sc::error_type::init);
+			}
 		}
+
+		for (const auto& what : list_expr)
+			expr(what);
+		std::cout << current << std::endl;
+
+		if (is_repl || argc == 1)
+			repl();
 	}
 
 	void perform_operation(operator_t operation, std::stack<number_t>& operands)
 	{
-		auto& result = current;
-		
 		switch (operation)
 		{
 		case operator_t::add: {			
 			auto o = operands.top();
 			operands.pop();
-			result += o;
+			current += o;
 		}
 			break;
 			
 		case operator_t::subtract: {
 			auto o = operands.top();
 			operands.pop();
-			result -= o;
+			current -= o;
 		}
 			break;
 			
 		case operator_t::multiply: {
 			auto o = operands.top();
 			operands.pop();
-			result *= o;
+			current *= o;
 		}
 			break;
 			
@@ -143,7 +142,7 @@ private:
 			operands.pop();
 			if (o == 0)
 				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
-			result /= o;
+			current /= o;
 		}
 			break;
 
@@ -227,30 +226,30 @@ help: 0: show this screen)" << std::endl;
 
 	void reverse_polish()
 	{
-		unsigned i = 0;
-		while (i < elements.size())
+		size_t i = 0;
+		auto og_size = elements.size();
+		while (i < og_size)
 		{
-			auto e = elements.back();
-
-			if (!e.second)
+			if (!elements.back().second)
 			{
+				auto e = std::move(elements.back());
 				elements.pop_back();
 			
-				int i = static_cast<int>(e.first.o);
-				if (elements.size() < operand_size[i])
+				int op_i = static_cast<int>(e.first.o);
+				if (elements.size() < operand_size[op_i])
 				{
 					std::ostringstream oss;
-					oss << "Operation '" << operations[i] << "' requires "
-						<< operand_size[i] << " elements but only "
+					oss << "Operation '" << operations[op_i] << "' requires "
+						<< operand_size[op_i] << " elements but only "
 						<< elements.size() << " are left";
 					throw sc::exception(oss.str(), sc::error_type::expr);
 				}
 				else
 				{
 					std::stack<number_t> operands;
-					for (unsigned j=0; j < operand_size[i]; j++)
+					for (unsigned j=0; j < operand_size[op_i]; j++)
 					{
-						auto e = elements.back();
+						auto e = std::move(elements.back());
 						elements.pop_back();
 						i++;
 						
@@ -258,7 +257,7 @@ help: 0: show this screen)" << std::endl;
 						{
 							std::ostringstream oss;
 							oss << "Unexpected operation '" << operations[static_cast<int>(e.first.o)]
-								<< "' while processing current operation '" << operations[i]
+								<< "' while processing current operation '" << operations[op_i]
 								<< "'";
 							throw sc::exception(oss.str(), sc::error_type::expr);
 						}
