@@ -11,10 +11,9 @@ int main(int argc, char** argv)
 		if (e.type == sc::error_type::init_help)
 			return 0;
 		
-		std::ostringstream oss;
-		oss << "Fatal exception: ";
-		oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
-		std::cerr << oss.str() << e.what() << std::endl;
+		std::cerr << "Fatal exception: "
+				  << sc::error_type_str[static_cast<int>(e.type)] << ": "
+				  << e.what() << std::endl;
 	}
 	catch (const std::exception& e)
 	{

@@ -179,7 +179,7 @@ help: 0: show this screen)" << std::endl;
 		auto og_size = elements.size();
 		while (i < og_size)
 		{
-			if (!elements.back().second)
+			if (elements.size() > 0 && !elements.back().second)
 			{
 				auto e = std::move(elements.back());
 				elements.pop_back();
