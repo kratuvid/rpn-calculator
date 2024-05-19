@@ -21,7 +21,8 @@ public:
 	enum class operator_t
 	{
 		add, subtract, multiply, divide,
-		stack, current, quit, set
+		stack, current, quit, set,
+		help
 	};
 	union element_t {
 		number_t n;
@@ -29,14 +30,16 @@ public:
 	};
 
 private:
-	static constexpr size_t operations_size = 8;
+	static constexpr size_t operations_size = 9;
 	static constexpr std::array<std::string_view, operations_size> operations {
 		"+", "-", "*", "/",
-		"stack", "current", "quit", "set"
+		"stack", "current", "quit", "set",
+		"help"
 	};
 	static constexpr std::array<unsigned, operations_size> operand_size {
 		1, 1, 1, 1,
-		0, 0, 0, 1
+		0, 0, 0, 1,
+		0
 	};
 	
 	std::vector<std::pair<element_t, bool>> elements;
@@ -54,42 +57,49 @@ private:
 	
 	void parse_arguments(int argc, char** argv)
 	{
-		for (int i=1; i < argc; i++)
+		if (argc == 1)
 		{
-			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+			repl();
+		}
+		else
+		{
+			for (int i=1; i < argc; i++)
 			{
-				show_help(argv[0]);
-				throw sc::exception("", sc::error_type::init_help);
-			}
-			
-			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
-			{
-				std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
-				std::cmatch match;
-				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
+				if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 				{
-					auto e = match[1].str();
-					expr(e);
-					std::cout << current << std::endl;
+					show_help(argv[0]);
+					throw sc::exception("", sc::error_type::init_help);
 				}
+			
+				else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
+				{
+					std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
+					std::cmatch match;
+					if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
+					{
+						auto e = match[1].str();
+						expr(e);
+						std::cout << current << std::endl;
+					}
+					else
+					{
+						throw sc::exception("Please supply an expression to calculate", sc::error_type::init);
+					}
+				}
+
+				else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
+				{
+					repl();
+					return;
+				}
+			
 				else
 				{
-					throw sc::exception("Please supply an expression to calculate", sc::error_type::init);
+					std::ostringstream oss;
+					oss << "Unknown argument: '" << argv[i] << "'";
+					show_help(argv[0]);
+					throw sc::exception(oss.str(), sc::error_type::init);
 				}
-			}
-
-			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
-			{
-				repl();
-				return;
-			}
-			
-			else
-			{
-				std::ostringstream oss;
-				oss << "Unknown argument: '" << argv[i] << "'";
-				show_help(argv[0]);
-				throw sc::exception(oss.str(), sc::error_type::init);
 			}
 		}
 	}
@@ -158,6 +168,21 @@ private:
 			auto o = operands.top();
 			operands.pop();
 			current = o;
+		}
+			break;
+			
+		case operator_t::help: {
+			std::cerr << R"(Operation: operand size: description:
+-------------------------------------
++: 1: current = current + operand
+-: 1: current = current - operand
+*: 1: current = current * operand
+/: 1: current = current / operand
+stack: 0: list the stack
+current: 0: display the current value
+quit: 0: quit the REPL
+set: 1: current = operand
+help: 0: show this screen)" << std::endl;
 		}
 			break;
 		}
