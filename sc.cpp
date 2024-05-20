@@ -219,6 +219,12 @@ namespace sc
 		}
 			break;
 
+		case operator_t::top: {
+			auto a = std::any_cast<number_t&>(stack.back());
+			std::cout << a << std::endl;
+		}
+			break;
+
 		case operator_t::neg: {
 			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
@@ -529,11 +535,6 @@ help: 0: show this screen)" << std::endl;
 				rl_clear_history();
 			};
 
-			std::ostringstream oss;
-			oss << "Error: ";
-			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
-			oss << e.what();
-
 			switch (e.type)
 			{
 			case sc::error_type::expr:
@@ -548,6 +549,10 @@ help: 0: show this screen)" << std::endl;
 				throw;
 			}
 
+			std::ostringstream oss;
+			oss << "Error: ";
+			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
+			oss << e.what();
 			std::cerr << oss.str() << std::endl;
 
 			goto begin;

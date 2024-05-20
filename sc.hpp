@@ -31,7 +31,7 @@ namespace sc
 		{
 			add, subtract, multiply, divide, power,
 			stack, quit, replace, swap, pop, clear,
-			file,
+			file, top,
 			neg,
 			help,
 			sin, cos,
@@ -41,11 +41,11 @@ namespace sc
 		using element_t = std::any;
 
 	private:
-		static constexpr size_t operations_size = 18;
+		static constexpr size_t operations_size = 19;
 		static constexpr std::array<std::string_view, operations_size> operations {
 			"+", "-", "*", "/", "^",
 			"stack", "quit", "replace", "swap", "pop", "clear",
-			"file",
+			"file", "top",
 			"neg",
 			"help",
 			"sin", "cos",
@@ -54,7 +54,7 @@ namespace sc
 		static constexpr std::array<int, operations_size> operand_size {
 			2, 2, 2, 2, 2,
 			0, 0, 2, 2, 1, 0,
-			-1,
+			-1, 1,
 			1,
 			0,
 			1, 1,
