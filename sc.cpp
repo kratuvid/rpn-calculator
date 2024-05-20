@@ -9,6 +9,7 @@ namespace sc
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
 				  << "\t-f, --file=[FILE]: Read expressions from FILE" << std::endl
+				  << "\t-s, --stdin: Read expression from standard input until EOF" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
@@ -16,7 +17,7 @@ namespace sc
 	void simple_calculator::parse_arguments(int argc, char** argv)
 	{
 		std::list<std::string> list_expr, list_files;
-		bool is_repl = argc == 1;
+		bool is_repl = argc == 1, is_stdin = false;
 
 		for (int i=1; i < argc; i++)
 		{
@@ -59,6 +60,11 @@ namespace sc
 				}
 			}
 
+			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)
+			{
+				is_stdin = true;
+			}
+
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
 			{
 				verbose = true;
@@ -78,6 +84,9 @@ namespace sc
 
 		for (const auto& what : list_files)
 			file(what);
+
+		if (is_stdin)
+			file(std::cin);
 
 		if (is_repl)
 			repl();
@@ -436,17 +445,22 @@ help: 0: show this screen)" << std::endl;
 		std::ifstream ifs(what.data());
 		if (ifs.is_open())
 		{
-			std::string line;
-			while (std::getline(ifs, line))
-			{
-				expr(line);
-			}
+			file(ifs);
 		}
 		else
 		{
 			std::ostringstream oss;
 			oss << "Cannot open file '" << what << "'";
 			throw sc::exception(oss.str(), sc::error_type::file);
+		}
+	}
+
+	void simple_calculator::file(std::istream& is)
+	{
+		std::string line;
+		while (std::getline(is, line))
+		{
+			expr(line);
 		}
 	}
 

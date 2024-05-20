@@ -73,6 +73,7 @@ namespace sc
 
 		void expr(std::string_view what);
 		void file(std::string_view what);
+		void file(std::istream& is);
 		void repl();
 
 	public:
