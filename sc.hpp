@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <cctype>
 #include <string_view>
 #include <cstring>
@@ -29,6 +30,7 @@ namespace sc
 		{
 			add, subtract, multiply, divide, power,
 			stack, quit, replace, swap, pop, clear,
+			file,
 			neg,
 			help,
 			sin, cos,
@@ -41,18 +43,20 @@ namespace sc
 		};
 
 	private:
-		static constexpr size_t operations_size = 17;
+		static constexpr size_t operations_size = 18;
 		static constexpr std::array<std::string_view, operations_size> operations {
 			"+", "-", "*", "/", "^",
 			"stack", "quit", "replace", "swap", "pop", "clear",
+			"file",
 			"neg",
 			"help",
 			"sin", "cos",
 			"floor", "ceil"
 		};
-		static constexpr std::array<unsigned, operations_size> operand_size {
+		static constexpr std::array<int, operations_size> operand_size {
 			2, 2, 2, 2, 2,
 			0, 0, 2, 2, 1, 0,
+			-1,
 			1,
 			0,
 			1, 1,
@@ -70,6 +74,7 @@ namespace sc
 		void evaluate();
 
 		void expr(std::string_view what);
+		void file(std::string_view what);
 		void repl();
 
 	public:

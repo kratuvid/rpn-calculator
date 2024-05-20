@@ -8,13 +8,14 @@ namespace sc
 				  << "\t-h, --help: Show this" << std::endl
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
+				  << "\t-f, --file=[FILE]: Read commands from FILE" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
 
 	void simple_calculator::parse_arguments(int argc, char** argv)
 	{
-		std::list<std::string> list_expr;
+		std::list<std::string> list_expr, list_files;
 		bool is_repl = false;
 
 		for (int i=1; i < argc; i++)
@@ -31,8 +32,7 @@ namespace sc
 				std::cmatch match;
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
-					auto e = match[1].str();
-					list_expr.push_back(std::move(e));
+					list_expr.push_back(std::move(match[1].str()));
 				}
 				else
 				{
@@ -43,6 +43,20 @@ namespace sc
 			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
 			{
 				is_repl = true;
+			}
+
+			else if (strncmp(argv[i], "--file", 2+4) == 0 || strncmp(argv[i], "-f", 1+1) == 0)
+			{
+				std::regex reg(R"(--file=(.+))"), reg2(R"(-f=(.+))");
+				std::cmatch match;
+				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
+				{
+					list_files.push_back(std::move(match[1].str()));
+				}
+				else
+				{
+					throw sc::exception("Please supply a file to read", sc::error_type::init);
+				}
 			}
 
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
@@ -61,6 +75,9 @@ namespace sc
 
 		for (const auto& what : list_expr)
 			expr(what);
+
+		for (const auto& what : list_files)
+			file(what);
 
 		if (is_repl || argc == 1)
 			repl();
@@ -134,7 +151,6 @@ namespace sc
 			break;
 
 		case operator_t::stack: {
-			std::cout << stack.size()  << " elements in stack" << std::endl;
 			for (unsigned i = 0; i < stack.size(); i++)
 			{
 				const auto& e = stack[i];
@@ -158,7 +174,7 @@ namespace sc
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " -> " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " > " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
@@ -169,7 +185,7 @@ namespace sc
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "swap " << a << " <-> " << b << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "swap " << a << " <> " << b << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 			stack.push_back(std::make_pair(static_cast<element_t>(b), true));
 		}
@@ -381,6 +397,25 @@ help: 0: show this screen)" << std::endl;
 		}
 	}
 
+	void simple_calculator::file(std::string_view what)
+	{
+		std::ifstream ifs(what.data());
+		if (ifs.is_open())
+		{
+			std::string line;
+			while (std::getline(ifs, line))
+			{
+				expr(line);
+			}
+		}
+		else
+		{
+			std::ostringstream oss;
+			oss << "Cannot open file " << what;
+			throw sc::exception(oss.str(), sc::error_type::file);
+		}
+	}
+
 	void simple_calculator::repl()
 	{
 		using_history();
@@ -455,6 +490,7 @@ help: 0: show this screen)" << std::endl;
 			{
 			case sc::error_type::expr:
 			case sc::error_type::eval:
+			case sc::error_type::file:
 				break;
 			case sc::error_type::repl_quit:
 				cleanup_global();
