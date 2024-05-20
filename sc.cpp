@@ -6,9 +6,9 @@ namespace sc
 	{
 		std::cerr << name << ": Arbitrary length calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
-				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION and quits" << std::endl
+				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
-				  << "\t-f, --file=[FILE]: Read commands from FILE" << std::endl
+				  << "\t-f, --file=[FILE]: Read expressions from FILE" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
@@ -16,7 +16,7 @@ namespace sc
 	void simple_calculator::parse_arguments(int argc, char** argv)
 	{
 		std::list<std::string> list_expr, list_files;
-		bool is_repl = false;
+		bool is_repl = argc == 1;
 
 		for (int i=1; i < argc; i++)
 		{
@@ -79,15 +79,12 @@ namespace sc
 		for (const auto& what : list_files)
 			file(what);
 
-		if (is_repl || argc == 1)
+		if (is_repl)
 			repl();
 	}
 
 	void simple_calculator::perform_operation(operator_t operation)
 	{
-		int op_i = static_cast<int>(operation);
-		int op_size = std::abs(operand_size[op_i]);
-
 		switch (operation)
 		{
 		case operator_t::add: {
@@ -97,7 +94,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b + a;
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " + " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -109,7 +106,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b - a;
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " - " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -121,7 +118,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b * a;
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " * " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -135,7 +132,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b / a;
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " / " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -147,7 +144,7 @@ namespace sc
 			stack.pop_back();
 			auto r = std::pow(b, a);
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " ^ " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -176,7 +173,7 @@ namespace sc
 			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << "replace " << b << " > " << a << std::endl;
+				std::cerr << stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(a));
 		}
 			break;
@@ -187,7 +184,7 @@ namespace sc
 			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << "swap " << b << " <> " << a << std::endl;
+				std::cerr << stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
 			stack.push_back(std::make_any<number_t>(a));
 			stack.push_back(std::make_any<number_t>(b));
 		}
@@ -197,7 +194,7 @@ namespace sc
 			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << "pop " << a << std::endl;
+				std::cerr << stack.size() << "> " << "pop " << a << std::endl;
 		}
 			break;
 
@@ -217,7 +214,7 @@ namespace sc
 			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << -a << " = -(" << a << ")" << std::endl;
+				std::cerr << stack.size()+1 << "> " << -a << " = -(" << a << ")" << std::endl;
 			stack.push_back(std::make_any<number_t>(-a));
 		}
 			break;
@@ -254,7 +251,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::sin(a);
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = sin(" << a << ")" << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -264,7 +261,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::cos(a);
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = cos(" << a << ")" << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -274,7 +271,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::floor(a);
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = floor(" << a << ")" << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
@@ -284,7 +281,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::ceil(a);
 			if (verbose)
-				std::cerr << stack.size()+op_size << "> " << r << " = ceil(" << a << ")" << std::endl;
+				std::cerr << stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
 			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
