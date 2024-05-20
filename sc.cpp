@@ -86,68 +86,69 @@ namespace sc
 	void simple_calculator::perform_operation(operator_t operation)
 	{
 		int op_i = static_cast<int>(operation);
-		int op_size = std::abs(operand_size[op_i];
+		int op_size = std::abs(operand_size[op_i]);
+
 		switch (operation)
 		{
 		case operator_t::add: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = b + a;
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " + " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::subtract: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = b - a;
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " - " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::multiply: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = b * a;
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " * " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::divide: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			if (a == 0)
 				throw sc::exception("Cannot divide by 0", sc::error_type::eval);
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = b / a;
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " / " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::power: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = std::pow(b, a);
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " ^ " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
@@ -155,10 +156,10 @@ namespace sc
 			for (unsigned i = 0; i < stack.size(); i++)
 			{
 				const auto& e = stack[i];
-				if (e.second)
-					std::cout << i << ": " << e.first.n;
+				if (e.type() == typeid(number_t))
+					std::cout << i << ": " << std::any_cast<number_t>(e);
 				else
-					throw std::logic_error("There shouldn't be operator on the stack");
+					throw std::logic_error("There shouldn't be operator or string on the stack");
 				std::cout << std::endl;
 			}
 		}
@@ -170,30 +171,30 @@ namespace sc
 			break;
 
 		case operator_t::replace: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << "replace " << b << " > " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
+			stack.push_back(std::make_any<number_t>(a));
 		}
 			break;
 
 		case operator_t::swap: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
-			auto b = stack.back().first.n;
+			auto b = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << "swap " << b << " <> " << a << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
-			stack.push_back(std::make_pair(static_cast<element_t>(b), true));
+			stack.push_back(std::make_any<number_t>(a));
+			stack.push_back(std::make_any<number_t>(b));
 		}
 			break;
 
 		case operator_t::pop: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << "pop " << a << std::endl;
@@ -206,19 +207,18 @@ namespace sc
 			break;
 
 		case operator_t::file: {
-			auto a = std::move(stack.back().first.s);
+			auto a = std::any_cast<std::string&&>(std::move(stack.back()));
 			stack.pop_back();
 			file(a);
 		}
 			break;
 
 		case operator_t::neg: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << -a << " = -(" << a << ")" << std::endl;
-			a = -a;
-			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
+			stack.push_back(std::make_any<number_t>(-a));
 		}
 			break;
 
@@ -231,11 +231,13 @@ namespace sc
 /: 2: division
 ^: 2: power
 ---
+neg: 1: negate the top
 sin: 1: sine
 cos: 1: cosine
 floor: 1: floor
 ceil: 1: ceiling
 ---
+file: -1: read commands from file
 stack: 0: show the stack
 clear: 0: empty the stack
 pop: 1: pop the stack
@@ -248,42 +250,42 @@ help: 0: show this screen)" << std::endl;
 			break;
 
 		case operator_t::sin: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = std::sin(a);
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = sin(" << a << ")" << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::cos: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = std::cos(a);
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = cos(" << a << ")" << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::floor: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = std::floor(a);
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = floor(" << a << ")" << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
 		case operator_t::ceil: {
-			auto a = stack.back().first.n;
+			auto a = std::any_cast<number_t>(stack.back());
 			stack.pop_back();
 			auto r = std::ceil(a);
 			if (verbose)
 				std::cerr << stack.size()+op_size << "> " << r << " = ceil(" << a << ")" << std::endl;
-			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
+			stack.push_back(std::make_any<number_t>(r));
 		}
 			break;
 
@@ -298,16 +300,16 @@ help: 0: show this screen)" << std::endl;
 		auto og_size = stack.size();
 		while (i < og_size && stack.size() > 0)
 		{
-			if (stack.back().second == element_type::oper)
+			if (stack.back().type() == typeid(operator_t))
 			{
-				auto e = stack.back();
+				auto op = std::any_cast<operator_t>(stack.back());
 				stack.pop_back();
 
-				int op_i = static_cast<int>(e.first.o);
+				int op_i = static_cast<int>(op);
 				int op_size = std::abs(operand_size[op_i]);
 				bool need_string = operand_size[op_i] < 0;
 
-				if (stack.size() < op_size)
+				if (stack.size() < (size_t)op_size)
 				{
 					std::ostringstream oss;
 					oss << "Operation '" << operations[op_i] << "' requires "
@@ -317,17 +319,18 @@ help: 0: show this screen)" << std::endl;
 				}
 				else
 				{
-					for (unsigned i = 0; i < op_size; i++)
+					for (unsigned i = 0; i < (unsigned)op_size; i++)
 					{
-						const auto& op_e = stack[stack.size()-i-1];
-						if (need_string && op_e.second != element_type::string)
+						const auto& operand_elem = stack[stack.size()-i-1];
+						if (need_string && operand_elem.type() != typeid(std::string))
 						{
 							std::ostringstream oss;
 							oss << "Expected " << op_size << " string operands for"
 								<< " operation '" << operations[op_i] << "' in the stack";
 							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
-						else if (op_e.second != element_type::number)
+
+						if (!need_string && operand_elem.type() != typeid(number_t))
 						{
 							std::ostringstream oss;
 							oss << "Expected " << op_size << " numerical operands for"
@@ -336,7 +339,7 @@ help: 0: show this screen)" << std::endl;
 						}
 					}
 
-					perform_operation(e.first.o);
+					perform_operation(op);
 				}
 			}
 
@@ -373,14 +376,14 @@ help: 0: show this screen)" << std::endl;
 		for (const auto& sub : subs)
 		{
 			okay = true;
-			auto elem {std::make_pair(static_cast<element_t>(0), element_type::oper)};
+			auto elem = std::make_any<number_t>(0.0);
 
 			bool is_op = false;
 			for (unsigned i=0; i < operations.size(); i++)
 			{
 				if (sub == operations[i])
 				{
-					elem.first.o = static_cast<operator_t>(i);
+					elem = static_cast<operator_t>(i);
 					is_op = true;
 					break;
 				}
@@ -398,8 +401,7 @@ help: 0: show this screen)" << std::endl;
 					}
 					else
 					{
-						elem.second = element_type::string;
-						elem.first.s = std::move(sub.substr(1));
+						elem = std::move(sub.substr(1));
 					}
 				}
 
@@ -407,8 +409,7 @@ help: 0: show this screen)" << std::endl;
 				{
 					try
 					{
-						elem.second = element_type::number;
-						elem.first.n = std::move(std::stold(sub));
+						elem = std::stold(sub);
 					}
 					catch (const std::out_of_range& e) {
 						okay = false;
@@ -447,7 +448,7 @@ help: 0: show this screen)" << std::endl;
 		else
 		{
 			std::ostringstream oss;
-			oss << "Cannot open file " << what;
+			oss << "Cannot open file '" << what << "'";
 			throw sc::exception(oss.str(), sc::error_type::file);
 		}
 	}
@@ -507,7 +508,7 @@ help: 0: show this screen)" << std::endl;
 
 				if (stack.size() > 0)
 				{
-					std::cout << stack.back().first.n << std::endl;
+					std::cout << std::any_cast<number_t>(stack.back()) << std::endl;
 				}
 			}
 		}

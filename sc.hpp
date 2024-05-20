@@ -26,7 +26,7 @@ namespace sc
 	class simple_calculator
 	{
 	public:
-		using number_t = double;
+		using number_t = long double;
 		enum class operator_t
 		{
 			add, subtract, multiply, divide, power,
@@ -38,18 +38,7 @@ namespace sc
 			floor, ceil,
 			_length
 		};
-		enum class element_type
-		{
-			number,
-			oper,
-			string,
-		};
-		union element_t
-		{
-			number_t n;
-			operator_t o;
-			std::string s;
-		};
+		using element_t = std::any;
 
 	private:
 		static constexpr size_t operations_size = 18;
@@ -72,7 +61,7 @@ namespace sc
 			1, 1
 		};
 
-		std::vector<std::pair<element_t, element_type>> stack;
+		std::vector<element_t> stack;
 		bool verbose = false;
 
 	private:
