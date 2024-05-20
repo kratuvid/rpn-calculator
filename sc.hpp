@@ -28,7 +28,7 @@ namespace sc
 		enum class operator_t
 		{
 			add, subtract, multiply, divide, power,
-			stack, quit, replace, pop, clear,
+			stack, quit, replace, swap, pop, clear,
 			neg,
 			help,
 			sin, cos,
@@ -41,10 +41,10 @@ namespace sc
 		};
 
 	private:
-		static constexpr size_t operations_size = 16;
+		static constexpr size_t operations_size = 17;
 		static constexpr std::array<std::string_view, operations_size> operations {
 			"+", "-", "*", "/", "^",
-			"stack", "quit", "replace", "pop", "clear",
+			"stack", "quit", "replace", "swap", "pop", "clear",
 			"neg",
 			"help",
 			"sin", "cos",
@@ -52,7 +52,7 @@ namespace sc
 		};
 		static constexpr std::array<unsigned, operations_size> operand_size {
 			2, 2, 2, 2, 2,
-			0, 0, 2, 1, 0,
+			0, 0, 2, 2, 1, 0,
 			1,
 			0,
 			1, 1,

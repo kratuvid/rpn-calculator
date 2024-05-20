@@ -68,6 +68,7 @@ namespace sc
 
 	void simple_calculator::perform_operation(operator_t operation)
 	{
+		int op_i = static_cast<int>(operation);
 		switch (operation)
 		{
 		case operator_t::add: {			
@@ -77,7 +78,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b + a;
 			if (verbose)
-				std::cerr << r << " = " << b << " + " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " + " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -89,7 +90,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b - a;
 			if (verbose)
-				std::cerr << r << " = " << b << " - " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " - " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -101,7 +102,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b * a;
 			if (verbose)
-				std::cerr << r << " = " << b << " * " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " * " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -115,7 +116,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b / a;
 			if (verbose)
-				std::cerr << r << " = " << b << " / " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " / " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -127,7 +128,7 @@ namespace sc
 			stack.pop_back();
 			auto r = std::pow(b, a);
 			if (verbose)
-				std::cerr << r << " = " << b << " ^ " << a << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " ^ " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -157,16 +158,28 @@ namespace sc
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << "replace " << b << " -> " << a << std::endl;			
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " -> " << a << std::endl;			
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
 			
-		case operator_t::pop: {
-			auto a = stack.back();
-			if (verbose)
-				std::cerr << "pop " << a.first.n << std::endl;			
+		case operator_t::swap: {
+			auto a = stack.back().first.n;
 			stack.pop_back();
+			auto b = stack.back().first.n;
+			stack.pop_back();
+			if (verbose)
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "swap " << a << " <-> " << b << std::endl;
+			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
+			stack.push_back(std::make_pair(static_cast<element_t>(b), true));
+		}
+			break;
+			
+		case operator_t::pop: {
+			auto a = stack.back().first.n;
+			stack.pop_back();
+			if (verbose)
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "pop " << a << std::endl;			
 		}
 			break;
 			
@@ -176,12 +189,12 @@ namespace sc
 			break;
 			
 		case operator_t::neg: {
-			auto a = stack.back();
+			auto a = stack.back().first.n;
 			stack.pop_back();
-			a.first.n = -a.first.n;
 			if (verbose)
-				std::cerr << a.first.n << " = -(" << -a.first.n << ")" << std::endl;			
-			stack.push_back(a);
+				std::cerr << stack.size()+operand_size[op_i] << "> " << -a << " = -(" << a << ")" << std::endl;			
+			a = -a;
+			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
 			
@@ -203,6 +216,7 @@ stack: 0: show the stack
 clear: 0: empty the stack
 pop: 1: pop the stack
 replace: 2: replaces the top of the stack
+swap: 2: swap the last two elements
 quit: 0: quit the REPL
 ---
 help: 0: show this screen)" << std::endl;
@@ -214,7 +228,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::sin(a);
 			if (verbose)
-				std::cerr << r << " = sin(" << a << ")" << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = sin(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -224,7 +238,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::cos(a);
 			if (verbose)
-				std::cerr << r << " = cos(" << a << ")" << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = cos(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -234,7 +248,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::floor(a);
 			if (verbose)
-				std::cerr << r << " = floor(" << a << ")" << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = floor(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -244,7 +258,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::ceil(a);
 			if (verbose)
-				std::cerr << r << " = ceil(" << a << ")" << std::endl;
+				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = ceil(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
