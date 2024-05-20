@@ -109,7 +109,7 @@ namespace sc
 		case operator_t::divide: {
 			auto a = stack.back().first.n;
 			if (a == 0)
-				throw sc::exception("Cannot divide by 0", sc::error_type::expr_divide_by_zero);
+				throw sc::exception("Cannot divide by 0", sc::error_type::eval);
 			stack.pop_back();
 			auto b = stack.back().first.n;
 			stack.pop_back();
@@ -272,7 +272,7 @@ help: 0: show this screen)" << std::endl;
 					oss << "Operation '" << operations[op_i] << "' requires "
 						<< operand_size[op_i] << " elements but only "
 						<< stack.size() << " are left";
-					throw sc::exception(oss.str(), sc::error_type::expr);
+					throw sc::exception(oss.str(), sc::error_type::eval);
 				}
 				else
 				{
@@ -283,7 +283,7 @@ help: 0: show this screen)" << std::endl;
 							std::ostringstream oss;
 							oss << "Expected " << operand_size[op_i] << " numerical operands for"
 								<< " operation '" << operations[op_i] << "' in the stack";
-							throw sc::exception(oss.str(), sc::error_type::expr);
+							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
 					}
 					
@@ -428,6 +428,10 @@ help: 0: show this screen)" << std::endl;
 		}
 		catch (const sc::exception& e)
 		{
+			auto cleanup_global = [&]() {
+				rl_clear_history();
+			};
+			
 			std::ostringstream oss;
 			oss << "Error: ";
 			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
@@ -435,12 +439,14 @@ help: 0: show this screen)" << std::endl;
 			
 			switch (e.type)
 			{
-			case sc::error_type::expr_divide_by_zero:
 			case sc::error_type::expr:
+			case sc::error_type::eval:
 				break;
 			case sc::error_type::repl_quit:
+				cleanup_global();
 				return;
 			default:
+				cleanup_global();
 				throw;
 			}
 			

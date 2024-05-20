@@ -9,14 +9,16 @@ namespace sc
 	enum class error_type
 	{
 		init, init_help,
-		expr, expr_divide_by_zero,
+		expr,
+		eval,
 		repl_quit
 	};
 
 	static constexpr std::array<std::string_view, 5> error_type_str
 	{
 		"init", "init_help",
-		"expr", "expr_divide_by_zero",
+		"expr",
+		"eval",
 		"repl_quit"
 	};
 
