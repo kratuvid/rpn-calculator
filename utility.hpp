@@ -26,7 +26,7 @@ namespace sc
 	{
 	public:
 		error_type type;
-	
+
 		exception(const std::string_view& msg, error_type e)
 			:std::runtime_error(msg.data()), type(e)
 		{

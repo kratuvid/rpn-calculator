@@ -16,7 +16,7 @@ namespace sc
 	{
 		std::list<std::string> list_expr;
 		bool is_repl = false;
-			
+
 		for (int i=1; i < argc; i++)
 		{
 			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
@@ -24,7 +24,7 @@ namespace sc
 				show_help(argv[0]);
 				throw sc::exception("", sc::error_type::init_help);
 			}
-			
+
 			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
 			{
 				std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
@@ -44,12 +44,12 @@ namespace sc
 			{
 				is_repl = true;
 			}
-			
+
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
 			{
 				verbose = true;
 			}
-			
+
 			else
 			{
 				std::ostringstream oss;
@@ -61,7 +61,7 @@ namespace sc
 
 		for (const auto& what : list_expr)
 			expr(what);
-		
+
 		if (is_repl || argc == 1)
 			repl();
 	}
@@ -71,7 +71,7 @@ namespace sc
 		int op_i = static_cast<int>(operation);
 		switch (operation)
 		{
-		case operator_t::add: {			
+		case operator_t::add: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			auto b = stack.back().first.n;
@@ -82,7 +82,7 @@ namespace sc
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::subtract: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -94,7 +94,7 @@ namespace sc
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::multiply: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -106,7 +106,7 @@ namespace sc
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::divide: {
 			auto a = stack.back().first.n;
 			if (a == 0)
@@ -146,23 +146,23 @@ namespace sc
 			}
 		}
 			break;
-			
+
 		case operator_t::quit: {
 			throw sc::exception("", sc::error_type::repl_quit);
 		}
 			break;
-			
+
 		case operator_t::replace: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " -> " << a << std::endl;			
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " -> " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
-			
+
 		case operator_t::swap: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -174,30 +174,30 @@ namespace sc
 			stack.push_back(std::make_pair(static_cast<element_t>(b), true));
 		}
 			break;
-			
+
 		case operator_t::pop: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "pop " << a << std::endl;			
+				std::cerr << stack.size()+operand_size[op_i] << "> " << "pop " << a << std::endl;
 		}
 			break;
-			
+
 		case operator_t::clear: {
 			stack.clear();
 		}
 			break;
-			
+
 		case operator_t::neg: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << -a << " = -(" << a << ")" << std::endl;			
+				std::cerr << stack.size()+operand_size[op_i] << "> " << -a << " = -(" << a << ")" << std::endl;
 			a = -a;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
-			
+
 		case operator_t::help: {
 			std::cerr << R"(operation: operand size: description:
 -------------------------------------
@@ -222,7 +222,7 @@ quit: 0: quit the REPL
 help: 0: show this screen)" << std::endl;
 		}
 			break;
-			
+
 		case operator_t::sin: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -232,7 +232,7 @@ help: 0: show this screen)" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::cos: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -242,7 +242,7 @@ help: 0: show this screen)" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::floor: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -252,7 +252,7 @@ help: 0: show this screen)" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
-			
+
 		case operator_t::ceil: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
@@ -278,7 +278,7 @@ help: 0: show this screen)" << std::endl;
 			{
 				auto e = stack.back();
 				stack.pop_back();
-			
+
 				int op_i = static_cast<int>(e.first.o);
 				if (stack.size() < operand_size[op_i])
 				{
@@ -300,7 +300,7 @@ help: 0: show this screen)" << std::endl;
 							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
 					}
-					
+
 					perform_operation(e.first.o);
 				}
 			}
@@ -339,7 +339,7 @@ help: 0: show this screen)" << std::endl;
 		{
 			okay = true;
 			auto elem {std::make_pair(static_cast<element_t>(0), false)};
-			
+
 			elem.second = false;
 			bool is_op = false;
 			for (unsigned i=0; i < operations.size(); i++)
@@ -374,29 +374,29 @@ help: 0: show this screen)" << std::endl;
 			}
 			else
 			{
-				std::ostringstream oss; 
+				std::ostringstream oss;
 				oss << "Garbage sub-expression: '" << sub << "'";
 				throw sc::exception(oss.str(), sc::error_type::expr);
 			}
 		}
 	}
-	
+
 	void simple_calculator::repl()
 	{
 		using_history();
-		
+
 	  begin:
 		try
 		{
 			while (true)
 			{
 				if (false)
-				{					
+				{
 					std::string what;
 
 					std::cerr << "> ";
 					std::getline(std::cin, what);
-					
+
 					expr(what);
 				}
 				else
@@ -410,12 +410,12 @@ help: 0: show this screen)" << std::endl;
 							what = nullptr;
 						}
 					};
-					
+
 					try
 					{
 						std::string prompt {std::to_string(stack.size())};
 						prompt += "> ";
-						
+
 						what = readline(prompt.c_str());
 						if (!what) throw sc::exception("", sc::error_type::repl_quit);
 
@@ -430,7 +430,7 @@ help: 0: show this screen)" << std::endl;
 						cleanup_local();
 						throw;
 					}
-					
+
 					cleanup_local();
 				}
 
@@ -445,12 +445,12 @@ help: 0: show this screen)" << std::endl;
 			auto cleanup_global = [&]() {
 				rl_clear_history();
 			};
-			
+
 			std::ostringstream oss;
 			oss << "Error: ";
 			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
 			oss << e.what();
-			
+
 			switch (e.type)
 			{
 			case sc::error_type::expr:
@@ -463,10 +463,10 @@ help: 0: show this screen)" << std::endl;
 				cleanup_global();
 				throw;
 			}
-			
+
 			std::cerr << oss.str() << std::endl;
-			
+
 			goto begin;
 		}
-	}	
+	}
 }; // namespace sc

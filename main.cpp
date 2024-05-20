@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 	{
 		if (e.type == sc::error_type::init_help)
 			return 0;
-		
+
 		std::cerr << "Fatal exception: "
 				  << sc::error_type_str[static_cast<int>(e.type)] << ": "
 				  << e.what() << std::endl;

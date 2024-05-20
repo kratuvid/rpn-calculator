@@ -58,20 +58,20 @@ namespace sc
 			1, 1,
 			1, 1
 		};
-	
+
 		std::vector<std::pair<element_t, bool>> stack;
 		bool verbose = false;
 
 	private:
-		void show_help(char* name);	
+		void show_help(char* name);
 		void parse_arguments(int argc, char** argv);
-		
+
 		void perform_operation(operator_t operation);
 		void evaluate();
-		
+
 		void expr(std::string_view what);
 		void repl();
-	
+
 	public:
 		simple_calculator(int argc, char** argv)
 		{
