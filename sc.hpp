@@ -14,6 +14,7 @@
 #include <array>
 #include <cmath>
 #include <list>
+#include <any>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -37,9 +38,17 @@ namespace sc
 			floor, ceil,
 			_length
 		};
-		union element_t {
+		enum class element_type
+		{
+			number,
+			oper,
+			string,
+		};
+		union element_t
+		{
 			number_t n;
 			operator_t o;
+			std::string s;
 		};
 
 	private:
@@ -63,7 +72,7 @@ namespace sc
 			1, 1
 		};
 
-		std::vector<std::pair<element_t, bool>> stack;
+		std::vector<std::pair<element_t, element_type>> stack;
 		bool verbose = false;
 
 	private:

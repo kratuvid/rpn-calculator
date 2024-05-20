@@ -86,6 +86,7 @@ namespace sc
 	void simple_calculator::perform_operation(operator_t operation)
 	{
 		int op_i = static_cast<int>(operation);
+		int op_size = std::abs(operand_size[op_i];
 		switch (operation)
 		{
 		case operator_t::add: {
@@ -95,7 +96,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b + a;
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " + " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " + " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -107,7 +108,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b - a;
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " - " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " - " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -119,7 +120,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b * a;
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " * " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " * " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -133,7 +134,7 @@ namespace sc
 			stack.pop_back();
 			auto r = b / a;
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " / " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " / " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -145,7 +146,7 @@ namespace sc
 			stack.pop_back();
 			auto r = std::pow(b, a);
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = " << b << " ^ " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = " << b << " ^ " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -174,7 +175,7 @@ namespace sc
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "replace " << b << " > " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << "replace " << b << " > " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
 			break;
@@ -185,7 +186,7 @@ namespace sc
 			auto b = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "swap " << a << " <> " << b << std::endl;
+				std::cerr << stack.size()+op_size << "> " << "swap " << b << " <> " << a << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 			stack.push_back(std::make_pair(static_cast<element_t>(b), true));
 		}
@@ -195,7 +196,7 @@ namespace sc
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << "pop " << a << std::endl;
+				std::cerr << stack.size()+op_size << "> " << "pop " << a << std::endl;
 		}
 			break;
 
@@ -204,11 +205,18 @@ namespace sc
 		}
 			break;
 
+		case operator_t::file: {
+			auto a = std::move(stack.back().first.s);
+			stack.pop_back();
+			file(a);
+		}
+			break;
+
 		case operator_t::neg: {
 			auto a = stack.back().first.n;
 			stack.pop_back();
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << -a << " = -(" << a << ")" << std::endl;
+				std::cerr << stack.size()+op_size << "> " << -a << " = -(" << a << ")" << std::endl;
 			a = -a;
 			stack.push_back(std::make_pair(static_cast<element_t>(a), true));
 		}
@@ -244,7 +252,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::sin(a);
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = sin(" << a << ")" << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = sin(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -254,7 +262,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::cos(a);
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = cos(" << a << ")" << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = cos(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -264,7 +272,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::floor(a);
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = floor(" << a << ")" << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = floor(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -274,7 +282,7 @@ help: 0: show this screen)" << std::endl;
 			stack.pop_back();
 			auto r = std::ceil(a);
 			if (verbose)
-				std::cerr << stack.size()+operand_size[op_i] << "> " << r << " = ceil(" << a << ")" << std::endl;
+				std::cerr << stack.size()+op_size << "> " << r << " = ceil(" << a << ")" << std::endl;
 			stack.push_back(std::make_pair(static_cast<element_t>(r), true));
 		}
 			break;
@@ -290,13 +298,16 @@ help: 0: show this screen)" << std::endl;
 		auto og_size = stack.size();
 		while (i < og_size && stack.size() > 0)
 		{
-			if (!stack.back().second)
+			if (stack.back().second == element_type::oper)
 			{
 				auto e = stack.back();
 				stack.pop_back();
 
 				int op_i = static_cast<int>(e.first.o);
-				if (stack.size() < operand_size[op_i])
+				int op_size = std::abs(operand_size[op_i]);
+				bool need_string = operand_size[op_i] < 0;
+
+				if (stack.size() < op_size)
 				{
 					std::ostringstream oss;
 					oss << "Operation '" << operations[op_i] << "' requires "
@@ -306,12 +317,20 @@ help: 0: show this screen)" << std::endl;
 				}
 				else
 				{
-					for (unsigned i = 0; i < operand_size[op_i]; i++)
+					for (unsigned i = 0; i < op_size; i++)
 					{
-						if (!stack[stack.size()-i-1].second)
+						const auto& op_e = stack[stack.size()-i-1];
+						if (need_string && op_e.second != element_type::string)
 						{
 							std::ostringstream oss;
-							oss << "Expected " << operand_size[op_i] << " numerical operands for"
+							oss << "Expected " << op_size << " string operands for"
+								<< " operation '" << operations[op_i] << "' in the stack";
+							throw sc::exception(oss.str(), sc::error_type::eval);
+						}
+						else if (op_e.second != element_type::number)
+						{
+							std::ostringstream oss;
+							oss << "Expected " << op_size << " numerical operands for"
 								<< " operation '" << operations[op_i] << "' in the stack";
 							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
@@ -354,9 +373,8 @@ help: 0: show this screen)" << std::endl;
 		for (const auto& sub : subs)
 		{
 			okay = true;
-			auto elem {std::make_pair(static_cast<element_t>(0), false)};
+			auto elem {std::make_pair(static_cast<element_t>(0), element_type::oper)};
 
-			elem.second = false;
 			bool is_op = false;
 			for (unsigned i=0; i < operations.size(); i++)
 			{
@@ -370,16 +388,34 @@ help: 0: show this screen)" << std::endl;
 
 			if (!is_op)
 			{
-				try
+				bool is_string = false;
+				if (sub[0] == ':')
 				{
-					elem.second = true;
-					elem.first.n = std::stold(sub);
+					is_string = true;
+					if (sub.size() <= 1)
+					{
+						throw sc::exception("Empty string argument provided", sc::error_type::expr);
+					}
+					else
+					{
+						elem.second = element_type::string;
+						elem.first.s = std::move(sub.substr(1));
+					}
 				}
-				catch (const std::out_of_range& e) {
-					okay = false;
-				}
-				catch (const std::invalid_argument& e) {
-					okay = false;
+
+				if (!is_string)
+				{
+					try
+					{
+						elem.second = element_type::number;
+						elem.first.n = std::move(std::stold(sub));
+					}
+					catch (const std::out_of_range& e) {
+						okay = false;
+					}
+					catch (const std::invalid_argument& e) {
+						okay = false;
+					}
 				}
 			}
 
