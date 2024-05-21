@@ -92,220 +92,6 @@ namespace sc
 			repl();
 	}
 
-	void simple_calculator::perform_operation(const operation_t* op)
-	{
-		switch (op)
-		{
-		case operator_t::add: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = b + a;
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::subtract: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = b - a;
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::multiply: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = b * a;
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::divide: {
-			auto a = std::any_cast<number_t>(stack.back());
-			if (a == 0)
-				throw sc::exception("Cannot divide by 0", sc::error_type::eval);
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = b / a;
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::power: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = std::pow(b, a);
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::stack: {
-			for (unsigned i = 0; i < stack.size(); i++)
-			{
-				const auto& e = stack[i];
-				if (e.type() == typeid(number_t))
-					std::cout << i << ": " << std::any_cast<number_t>(e);
-				else
-					throw std::logic_error("There shouldn't be operator or string on the stack");
-				std::cout << std::endl;
-			}
-		}
-			break;
-
-		case operator_t::quit: {
-			throw sc::exception("", sc::error_type::repl_quit);
-		}
-			break;
-
-		case operator_t::replace: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(a));
-		}
-			break;
-
-		case operator_t::swap: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto b = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			if (verbose)
-				std::cerr << stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
-			stack.push_back(std::make_any<number_t>(a));
-			stack.push_back(std::make_any<number_t>(b));
-		}
-			break;
-
-		case operator_t::pop: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			if (verbose)
-				std::cerr << stack.size() << "> " << "pop " << a << std::endl;
-		}
-			break;
-
-		case operator_t::clear: {
-			stack.clear();
-		}
-			break;
-
-		case operator_t::file: {
-			auto a = std::any_cast<std::string&&>(std::move(stack.back()));
-			stack.pop_back();
-			file(a);
-		}
-			break;
-
-		case operator_t::top: {
-			auto a = std::any_cast<number_t&>(stack.back());
-			std::cout << a << std::endl;
-		}
-			break;
-
-		case operator_t::neg: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << -a << " = -(" << a << ")" << std::endl;
-			stack.push_back(std::make_any<number_t>(-a));
-		}
-			break;
-
-		case operator_t::help: {
-			std::cerr << R"(operation: operand size: description:
--------------------------------------
-+: 2: addition
--: 2: subtraction
-*: 2: multiplication
-/: 2: division
-^: 2: power
----
-neg: 1: negate the top
-sin: 1: sine
-cos: 1: cosine
-floor: 1: floor
-ceil: 1: ceiling
----
-file: -1: read commands from file
-stack: 0: show the stack
-clear: 0: empty the stack
-pop: 1: pop the stack
-replace: 2: replaces the top of the stack
-swap: 2: swap the last two elements
-quit: 0: quit the REPL
----
-help: 0: show this screen)" << std::endl;
-		}
-			break;
-
-		case operator_t::sin: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = std::sin(a);
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::cos: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = std::cos(a);
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::floor: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = std::floor(a);
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::ceil: {
-			auto a = std::any_cast<number_t>(stack.back());
-			stack.pop_back();
-			auto r = std::ceil(a);
-			if (verbose)
-				std::cerr << stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
-			stack.push_back(std::make_any<number_t>(r));
-		}
-			break;
-
-		case operator_t::_length: // unreachable code
-			break;
-		}
-	}
-
 	void simple_calculator::evaluate()
 	{
 		while (stack.size() > 0 && stack.back().type() == typeid(const operation_t*))
@@ -313,21 +99,21 @@ help: 0: show this screen)" << std::endl;
 			auto op = std::any_cast<const operation_t*>(stack.back());
 			stack.pop_back();
 
-			if (stack.size() < op->second.size())
+			if (stack.size() < std::get<1>(*op).size())
 			{
 				std::ostringstream oss;
-				oss << "Operation '" << op->first << "' requires "
-					<< op->second.size() << " elements but only "
+				oss << "Operation '" << std::get<0>(*op) << "' requires "
+					<< std::get<1>(*op).size() << " elements but only "
 					<< stack.size() << " are left";
 				throw sc::exception(oss.str(), sc::error_type::eval);
 			}
 			else
 			{
-				for (unsigned i = 0; i < op->second.size(); i++)
+				for (unsigned i = 0; i < std::get<1>(*op).size(); i++)
 				{
 					const auto& operand = stack[stack.size() - i - 1];
-					const auto operand_index = op->second.size() - i - 1;
-					const auto need_operand_type = op->second[operand_index];
+					const auto operand_index = std::get<1>(*op).size() - i - 1;
+					const auto need_operand_type = std::get<1>(*op)[operand_index];
 
 					bool matched = false;
 					switch (need_operand_type)
@@ -349,12 +135,12 @@ help: 0: show this screen)" << std::endl;
 						if (need_operand_type == operand_type::string) oss << "string";
 						else if (need_operand_type == operand_type::number) oss << "number";
 						else oss << "unknown";
-						oss << " at index " << operand_index << " for operation '" << op->first << "'";
+						oss << " at index " << operand_index << " for operation '" << std::get<0>(*op) << "'";
 						throw sc::exception(oss.str(), sc::error_type::eval);
 					}
 				}
 
-				perform_operation(op);
+				std::get<2>(*op)(this);
 			}
 		}
 	}
@@ -386,7 +172,7 @@ help: 0: show this screen)" << std::endl;
 
 			for (size_t i=0; i < operations.size(); i++)
 			{
-				if (sub == operations[i].first)
+				if (sub == std::get<0>(operations[i]))
 				{
 					elem = &operations[i];
 					break;
@@ -547,5 +333,246 @@ help: 0: show this screen)" << std::endl;
 
 			goto begin;
 		}
+	}
+
+	void simple_calculator::op_add(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = b + a;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_subtract(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = b - a;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_multiply(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = b * a;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_divide(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		if (a == 0)
+			throw sc::exception("Cannot divide by 0", sc::error_type::eval);
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = b / a;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_power(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = std::pow(b, a);
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_stack(simple_calculator* ins)
+	{
+		for (unsigned i = 0; i < ins->stack.size(); i++)
+		{
+			const auto& e = ins->stack[i];
+			if (e.type() == typeid(number_t))
+				std::cout << i << ": " << std::any_cast<number_t>(e);
+			else
+				throw std::logic_error("There shouldn't be operator or string on the stack");
+			std::cout << std::endl;
+		}
+	}
+
+	void simple_calculator::op_quit(simple_calculator* ins)
+	{
+		throw sc::exception("", sc::error_type::repl_quit);
+	}
+
+	void simple_calculator::op_replace(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(a));
+	}
+
+	void simple_calculator::op_swap(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(a));
+		ins->stack.push_back(std::make_any<number_t>(b));
+	}
+
+	void simple_calculator::op_pop(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size() << "> " << "pop " << a << std::endl;
+	}
+
+	void simple_calculator::op_clear(simple_calculator* ins)
+	{
+		ins->stack.clear();
+	}
+
+	void simple_calculator::op_file(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+		ins->file(a);
+	}
+
+	void simple_calculator::op_top(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t&>(ins->stack.back());
+		std::cout << a << std::endl;
+	}
+
+	void simple_calculator::op_neg(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = -a;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = -(" << a << ")" << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_help(simple_calculator* ins)
+	{
+		std::cerr << R"(operation: operand size: description:
+-------------------------------------
++: 2: addition
+-: 2: subtraction
+*: 2: multiplication
+/: 2: division
+^: 2: power
+---
+neg: 1: negate the top
+sin: 1: sine
+cos: 1: cosine
+floor: 1: floor
+ceil: 1: ceiling
+---
+file: -1: read commands from file
+stack: 0: show the stack
+clear: 0: empty the stack
+pop: 1: pop the stack
+replace: 2: replaces the top of the stack
+swap: 2: swap the last two elements
+quit: 0: quit the REPL
+---
+help: 0: show this screen)" << std::endl;
+	}
+
+	void simple_calculator::op_sin(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = std::sin(a);
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_cos(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = std::cos(a);
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_floor(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = std::floor(a);
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
+	}
+
+	void simple_calculator::op_ceil(simple_calculator* ins)
+	{
+		auto a = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto r = std::ceil(a);
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
+
+		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 }; // namespace sc

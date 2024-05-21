@@ -15,6 +15,7 @@
 #include <cmath>
 #include <list>
 #include <any>
+#include <tuple>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -29,34 +30,56 @@ namespace sc
 		enum class operand_type { number, string };
 		using number_t = long double;
 		using element_t = std::any;
-		using operation_t = std::pair<std::string, std::vector<operand_type>>;
+		using operation_func_t = void (*) (simple_calculator*);
+		using operation_t = std::tuple<std::string, std::vector<operand_type>, operation_func_t>;
 
 	private:
 		const std::array<operation_t, 19> operations {{
-				    // 5: 0 -> 4
-				{"+", {operand_type::number, operand_type::number}},
-				{"-", {operand_type::number, operand_type::number}},
-				{"*", {operand_type::number, operand_type::number}},
-				{"/", {operand_type::number, operand_type::number}},
-				{"^", {operand_type::number, operand_type::number}},
+				{"+", {operand_type::number, operand_type::number}, op_add},
+				{"-", {operand_type::number, operand_type::number}, op_subtract},
+				{"*", {operand_type::number, operand_type::number}, op_multiply},
+				{"/", {operand_type::number, operand_type::number}, op_divide},
+				{"^", {operand_type::number, operand_type::number}, op_power},
 
-				    // 4: 5 -> 8
-				{"replace", {operand_type::number, operand_type::number}},
-				{"swap", {operand_type::number, operand_type::number}},
-				{"pop", {operand_type::number}}, {"top", {operand_type::number}},
+				{"replace", {operand_type::number, operand_type::number}, op_replace},
+				{"swap", {operand_type::number, operand_type::number}, op_swap},
+				{"pop", {operand_type::number}, op_pop},
+				{"top", {operand_type::number}, op_top},
 
-					// 5: 9 -> 13
-				{"neg", {operand_type::number}},
-				{"sin", {operand_type::number}}, {"cos", {operand_type::number}},
-				{"floor", {operand_type::number}}, {"ceil", {operand_type::number}},
+				{"neg", {operand_type::number}, op_neg},
+				{"sin", {operand_type::number}, op_sin}, {"cos", {operand_type::number}, op_cos},
+				{"floor", {operand_type::number}, op_floor}, {"ceil", {operand_type::number}, op_ceil},
 
-					// 5: 14 -> 18
-				{"help", {}}, {"stack", {}}, {"quit", {}}, {"clear", {}},
-				{"file", {operand_type::string}},
+				{"help", {}, op_help}, {"stack", {}, op_stack}, {"quit", {}, op_quit},
+				{"clear", {}, op_clear}, {"file", {operand_type::string}, op_file},
 		}};
 
 		std::vector<element_t> stack;
 		bool verbose = false;
+
+	private:
+		static void op_add(simple_calculator* ins);
+		static void op_subtract(simple_calculator* ins);
+		static void op_multiply(simple_calculator* ins);
+		static void op_divide(simple_calculator* ins);
+		static void op_power(simple_calculator* ins);
+
+		static void op_replace(simple_calculator* ins);
+		static void op_swap(simple_calculator* ins);
+		static void op_pop(simple_calculator* ins);
+		static void op_top(simple_calculator* ins);
+
+		static void op_neg(simple_calculator* ins);
+		static void op_sin(simple_calculator* ins);
+		static void op_cos(simple_calculator* ins);
+		static void op_floor(simple_calculator* ins);
+		static void op_ceil(simple_calculator* ins);
+
+		static void op_help(simple_calculator* ins);
+		static void op_stack(simple_calculator* ins);
+		static void op_quit(simple_calculator* ins);
+		static void op_clear(simple_calculator* ins);
+		static void op_file(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);
