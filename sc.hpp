@@ -32,9 +32,15 @@ namespace sc
 		using number_t = long double;
 		using element_t = std::any;
 		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
+		struct variable_t {
+			std::string name;
+			variable_t(const std::string& name) :name(name) {}
+			variable_t(std::string&& name) :name(name) {}
+			variable_t(const std::string_view& name) :name(name) {}
+		};
 
 	private:
-		const std::array<operation_t, 21> operations {{
+		const std::array<operation_t, 23> operations {{
 				{"+", {operand_type::number, operand_type::number}, op_add},
 				{"-", {operand_type::number, operand_type::number}, op_subtract},
 				{"*", {operand_type::number, operand_type::number}, op_multiply},
@@ -55,6 +61,8 @@ namespace sc
 
 				{"var", {operand_type::number, operand_type::string}, op_var},
 				{"vars", {}, op_vars},
+				{"del", {operand_type::string}, op_del},
+				{"delall", {}, op_delall},
 			}
 		};
 
@@ -88,6 +96,8 @@ namespace sc
 
 		static void op_var(simple_calculator* ins);
 		static void op_vars(simple_calculator* ins);
+		static void op_del(simple_calculator* ins);
+		static void op_delall(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);
@@ -95,6 +105,7 @@ namespace sc
 
 		void perform_operation(const operation_t* op);
 		void evaluate();
+		number_t resolve_variable_if(const element_t& e);
 
 		void expr(std::string_view what);
 		void file(std::string_view what);

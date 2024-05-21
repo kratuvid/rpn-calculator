@@ -115,20 +115,33 @@ namespace sc
 					const auto operand_index = std::get<1>(*op).size() - i - 1;
 					const auto need_operand_type = std::get<1>(*op)[operand_index];
 
-					bool matched = false;
-					switch (need_operand_type)
+					operand_type op_type;
+					if (operand.type() == typeid(variable_t))
 					{
-					case operand_type::string:
-						if (operand.type() != typeid(std::string))
-							matched = true;
-						break;
-
-					case operand_type::number:
-						if (operand.type() != typeid(number_t))
-							matched = true;
-						break;
+						auto var_ptr = std::any_cast<variable_t>(&operand);
+						if (!variables.contains(var_ptr->name))
+						{
+							std::ostringstream oss;
+							oss << "Use of undefined variable '" << var_ptr->name
+								<<"' at index " << operand_index
+								<< " for operation '" << std::get<0>(*op) << "'";
+							throw sc::exception(oss.str(), sc::error_type::eval);
+						}
+						op_type = operand_type::number;
 					}
-					if (matched)
+					else if (operand.type() == typeid(number_t))
+						op_type = operand_type::number;
+					else if (operand.type() == typeid(std::string))
+						op_type = operand_type::string;
+					else
+					{
+						std::ostringstream oss;
+						oss << "Unknown operand type '" << operand.type().name()
+							<< "'. This is a program error";
+						throw std::runtime_error(oss.str());
+					}
+
+					if (need_operand_type != op_type)
 					{
 						std::ostringstream oss;
 						oss << "Expected operand of type ";
@@ -142,6 +155,20 @@ namespace sc
 
 				std::get<2>(*op)(this);
 			}
+		}
+	}
+
+	simple_calculator::number_t simple_calculator::resolve_variable_if(const element_t& e)
+	{
+		if (e.type() == typeid(variable_t))
+		{
+			auto var = std::any_cast<variable_t const&>(e);
+			return variables[var.name];
+		}
+		else
+		{
+			auto num = std::any_cast<number_t>(e);
+			return num;
 		}
 	}
 
@@ -192,6 +219,24 @@ namespace sc
 						elem = std::move(sub.substr(1));
 					}
 				}
+				else if (sub[0] == '$')
+				{
+					if (sub.size() <= 1)
+					{
+						throw sc::exception("Empty variable provided", sc::error_type::expr);
+					}
+					else
+					{
+						auto var_name = sub.substr(1);
+						if (!variables.contains(var_name))
+						{
+							std::ostringstream oss;
+							oss << "No such variable '" << var_name << "' exists";
+							throw sc::exception(oss.str(), sc::error_type::expr);
+						}
+						elem = variable_t(var_name);
+					}
+				}
 
 				if (!elem.has_value())
 				{
@@ -215,6 +260,14 @@ namespace sc
 			}
 			else
 			{
+				for (int i = (int)stack.size()-1; i >= 0; i--)
+				{
+					if (stack[i].type() != typeid(std::string))
+						break;
+					else
+						stack.pop_back();
+				}
+
 				std::ostringstream oss;
 				oss << "Garbage sub-expression: '" << sub << "'";
 				throw sc::exception(oss.str(), sc::error_type::expr);
@@ -279,7 +332,7 @@ namespace sc
 					try
 					{
 						std::string prompt {std::to_string(stack.size())};
-						prompt += "> ";
+						prompt += ">> ";
 
 						what = readline(prompt.c_str());
 						if (!what) throw sc::exception("", sc::error_type::repl_quit);
@@ -301,7 +354,8 @@ namespace sc
 
 				if (stack.size() > 0)
 				{
-					std::cout << std::any_cast<number_t>(stack.back()) << std::endl;
+					std::cout << "~ ";
+					op_top(this);
 				}
 			}
 		}
@@ -337,9 +391,9 @@ namespace sc
 
 	void simple_calculator::op_add(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = b + a;
@@ -352,9 +406,9 @@ namespace sc
 
 	void simple_calculator::op_subtract(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = b - a;
@@ -367,9 +421,9 @@ namespace sc
 
 	void simple_calculator::op_multiply(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = b * a;
@@ -382,11 +436,11 @@ namespace sc
 
 	void simple_calculator::op_divide(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		if (a == 0)
 			throw sc::exception("Cannot divide by 0", sc::error_type::eval);
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = b / a;
@@ -399,9 +453,9 @@ namespace sc
 
 	void simple_calculator::op_power(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = std::pow(b, a);
@@ -418,7 +472,14 @@ namespace sc
 		{
 			const auto& e = ins->stack[i];
 			if (e.type() == typeid(number_t))
+			{
 				std::cout << i << ": " << std::any_cast<number_t>(e);
+			}
+			else if (e.type() == typeid(variable_t))
+			{
+				auto var = std::any_cast<variable_t const&>(e);
+				std::cout << i << ": $" << var.name << ": " << ins->variables[var.name];
+			}
 			else
 				throw std::logic_error("There shouldn't be operator or string on the stack");
 			std::cout << std::endl;
@@ -432,9 +493,9 @@ namespace sc
 
 	void simple_calculator::op_replace(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (ins->verbose)
@@ -445,9 +506,9 @@ namespace sc
 
 	void simple_calculator::op_swap(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (ins->verbose)
@@ -459,7 +520,7 @@ namespace sc
 
 	void simple_calculator::op_pop(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (ins->verbose)
@@ -480,13 +541,25 @@ namespace sc
 
 	void simple_calculator::op_top(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t&>(ins->stack.back());
-		std::cout << a << std::endl;
+		const auto back = ins->stack.back();
+
+		if (back.type() == typeid(variable_t))
+		{
+			auto var = std::any_cast<variable_t const&>(back);
+			std::cout << "$" << var.name << " = " << ins->variables[var.name];
+		}
+		else
+		{
+			auto num = std::any_cast<number_t>(back);
+			std::cout << num;
+		}
+
+		std::cout << std::endl;
 	}
 
 	void simple_calculator::op_neg(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = -a;
@@ -501,32 +574,37 @@ namespace sc
 	{
 		std::cerr << R"(operation: operand size: description:
 -------------------------------------
-+: 2: addition
--: 2: subtraction
-*: 2: multiplication
-/: 2: division
-^: 2: power
++: n, n: addition
+-: n, n: subtraction
+*: n, n: multiplication
+/: n, n: division
+^: n, n: power
 ---
-neg: 1: negate the top
-sin: 1: sine
-cos: 1: cosine
-floor: 1: floor
-ceil: 1: ceiling
+neg: n: negate the top
+sin: n: sine
+cos: n: cosine
+floor: n: floor
+ceil: n: ceiling
 ---
-file: -1: read commands from file
-stack: 0: show the stack
-clear: 0: empty the stack
-pop: 1: pop the stack
-replace: 2: replaces the top of the stack
-swap: 2: swap the last two elements
-quit: 0: quit the REPL
+stack: show the stack
+clear: empty the stack
+pop: n: pop the stack
+replace: n, n: replaces the top of the stack
+swap: n, n: swap the last two elements
+var: n, s: set a variable s with n
+vars: list all variables
+del: s: delete variable s
+delall: delete all variables
 ---
-help: 0: show this screen)" << std::endl;
+file: s: read commands from file
+quit: quit the REPL
+---
+help: show this screen)" << std::endl;
 	}
 
 	void simple_calculator::op_sin(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = std::sin(a);
@@ -539,7 +617,7 @@ help: 0: show this screen)" << std::endl;
 
 	void simple_calculator::op_cos(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = std::cos(a);
@@ -552,7 +630,7 @@ help: 0: show this screen)" << std::endl;
 
 	void simple_calculator::op_floor(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = std::floor(a);
@@ -565,7 +643,7 @@ help: 0: show this screen)" << std::endl;
 
 	void simple_calculator::op_ceil(simple_calculator* ins)
 	{
-		auto a = std::any_cast<number_t>(ins->stack.back());
+		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		auto r = std::ceil(a);
@@ -581,7 +659,7 @@ help: 0: show this screen)" << std::endl;
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		ins->variables[a] = b;
@@ -594,7 +672,50 @@ help: 0: show this screen)" << std::endl;
 	{
 		for (const auto& v : ins->variables)
 		{
-			std::cout << "$" << v.first << " = " << v.second << std::endl;
+			std::cout << "$" << v.first << ": " << v.second << std::endl;
+		}
+	}
+
+	void simple_calculator::op_del(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		const auto it = ins->variables.find(a);
+		if (it == ins->variables.end())
+		{
+			std::ostringstream oss;
+			oss << "No such variable '" << a << "' exists";
+			throw sc::exception(oss.str(), sc::error_type::eval);
+		}
+		else
+		{
+			ins->variables.erase(it);
+			for (size_t i=0; i < ins->stack.size(); i++)
+			{
+				if (ins->stack[i].type() == typeid(variable_t))
+				{
+					auto var = std::any_cast<variable_t const&>(ins->stack[i]);
+					if (var.name == a)
+					{
+						ins->stack.erase(ins->stack.begin() + i);
+						if (i != 0) i--;
+					}
+				}
+			}
+		}
+	}
+
+	void simple_calculator::op_delall(simple_calculator* ins)
+	{
+		ins->variables.clear();
+		for (size_t i=0; i < ins->stack.size(); i++)
+		{
+			if (ins->stack[i].type() == typeid(variable_t))
+			{
+				ins->stack.erase(ins->stack.begin() + i);
+				if (i != 0) i--;
+			}
 		}
 	}
 }; // namespace sc
