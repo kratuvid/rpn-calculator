@@ -345,7 +345,7 @@ namespace sc
 
 				if (stack.size() > 0)
 				{
-					std::cout << "~ ";
+					std::cout << "^";
 					op_top(this);
 				}
 			}
@@ -537,7 +537,7 @@ namespace sc
 		if (back.type() == typeid(variable_t))
 		{
 			auto var = std::any_cast<variable_t const&>(back);
-			std::cout << "$" << var.name << " = " << ins->variables[var.name];
+			std::cout << "$" << var.name << ": " << ins->variables[var.name];
 		}
 		else
 		{
