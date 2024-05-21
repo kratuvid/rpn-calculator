@@ -16,7 +16,7 @@ namespace sc
 
 	void simple_calculator::parse_arguments(int argc, char** argv)
 	{
-		std::list<std::string> list_expr, list_files;
+		std::list<std::pair<std::string, bool>> list_work; // true if an expression
 		bool is_repl = argc == 1, is_stdin = false;
 
 		for (int i=1; i < argc; i++)
@@ -33,7 +33,7 @@ namespace sc
 				std::cmatch match;
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
-					list_expr.push_back(std::move(match[1].str()));
+					list_work.push_back(std::make_pair(std::move(match[1].str()), true));
 				}
 				else
 				{
@@ -52,7 +52,7 @@ namespace sc
 				std::cmatch match;
 				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
 				{
-					list_files.push_back(std::move(match[1].str()));
+					list_work.push_back(std::make_pair(std::move(match[1].str()), false));
 				}
 				else
 				{
@@ -79,11 +79,13 @@ namespace sc
 			}
 		}
 
-		for (const auto& what : list_expr)
-			expr(what);
-
-		for (const auto& what : list_files)
-			file(what);
+		for (const auto& what : list_work)
+		{
+			if (what.second)
+				expr(what.first);
+			else
+				file(what.first);
+		}
 
 		if (is_stdin)
 			file(std::cin);
@@ -117,18 +119,7 @@ namespace sc
 
 					operand_type op_type;
 					if (operand.type() == typeid(variable_t))
-					{
-						auto var_ptr = std::any_cast<variable_t>(&operand);
-						if (!variables.contains(var_ptr->name))
-						{
-							std::ostringstream oss;
-							oss << "Use of undefined variable '" << var_ptr->name
-								<<"' at index " << operand_index
-								<< " for operation '" << std::get<0>(*op) << "'";
-							throw sc::exception(oss.str(), sc::error_type::eval);
-						}
 						op_type = operand_type::number;
-					}
 					else if (operand.type() == typeid(number_t))
 						op_type = operand_type::number;
 					else if (operand.type() == typeid(std::string))
