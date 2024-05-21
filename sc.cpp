@@ -575,4 +575,26 @@ help: 0: show this screen)" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
+
+	void simple_calculator::op_var(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		ins->variables[a] = b;
+
+		if (ins->verbose)
+			std::cerr << ins->stack.size() << "> $" << a << " = " << b << std::endl;
+	}
+
+	void simple_calculator::op_vars(simple_calculator* ins)
+	{
+		for (const auto& v : ins->variables)
+		{
+			std::cout << "$" << v.first << " = " << v.second << std::endl;
+		}
+	}
 }; // namespace sc

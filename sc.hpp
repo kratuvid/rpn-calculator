@@ -16,6 +16,7 @@
 #include <list>
 #include <any>
 #include <tuple>
+#include <unordered_map>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -30,11 +31,10 @@ namespace sc
 		enum class operand_type { number, string };
 		using number_t = long double;
 		using element_t = std::any;
-		using operation_func_t = void (*) (simple_calculator*);
-		using operation_t = std::tuple<std::string, std::vector<operand_type>, operation_func_t>;
+		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
 
 	private:
-		const std::array<operation_t, 19> operations {{
+		const std::array<operation_t, 21> operations {{
 				{"+", {operand_type::number, operand_type::number}, op_add},
 				{"-", {operand_type::number, operand_type::number}, op_subtract},
 				{"*", {operand_type::number, operand_type::number}, op_multiply},
@@ -52,9 +52,14 @@ namespace sc
 
 				{"help", {}, op_help}, {"stack", {}, op_stack}, {"quit", {}, op_quit},
 				{"clear", {}, op_clear}, {"file", {operand_type::string}, op_file},
-		}};
+
+				{"var", {operand_type::number, operand_type::string}, op_var},
+				{"vars", {}, op_vars},
+			}
+		};
 
 		std::vector<element_t> stack;
+		std::unordered_map<std::string, number_t> variables;
 		bool verbose = false;
 
 	private:
@@ -80,6 +85,9 @@ namespace sc
 		static void op_quit(simple_calculator* ins);
 		static void op_clear(simple_calculator* ins);
 		static void op_file(simple_calculator* ins);
+
+		static void op_var(simple_calculator* ins);
+		static void op_vars(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);
