@@ -92,9 +92,9 @@ namespace sc
 			repl();
 	}
 
-	void simple_calculator::perform_operation(operator_t operation)
+	void simple_calculator::perform_operation(const operation_t* op)
 	{
-		switch (operation)
+		switch (op)
 		{
 		case operator_t::add: {
 			auto a = std::any_cast<number_t>(stack.back());
@@ -308,58 +308,54 @@ help: 0: show this screen)" << std::endl;
 
 	void simple_calculator::evaluate()
 	{
-		size_t i = 0;
-		auto og_size = stack.size();
-		while (i < og_size && stack.size() > 0)
+		while (stack.size() > 0 && stack.back().type() == typeid(const operation_t*))
 		{
-			if (stack.back().type() == typeid(operator_t))
+			auto op = std::any_cast<const operation_t*>(stack.back());
+			stack.pop_back();
+
+			if (stack.size() < op->second.size())
 			{
-				auto op = std::any_cast<operator_t>(stack.back());
-				stack.pop_back();
-
-				int op_i = static_cast<int>(op);
-				int op_size = std::abs(operand_size[op_i]);
-				bool need_string = operand_size[op_i] < 0;
-
-				if (stack.size() < (size_t)op_size)
-				{
-					std::ostringstream oss;
-					oss << "Operation '" << operations[op_i] << "' requires "
-						<< operand_size[op_i] << " elements but only "
-						<< stack.size() << " are left";
-					throw sc::exception(oss.str(), sc::error_type::eval);
-				}
-				else
-				{
-					for (unsigned i = 0; i < (unsigned)op_size; i++)
-					{
-						const auto& operand_elem = stack[stack.size()-i-1];
-						if (need_string && operand_elem.type() != typeid(std::string))
-						{
-							std::ostringstream oss;
-							oss << "Expected " << op_size << " string operands for"
-								<< " operation '" << operations[op_i] << "' in the stack";
-							throw sc::exception(oss.str(), sc::error_type::eval);
-						}
-
-						if (!need_string && operand_elem.type() != typeid(number_t))
-						{
-							std::ostringstream oss;
-							oss << "Expected " << op_size << " numerical operands for"
-								<< " operation '" << operations[op_i] << "' in the stack";
-							throw sc::exception(oss.str(), sc::error_type::eval);
-						}
-					}
-
-					perform_operation(op);
-				}
+				std::ostringstream oss;
+				oss << "Operation '" << op->first << "' requires "
+					<< op->second.size() << " elements but only "
+					<< stack.size() << " are left";
+				throw sc::exception(oss.str(), sc::error_type::eval);
 			}
-
 			else
 			{
-			}
+				for (unsigned i = 0; i < op->second.size(); i++)
+				{
+					const auto& operand = stack[stack.size() - i - 1];
+					const auto operand_index = op->second.size() - i - 1;
+					const auto need_operand_type = op->second[operand_index];
 
-			i++;
+					bool matched = false;
+					switch (need_operand_type)
+					{
+					case operand_type::string:
+						if (operand.type() != typeid(std::string))
+							matched = true;
+						break;
+
+					case operand_type::number:
+						if (operand.type() != typeid(number_t))
+							matched = true;
+						break;
+					}
+					if (matched)
+					{
+						std::ostringstream oss;
+						oss << "Expected operand of type ";
+						if (need_operand_type == operand_type::string) oss << "string";
+						else if (need_operand_type == operand_type::number) oss << "number";
+						else oss << "unknown";
+						oss << " at index " << operand_index << " for operation '" << op->first << "'";
+						throw sc::exception(oss.str(), sc::error_type::eval);
+					}
+				}
+
+				perform_operation(op);
+			}
 		}
 	}
 
@@ -384,29 +380,23 @@ help: 0: show this screen)" << std::endl;
 				subs.push_back(std::move(tmp));
 		}
 
-		bool okay = true;
 		for (const auto& sub : subs)
 		{
-			okay = true;
-			auto elem = std::make_any<number_t>(0.0);
+			element_t elem;
 
-			bool is_op = false;
-			for (unsigned i=0; i < operations.size(); i++)
+			for (size_t i=0; i < operations.size(); i++)
 			{
-				if (sub == operations[i])
+				if (sub == operations[i].first)
 				{
-					elem = static_cast<operator_t>(i);
-					is_op = true;
+					elem = &operations[i];
 					break;
 				}
 			}
 
-			if (!is_op)
+			if (!elem.has_value())
 			{
-				bool is_string = false;
 				if (sub[0] == ':')
 				{
-					is_string = true;
 					if (sub.size() <= 1)
 					{
 						throw sc::exception("Empty string argument provided", sc::error_type::expr);
@@ -417,25 +407,25 @@ help: 0: show this screen)" << std::endl;
 					}
 				}
 
-				if (!is_string)
+				if (!elem.has_value())
 				{
 					try
 					{
 						elem = std::stold(sub);
 					}
-					catch (const std::out_of_range& e) {
-						okay = false;
-					}
-					catch (const std::invalid_argument& e) {
-						okay = false;
-					}
+					catch (const std::out_of_range&) {}
+					catch (const std::invalid_argument&) {}
 				}
 			}
 
-			if (okay)
+			if (elem.has_value())
 			{
+				bool is_op = elem.type() == typeid(const operation_t*);
 				stack.push_back(std::move(elem));
-				if (is_op) evaluate();
+				if (is_op)
+				{
+					evaluate();
+				}
 			}
 			else
 			{
