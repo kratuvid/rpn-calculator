@@ -82,7 +82,7 @@ namespace sc
 		for (const auto& what : list_work)
 		{
 			if (what.second)
-				expr(what.first);
+				parse(what.first);
 			else
 				file(what.first);
 		}
@@ -163,7 +163,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::expr(std::string_view what)
+	void simple_calculator::parse(std::string_view what)
 	{
 		std::vector<std::string> subs;
 		{
@@ -203,7 +203,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						throw sc::exception("Empty string argument provided", sc::error_type::expr);
+						throw sc::exception("Empty string argument provided", sc::error_type::parse);
 					}
 					else
 					{
@@ -214,7 +214,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						throw sc::exception("Empty variable provided", sc::error_type::expr);
+						throw sc::exception("Empty variable provided", sc::error_type::parse);
 					}
 					else
 					{
@@ -223,9 +223,9 @@ namespace sc
 						{
 							std::ostringstream oss;
 							oss << "No such variable '" << var_name << "' exists";
-							throw sc::exception(oss.str(), sc::error_type::expr);
+							throw sc::exception(oss.str(), sc::error_type::parse);
 						}
-						elem = variable_t(var_name);
+						elem = variable_t(std::move(var_name));
 					}
 				}
 
@@ -260,8 +260,8 @@ namespace sc
 				}
 
 				std::ostringstream oss;
-				oss << "Garbage sub-expression: '" << sub << "'";
-				throw sc::exception(oss.str(), sc::error_type::expr);
+				oss << "Garbage sub-parseession: '" << sub << "'";
+				throw sc::exception(oss.str(), sc::error_type::parse);
 			}
 		}
 	}
@@ -286,7 +286,7 @@ namespace sc
 		std::string line;
 		while (std::getline(is, line))
 		{
-			expr(line);
+			parse(line);
 		}
 	}
 
@@ -306,7 +306,7 @@ namespace sc
 					std::cerr << "> ";
 					std::getline(std::cin, what);
 
-					expr(what);
+					parse(what);
 				}
 				else
 				{
@@ -331,7 +331,7 @@ namespace sc
 						if (*what)
 						{
 							add_history(what);
-							expr(what);
+							parse(what);
 						}
 					}
 					catch (...)
@@ -358,7 +358,7 @@ namespace sc
 
 			switch (e.type)
 			{
-			case sc::error_type::expr:
+			case sc::error_type::parse:
 			case sc::error_type::eval:
 			case sc::error_type::file:
 				break;

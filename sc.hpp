@@ -107,7 +107,7 @@ namespace sc
 		void evaluate();
 		number_t resolve_variable_if(const element_t& e);
 
-		void expr(std::string_view what);
+		void parse(std::string_view what);
 		void file(std::string_view what);
 		void file(std::istream& is);
 		void repl();
