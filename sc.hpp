@@ -23,23 +23,22 @@
 
 namespace sc
 {
+	using number_t = long double;
+	enum class operator_t
+	{
+		add, subtract, multiply, divide, power,
+		stack, quit, replace, swap, pop, clear,
+		file, top,
+		neg,
+		help,
+		sin, cos,
+		floor, ceil,
+		_length
+	};
+	using element_t = std::any;
+
 	class simple_calculator
 	{
-	public:
-		using number_t = long double;
-		enum class operator_t
-		{
-			add, subtract, multiply, divide, power,
-			stack, quit, replace, swap, pop, clear,
-			file, top,
-			neg,
-			help,
-			sin, cos,
-			floor, ceil,
-			_length
-		};
-		using element_t = std::any;
-
 	private:
 		static constexpr size_t operations_size = 19;
 		static constexpr std::array<std::string_view, operations_size> operations {
