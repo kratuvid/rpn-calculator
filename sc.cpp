@@ -96,29 +96,31 @@ namespace sc
 
 	void simple_calculator::execute()
 	{
-		while (stack.size() > 0 && stack.back().type() == typeid(const operation_t*))
+		while (stack.size() > 0 && stack.back().type() == typeid(operations_iter_t))
 		{
-			auto op = std::any_cast<const operation_t*>(stack.back());
+			auto op = std::any_cast<operations_iter_t>(std::move(stack.back()));
 			stack.pop_back();
 
-			if (stack.size() < std::get<1>(*op).size())
+			if (stack.size() < std::get<0>(op->second).size())
 			{
 				std::ostringstream oss;
-				oss << "Operation '" << std::get<0>(*op) << "' requires "
-					<< std::get<1>(*op).size() << " elements but only "
+				oss << "Operation '" << op->first << "' requires "
+					<< std::get<0>(op->second).size() << " elements but only "
 					<< stack.size() << " are left";
 				throw sc::exception(oss.str(), sc::error_type::exec);
 			}
 			else
 			{
-				for (unsigned i = 0; i < std::get<1>(*op).size(); i++)
+				const auto& op_list = std::get<0>(op->second);
+
+				for (unsigned i = 0; i < op_list.size(); i++)
 				{
 					const auto& operand = stack[stack.size() - i - 1];
-					const auto operand_index = std::get<1>(*op).size() - i - 1;
-					const auto need_operand_type = std::get<1>(*op)[operand_index];
+					const auto operand_index = op_list.size() - i - 1;
+					const auto need_operand_type = op_list[operand_index];
 
 					operand_type op_type;
-					if (operand.type() == typeid(variable_ref_t) || operand.type() == typeid(number_t))
+					if (operand.type() == typeid(number_t))
 						op_type = operand_type::number;
 					else if (operand.type() == typeid(std::string))
 						op_type = operand_type::string;
@@ -137,12 +139,12 @@ namespace sc
 						if (need_operand_type == operand_type::string) oss << "string";
 						else if (need_operand_type == operand_type::number) oss << "number";
 						else oss << "unknown";
-						oss << " at index " << operand_index << " for operation '" << std::get<0>(*op) << "'";
+						oss << " at index " << operand_index << " for operation '" << op->first << "'";
 						throw sc::exception(oss.str(), sc::error_type::exec);
 					}
 				}
 
-				std::get<2>(*op)(this);
+				std::get<1>(op->second)(this);
 			}
 		}
 	}
@@ -156,16 +158,20 @@ namespace sc
 
 			if (elem.type() == typeid(variable_ref_t))
 			{
-				auto var = std::any_cast<variable_ref_t const&>(elem);
-				auto it = variables.find(var.name);
-				if (it == variables.end())
+				if (!current_function)
 				{
-					std::ostringstream oss;
-					oss << "No such variable '" << var.name << "' exists";
-					throw sc::exception(oss.str(), sc::error_type::eval);
-				}
+					auto var = std::any_cast<variable_ref_t const&>(elem);
 
-				elem = it->second;
+					auto it = variables.find(var.name);
+					if (it == variables.end())
+					{
+						std::ostringstream oss;
+						oss << "No such variable '" << var.name << "' exists";
+						throw sc::exception(oss.str(), sc::error_type::eval);
+					}
+
+					elem = it->second;
+				}
 			}
 			else if (elem.type() == typeid(function_ref_t))
 			{
@@ -215,11 +221,11 @@ namespace sc
 				continue;
 			}
 
-			const bool is_op = elem.type() == typeid(const operation_t*);
+			const bool is_op = elem.type() == typeid(operations_iter_t);
 			bool is_op_end = false;
 			if (is_op)
 			{
-				const auto& op_name = std::get<0>(*std::any_cast<const operation_t*>(elem));
+				const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
 				is_op_end = op_name == "end";
 			}
 
@@ -279,13 +285,10 @@ namespace sc
 		{
 			element_t elem;
 
-			for (size_t i=0; i < operations.size(); i++)
+			const auto it_op = operations.find(sub);
+			if (it_op != operations.end())
 			{
-				if (sub == std::get<0>(operations[i]))
-				{
-					elem = &operations[i];
-					break;
-				}
+				elem = it_op;
 			}
 
 			if (!elem.has_value())

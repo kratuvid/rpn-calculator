@@ -278,7 +278,7 @@ help: show this screen)" << std::endl;
 	{
 		for (const auto& v : ins->variables)
 		{
-			std::cout << "$" << v.first << ": " << v.second << std::endl;
+			std::cout << '$' << v.first << ": " << v.second << std::endl;
 		}
 	}
 
@@ -366,10 +366,10 @@ help: show this screen)" << std::endl;
 					auto str = std::any_cast<std::string const&>(elem);
 					std::cout << ':' << str;
 				}
-				else if (elem.type() == typeid(const operation_t*))
+				else if (elem.type() == typeid(operations_iter_t))
 				{
-					auto op = std::any_cast<const operation_t*>(elem);
-					std::cout << std::get<0>(*op);
+					auto op_it = std::any_cast<operations_iter_t>(elem);
+					std::cout << op_it->first;
 				}
 				else
 				{
@@ -386,7 +386,7 @@ help: show this screen)" << std::endl;
 	{
 		for (const auto& f : ins->functions)
 		{
-			std::cout << f.first << ": " << std::get<0>(f.second) << " arguments, "
+			std::cout << '@' << f.first << ": " << std::get<0>(f.second) << " arguments, "
 					  << std::get<1>(f.second).size() << " elements" << std::endl;
 		}
 	}

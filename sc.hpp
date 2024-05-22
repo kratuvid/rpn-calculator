@@ -44,38 +44,39 @@ namespace sc
 			function_ref_t(const std::string_view& name) :name(name) {}
 		};
 		using element_t = std::any;
-		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 		using function_t = std::tuple<unsigned, std::deque<element_t>>; // name will be in the map
 
 	private:
-		const std::array<operation_t, 27> operations {{
-				{"+", {operand_type::number, operand_type::number}, op_add},
-				{"-", {operand_type::number, operand_type::number}, op_subtract},
-				{"*", {operand_type::number, operand_type::number}, op_multiply},
-				{"/", {operand_type::number, operand_type::number}, op_divide},
-				{"^", {operand_type::number, operand_type::number}, op_power},
+		const std::unordered_map<std::string, operation_t> operations {{
+				{"+", {{operand_type::number, operand_type::number}, op_add}},
+				{"-", {{operand_type::number, operand_type::number}, op_subtract}},
+				{"*", {{operand_type::number, operand_type::number}, op_multiply}},
+				{"/", {{operand_type::number, operand_type::number}, op_divide}},
+				{"^", {{operand_type::number, operand_type::number}, op_power}},
 
-				{"replace", {operand_type::number, operand_type::number}, op_replace},
-				{"swap", {operand_type::number, operand_type::number}, op_swap},
-				{"pop", {operand_type::number}, op_pop},
-				{"top", {operand_type::number}, op_top},
+				{"replace", {{operand_type::number, operand_type::number}, op_replace}},
+				{"swap", {{operand_type::number, operand_type::number}, op_swap}},
+				{"pop", {{operand_type::number}, op_pop}},
+				{"top", {{operand_type::number}, op_top}},
 
-				{"neg", {operand_type::number}, op_neg},
-				{"sin", {operand_type::number}, op_sin}, {"cos", {operand_type::number}, op_cos},
-				{"floor", {operand_type::number}, op_floor}, {"ceil", {operand_type::number}, op_ceil},
+				{"neg", {{operand_type::number}, op_neg}},
+				{"sin", {{operand_type::number}, op_sin}}, {"cos", {{operand_type::number}, op_cos}},
+				{"floor", {{operand_type::number}, op_floor}}, {"ceil", {{operand_type::number}, op_ceil}},
 
-				{"help", {}, op_help}, {"stack", {}, op_stack}, {"quit", {}, op_quit},
-				{"clear", {}, op_clear}, {"file", {operand_type::string}, op_file},
+				{"help", {{}, op_help}}, {"stack", {{}, op_stack}}, {"quit", {{}, op_quit}},
+				{"clear", {{}, op_clear}}, {"file", {{operand_type::string}, op_file}},
 
-				{"var", {operand_type::number, operand_type::string}, op_var},
-				{"vars", {}, op_vars},
-				{"del", {operand_type::string}, op_del},
-				{"delall", {}, op_delall},
+				{"var", {{operand_type::number, operand_type::string}, op_var}},
+				{"vars", {{}, op_vars}},
+				{"del", {{operand_type::string}, op_del}},
+				{"delall", {{}, op_delall}},
 
-				{"begin", {operand_type::number, operand_type::string}, op_begin},
-				{"end", {}, op_end},
-				{"describe", {operand_type::string}, op_describe},
-				{"funcs", {}, op_funcs},
+				{"begin", {{operand_type::number, operand_type::string}, op_begin}},
+				{"end", {{}, op_end}},
+				{"describe", {{operand_type::string}, op_describe}},
+				{"funcs", {{}, op_funcs}},
 		    }
 		};
 
@@ -83,9 +84,9 @@ namespace sc
 		std::deque<element_t> secondary_stack;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
-		bool verbose = false;
 
 		function_t* current_function = nullptr;
+		bool verbose = false;
 
 	private:
 		static void op_add(simple_calculator* ins);

@@ -6,6 +6,7 @@ Arbitrary length calculator or something
 - [ ] loops
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
+- [ ] comments
 - [x] optimize variable deletion by deleting from the last? - removed
 - [x] separate parsing, syntax checking and execution
 - [x] enter number of items returned on an operation/function - not needed
