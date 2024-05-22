@@ -161,9 +161,11 @@ namespace sc
 				if (it == variables.end())
 				{
 					std::ostringstream oss;
-					oss << "No variable '" << var.name << "' exists";
+					oss << "No such variable '" << var.name << "' exists";
 					throw sc::exception(oss.str(), sc::error_type::eval);
 				}
+
+				elem = it->second;
 			}
 			else if (elem.type() == typeid(function_ref_t))
 			{
@@ -172,7 +174,7 @@ namespace sc
 				if (it == functions.end())
 				{
 					std::ostringstream oss;
-					oss << "No function '" << func.name << "' exists";
+					oss << "No such function '" << func.name << "' exists";
 					throw sc::exception(oss.str(), sc::error_type::eval);
 				}
 				else
@@ -205,9 +207,9 @@ namespace sc
 					}
 
 					const auto& func_stack = std::get<1>(it->second);
-					for (const auto& elem_func : func_stack)
+					for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
 					{
-						secondary_stack.push_back(elem_func);
+						secondary_stack.push_front(*it2);
 					}
 				}
 				continue;
@@ -229,11 +231,10 @@ namespace sc
 			else
 			{
 				stack.push_back(std::move(elem));
-			}
-
-			if (is_op)
-			{
-				execute();
+				if (is_op)
+				{
+					execute();
+				}
 			}
 		}
 	}
@@ -242,8 +243,9 @@ namespace sc
 	{
 		if (e.type() == typeid(variable_ref_t))
 		{
-			auto var = std::any_cast<variable_ref_t const&>(e);
-			return variables[var.name];
+			throw std::runtime_error("Variables shouldn't be on the stack. This is a removed feature");
+			// auto var = std::any_cast<variable_ref_t const&>(e);
+			// return variables[var.name];
 		}
 		else
 		{

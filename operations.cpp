@@ -88,13 +88,8 @@ namespace sc
 			{
 				std::cout << i << ": " << std::any_cast<number_t>(e);
 			}
-			else if (e.type() == typeid(variable_ref_t))
-			{
-				auto var = std::any_cast<variable_ref_t const&>(e);
-				std::cout << i << ": $" << var.name << ": " << ins->variables[var.name];
-			}
 			else
-				throw std::logic_error("There shouldn't be operator or string on the stack");
+				throw std::logic_error("There shouldn't be non-number on the stack. This is a program error");
 			std::cout << std::endl;
 		}
 	}
@@ -156,16 +151,8 @@ namespace sc
 	{
 		const auto back = ins->stack.back();
 
-		if (back.type() == typeid(variable_ref_t))
-		{
-			auto var = std::any_cast<variable_ref_t const&>(back);
-			std::cout << "$" << var.name << ": " << ins->variables[var.name];
-		}
-		else
-		{
-			auto num = std::any_cast<number_t>(back);
-			std::cout << num;
-		}
+		auto num = std::any_cast<number_t>(back);
+		std::cout << num;
 
 		std::cout << std::endl;
 	}
@@ -310,32 +297,12 @@ help: show this screen)" << std::endl;
 		else
 		{
 			ins->variables.erase(it);
-			for (size_t i=0; i < ins->stack.size(); i++)
-			{
-				if (ins->stack[i].type() == typeid(variable_ref_t))
-				{
-					auto var = std::any_cast<variable_ref_t const&>(ins->stack[i]);
-					if (var.name == a)
-					{
-						ins->stack.erase(ins->stack.begin() + i);
-						if (i != 0) i--;
-					}
-				}
-			}
 		}
 	}
 
 	void simple_calculator::op_delall(simple_calculator* ins)
 	{
 		ins->variables.clear();
-		for (size_t i=0; i < ins->stack.size(); i++)
-		{
-			if (ins->stack[i].type() == typeid(variable_ref_t))
-			{
-				ins->stack.erase(ins->stack.begin() + i);
-				if (i != 0) i--;
-			}
-		}
 	}
 
 	void simple_calculator::op_begin(simple_calculator* ins)
@@ -387,12 +354,17 @@ help: show this screen)" << std::endl;
 				if (elem.type() == typeid(variable_ref_t))
 				{
 					auto var = std::any_cast<variable_ref_t const&>(elem);
-					std::cout << var.name;
+					std::cout << '$' << var.name;
+				}
+				else if (elem.type() == typeid(function_ref_t))
+				{
+					auto func = std::any_cast<function_ref_t const&>(elem);
+					std::cout << '@' << func.name;
 				}
 				else if (elem.type() == typeid(std::string))
 				{
 					auto str = std::any_cast<std::string const&>(elem);
-					std::cout << str;
+					std::cout << ':' << str;
 				}
 				else if (elem.type() == typeid(const operation_t*))
 				{
