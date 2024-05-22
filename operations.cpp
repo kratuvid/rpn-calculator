@@ -51,7 +51,7 @@ namespace sc
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		if (a == 0)
-			throw sc::exception("Cannot divide by 0", sc::error_type::eval);
+			throw sc::exception("Cannot divide by 0", sc::error_type::exec);
 		ins->stack.pop_back();
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -305,7 +305,7 @@ help: show this screen)" << std::endl;
 		{
 			std::ostringstream oss;
 			oss << "No such variable '" << a << "' exists";
-			throw sc::exception(oss.str(), sc::error_type::eval);
+			throw sc::exception(oss.str(), sc::error_type::exec);
 		}
 		else
 		{
@@ -350,7 +350,7 @@ help: show this screen)" << std::endl;
 		{
 			std::ostringstream oss;
 			oss << "Cannot begin parsing '" << a << "' as another function is currently being";
-			throw sc::exception(oss.str(), sc::error_type::parse);
+			throw sc::exception(oss.str(), sc::error_type::exec);
 		}
 
 		ins->functions[a] = function_t(b, {});
@@ -361,7 +361,7 @@ help: show this screen)" << std::endl;
 	{
 		if (ins->current_function == nullptr)
 		{
-			throw sc::exception("Unexpected call to operation end", sc::error_type::parse);
+			throw sc::exception("Unexpected call to operation end", sc::error_type::exec);
 		}
 
 		ins->current_function = nullptr;
@@ -377,7 +377,7 @@ help: show this screen)" << std::endl;
 		{
 			std::ostringstream oss;
 			oss << "No such function '" << a << "' exists";
-			throw sc::exception(oss.str(), sc::error_type::eval);
+			throw sc::exception(oss.str(), sc::error_type::exec);
 		}
 		else
 		{

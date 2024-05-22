@@ -18,7 +18,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <deque>
-#include <typeindex>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -127,8 +126,8 @@ namespace sc
 		void parse_arguments(int argc, char** argv);
 
 		void perform_operation(const operation_t* op);
-		void evaluate();
 		void execute();
+		void evaluate();
 		number_t resolve_variable_if(const element_t& e);
 
 		void parse(std::string_view what);

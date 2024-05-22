@@ -11,15 +11,17 @@ namespace sc
 		init, init_help,
 		parse,
 		eval,
+		exec,
 		file,
 		repl_quit
 	};
 
-	static constexpr std::array<std::string_view, 6> error_type_str
+	static constexpr std::array<std::string_view, 7> error_type_str
 	{
 		"init", "init_help",
 		"parse",
 		"eval",
+		"exec",
 		"file",
 		"repl_quit"
 	};

@@ -94,7 +94,7 @@ namespace sc
 			repl();
 	}
 
-	void simple_calculator::evaluate()
+	void simple_calculator::execute()
 	{
 		while (stack.size() > 0 && stack.back().type() == typeid(const operation_t*))
 		{
@@ -107,7 +107,7 @@ namespace sc
 				oss << "Operation '" << std::get<0>(*op) << "' requires "
 					<< std::get<1>(*op).size() << " elements but only "
 					<< stack.size() << " are left";
-				throw sc::exception(oss.str(), sc::error_type::eval);
+				throw sc::exception(oss.str(), sc::error_type::exec);
 			}
 			else
 			{
@@ -118,9 +118,7 @@ namespace sc
 					const auto need_operand_type = std::get<1>(*op)[operand_index];
 
 					operand_type op_type;
-					if (operand.type() == typeid(variable_ref_t))
-						op_type = operand_type::number;
-					else if (operand.type() == typeid(number_t))
+					if (operand.type() == typeid(variable_ref_t) || operand.type() == typeid(number_t))
 						op_type = operand_type::number;
 					else if (operand.type() == typeid(std::string))
 						op_type = operand_type::string;
@@ -140,7 +138,7 @@ namespace sc
 						else if (need_operand_type == operand_type::number) oss << "number";
 						else oss << "unknown";
 						oss << " at index " << operand_index << " for operation '" << std::get<0>(*op) << "'";
-						throw sc::exception(oss.str(), sc::error_type::eval);
+						throw sc::exception(oss.str(), sc::error_type::exec);
 					}
 				}
 
@@ -149,25 +147,33 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::execute()
+	void simple_calculator::evaluate()
 	{
 		while (secondary_stack.size() > 0)
 		{
 			auto elem = std::move(secondary_stack.front());
 			secondary_stack.pop_front();
 
-			auto ti = std::type_index(elem.type());
-
-			if (ti == std::type_index(typeid(function_ref_t)))
+			if (elem.type() == typeid(variable_ref_t))
+			{
+				auto var = std::any_cast<variable_ref_t const&>(elem);
+				auto it = variables.find(var.name);
+				if (it == variables.end())
+				{
+					std::ostringstream oss;
+					oss << "No variable '" << var.name << "' exists";
+					throw sc::exception(oss.str(), sc::error_type::eval);
+				}
+			}
+			else if (elem.type() == typeid(function_ref_t))
 			{
 				auto func = std::any_cast<function_ref_t const&>(elem);
 				auto it = functions.find(func.name);
 				if (it == functions.end())
 				{
 					std::ostringstream oss;
-					oss << "No function named '" << func.name << "' found while execution. "
-						<< "This is a program error";
-					throw std::runtime_error(oss.str());
+					oss << "No function '" << func.name << "' exists";
+					throw sc::exception(oss.str(), sc::error_type::eval);
 				}
 				else
 				{
@@ -181,12 +187,12 @@ namespace sc
 					}
 					else
 					{
-						for (unsigned i = 0; i < std::get<0>(it->second); i++)
+						for (size_t i = 0; i < std::get<0>(it->second); i++)
 						{
 							const auto& operand = stack[stack.size() - i - 1];
 							const auto operand_index = std::get<0>(it->second) - i - 1;
 
-							if (operand.type() != typeid(number_t) ||
+							if (operand.type() != typeid(number_t) &&
 								operand.type() != typeid(variable_ref_t))
 							{
 								std::ostringstream oss;
@@ -206,14 +212,28 @@ namespace sc
 				}
 				continue;
 			}
+
+			const bool is_op = elem.type() == typeid(const operation_t*);
+			bool is_op_end = false;
+			if (is_op)
+			{
+				const auto& op_name = std::get<0>(*std::any_cast<const operation_t*>(elem));
+				is_op_end = op_name == "end";
+			}
+
+			if (current_function && !is_op_end)
+			{
+				auto& func_stack = std::get<1>(*current_function);
+				func_stack.push_back(std::move(elem));
+			}
 			else
 			{
 				stack.push_back(std::move(elem));
 			}
 
-			if (ti == std::type_index(typeid(const operation_t*)))
+			if (is_op)
 			{
-				evaluate();
+				execute();
 			}
 		}
 	}
@@ -266,18 +286,13 @@ namespace sc
 				}
 			}
 
-			if (functions.find(sub) != functions.end())
-			{
-				elem = function_ref_t(sub);
-			}
-
 			if (!elem.has_value())
 			{
 				if (sub[0] == ':')
 				{
 					if (sub.size() <= 1)
 					{
-						throw sc::exception("Empty string argument provided", sc::error_type::parse);
+						throw sc::exception("Empty string provided", sc::error_type::parse);
 					}
 					else
 					{
@@ -292,14 +307,18 @@ namespace sc
 					}
 					else
 					{
-						auto var_name = sub.substr(1);
-						if (!variables.contains(var_name) && current_function==nullptr)
-						{
-							std::ostringstream oss;
-							oss << "No such variable '" << var_name << "' exists";
-							throw sc::exception(oss.str(), sc::error_type::parse);
-						}
-						elem = variable_ref_t(std::move(var_name));
+						elem = variable_ref_t(std::move(sub.substr(1)));
+					}
+				}
+				else if (sub[0] == '@')
+				{
+					if (sub.size() <= 1)
+					{
+						throw sc::exception("Empty function provided", sc::error_type::parse);
+					}
+					else
+					{
+						elem = function_ref_t(std::move(sub.substr(1)));
 					}
 				}
 
@@ -316,41 +335,17 @@ namespace sc
 
 			if (elem.has_value())
 			{
-				bool is_op = elem.type() == typeid(const operation_t*);
-				bool is_op_end = false;
-				if (is_op)
-				{
-					const auto& op_name = std::get<0>(*std::any_cast<const operation_t*>(elem));
-					is_op_end = op_name == "end";
-				}
-
-				if (current_function && !is_op_end)
-				{
-					auto& function_stack = std::get<1>(*current_function);
-					function_stack.push_back(std::move(elem));
-				}
-				else
-				{
-					secondary_stack.push_back(std::move(elem));
-				}
+				secondary_stack.push_back(std::move(elem));
 			}
 			else
 			{
-				for (int i = (int)stack.size()-1; i >= 0; i--)
-				{
-					if (stack[i].type() != typeid(std::string))
-						break;
-					else
-						stack.pop_back();
-				}
-
 				std::ostringstream oss;
 				oss << "Garbage sub-parseession: '" << sub << "'";
 				throw sc::exception(oss.str(), sc::error_type::parse);
 			}
 		}
 
-		execute();
+		evaluate();
 	}
 
 	void simple_calculator::file(std::string_view what)
@@ -447,6 +442,7 @@ namespace sc
 			{
 			case sc::error_type::parse:
 			case sc::error_type::eval:
+			case sc::error_type::exec:
 			case sc::error_type::file:
 				break;
 			case sc::error_type::repl_quit:
