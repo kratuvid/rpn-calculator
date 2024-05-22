@@ -200,7 +200,7 @@ delall: delete all variables
 begin: n, s: begin a function declaration
 end: end the function declaration
 describe: s: show the elements of the function
-funcs: list out all functions
+funcs: briefly list out all functions
 ---
 file: s: read commands from file
 quit: quit the REPL
