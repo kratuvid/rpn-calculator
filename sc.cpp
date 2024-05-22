@@ -219,7 +219,7 @@ namespace sc
 					else
 					{
 						auto var_name = sub.substr(1);
-						if (!variables.contains(var_name))
+						if (!variables.contains(var_name) && current_function==nullptr)
 						{
 							std::ostringstream oss;
 							oss << "No such variable '" << var_name << "' exists";
@@ -243,10 +243,25 @@ namespace sc
 			if (elem.has_value())
 			{
 				bool is_op = elem.type() == typeid(const operation_t*);
-				stack.push_back(std::move(elem));
+				bool is_op_end = false;
 				if (is_op)
 				{
-					evaluate();
+					const auto& op_name = std::get<0>(*std::any_cast<const operation_t*>(elem));
+					is_op_end = op_name == "end";
+				}
+
+				if (current_function && !is_op_end)
+				{
+					auto& function_stack = std::get<1>(*current_function);
+					function_stack.push_back(std::move(elem));
+				}
+				else
+				{
+					stack.push_back(std::move(elem));
+					if (is_op)
+					{
+						evaluate();
+					}
 				}
 			}
 			else
@@ -377,336 +392,6 @@ namespace sc
 			std::cerr << oss.str() << std::endl;
 
 			goto begin;
-		}
-	}
-
-	void simple_calculator::op_add(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = b + a;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_subtract(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = b - a;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_multiply(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = b * a;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_divide(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		if (a == 0)
-			throw sc::exception("Cannot divide by 0", sc::error_type::eval);
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = b / a;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_power(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = std::pow(b, a);
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_stack(simple_calculator* ins)
-	{
-		for (unsigned i = 0; i < ins->stack.size(); i++)
-		{
-			const auto& e = ins->stack[i];
-			if (e.type() == typeid(number_t))
-			{
-				std::cout << i << ": " << std::any_cast<number_t>(e);
-			}
-			else if (e.type() == typeid(variable_t))
-			{
-				auto var = std::any_cast<variable_t const&>(e);
-				std::cout << i << ": $" << var.name << ": " << ins->variables[var.name];
-			}
-			else
-				throw std::logic_error("There shouldn't be operator or string on the stack");
-			std::cout << std::endl;
-		}
-	}
-
-	void simple_calculator::op_quit(simple_calculator* ins)
-	{
-		throw sc::exception("", sc::error_type::repl_quit);
-	}
-
-	void simple_calculator::op_replace(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(a));
-	}
-
-	void simple_calculator::op_swap(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(a));
-		ins->stack.push_back(std::make_any<number_t>(b));
-	}
-
-	void simple_calculator::op_pop(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size() << "> " << "pop " << a << std::endl;
-	}
-
-	void simple_calculator::op_clear(simple_calculator* ins)
-	{
-		ins->stack.clear();
-	}
-
-	void simple_calculator::op_file(simple_calculator* ins)
-	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
-		ins->stack.pop_back();
-		ins->file(a);
-	}
-
-	void simple_calculator::op_top(simple_calculator* ins)
-	{
-		const auto back = ins->stack.back();
-
-		if (back.type() == typeid(variable_t))
-		{
-			auto var = std::any_cast<variable_t const&>(back);
-			std::cout << "$" << var.name << ": " << ins->variables[var.name];
-		}
-		else
-		{
-			auto num = std::any_cast<number_t>(back);
-			std::cout << num;
-		}
-
-		std::cout << std::endl;
-	}
-
-	void simple_calculator::op_neg(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = -a;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = -(" << a << ")" << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_help(simple_calculator* ins)
-	{
-		std::cerr << R"(operation: operand size: description:
--------------------------------------
-+: n, n: addition
--: n, n: subtraction
-*: n, n: multiplication
-/: n, n: division
-^: n, n: power
----
-neg: n: negate the top
-sin: n: sine
-cos: n: cosine
-floor: n: floor
-ceil: n: ceiling
----
-stack: show the stack
-clear: empty the stack
-pop: n: pop the stack
-replace: n, n: replaces the top of the stack
-swap: n, n: swap the last two elements
-var: n, s: set a variable s with n
-vars: list all variables
-del: s: delete variable s
-delall: delete all variables
----
-file: s: read commands from file
-quit: quit the REPL
----
-help: show this screen)" << std::endl;
-	}
-
-	void simple_calculator::op_sin(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = std::sin(a);
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_cos(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = std::cos(a);
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_floor(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = std::floor(a);
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_ceil(simple_calculator* ins)
-	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto r = std::ceil(a);
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
-
-		ins->stack.push_back(std::make_any<number_t>(r));
-	}
-
-	void simple_calculator::op_var(simple_calculator* ins)
-	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
-		ins->stack.pop_back();
-
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		ins->variables[a] = b;
-
-		if (ins->verbose)
-			std::cerr << ins->stack.size() << "> $" << a << " = " << b << std::endl;
-	}
-
-	void simple_calculator::op_vars(simple_calculator* ins)
-	{
-		for (const auto& v : ins->variables)
-		{
-			std::cout << "$" << v.first << ": " << v.second << std::endl;
-		}
-	}
-
-	void simple_calculator::op_del(simple_calculator* ins)
-	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
-		ins->stack.pop_back();
-
-		const auto it = ins->variables.find(a);
-		if (it == ins->variables.end())
-		{
-			std::ostringstream oss;
-			oss << "No such variable '" << a << "' exists";
-			throw sc::exception(oss.str(), sc::error_type::eval);
-		}
-		else
-		{
-			ins->variables.erase(it);
-			for (size_t i=0; i < ins->stack.size(); i++)
-			{
-				if (ins->stack[i].type() == typeid(variable_t))
-				{
-					auto var = std::any_cast<variable_t const&>(ins->stack[i]);
-					if (var.name == a)
-					{
-						ins->stack.erase(ins->stack.begin() + i);
-						if (i != 0) i--;
-					}
-				}
-			}
-		}
-	}
-
-	void simple_calculator::op_delall(simple_calculator* ins)
-	{
-		ins->variables.clear();
-		for (size_t i=0; i < ins->stack.size(); i++)
-		{
-			if (ins->stack[i].type() == typeid(variable_t))
-			{
-				ins->stack.erase(ins->stack.begin() + i);
-				if (i != 0) i--;
-			}
 		}
 	}
 }; // namespace sc

@@ -30,17 +30,18 @@ namespace sc
 	public:
 		enum class operand_type { number, string };
 		using number_t = long double;
-		using element_t = std::any;
-		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
 		struct variable_t {
 			std::string name;
 			variable_t(const std::string& name) :name(name) {}
 			variable_t(std::string&& name) :name(name) {}
 			variable_t(const std::string_view& name) :name(name) {}
 		};
+		using element_t = std::any;
+		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using function_t = std::tuple<unsigned, std::vector<element_t>>; // name will be in the map
 
 	private:
-		const std::array<operation_t, 23> operations {{
+		const std::array<operation_t, 27> operations {{
 				{"+", {operand_type::number, operand_type::number}, op_add},
 				{"-", {operand_type::number, operand_type::number}, op_subtract},
 				{"*", {operand_type::number, operand_type::number}, op_multiply},
@@ -63,12 +64,20 @@ namespace sc
 				{"vars", {}, op_vars},
 				{"del", {operand_type::string}, op_del},
 				{"delall", {}, op_delall},
-			}
+
+				{"begin", {operand_type::number, operand_type::string}, op_begin},
+				{"end", {}, op_end},
+				{"describe", {operand_type::string}, op_describe},
+				{"funcs", {}, op_funcs},
+		    }
 		};
 
 		std::vector<element_t> stack;
+		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
 		bool verbose = false;
+
+		function_t* current_function = nullptr;
 
 	private:
 		static void op_add(simple_calculator* ins);
@@ -98,6 +107,11 @@ namespace sc
 		static void op_vars(simple_calculator* ins);
 		static void op_del(simple_calculator* ins);
 		static void op_delall(simple_calculator* ins);
+
+		static void op_begin(simple_calculator* ins);
+		static void op_end(simple_calculator* ins);
+		static void op_describe(simple_calculator* ins);
+		static void op_funcs(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);
