@@ -10,6 +10,7 @@ namespace sc
 				  << "\t-r, --repl: Start the REPL" << std::endl
 				  << "\t-f, --file=[FILE]: Read expressions from FILE" << std::endl
 				  << "\t-s, --stdin: Read expression from standard input until EOF" << std::endl
+				  << "\t-t, --time: Profile runtime" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
@@ -63,6 +64,11 @@ namespace sc
 			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)
 			{
 				is_stdin = true;
+			}
+
+			else if (strcmp(argv[i], "--time") == 0 || strcmp(argv[i], "-t") == 0)
+			{
+				// handled by main()
 			}
 
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
