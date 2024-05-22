@@ -118,7 +118,7 @@ namespace sc
 					const auto need_operand_type = std::get<1>(*op)[operand_index];
 
 					operand_type op_type;
-					if (operand.type() == typeid(variable_t))
+					if (operand.type() == typeid(variable_ref_t))
 						op_type = operand_type::number;
 					else if (operand.type() == typeid(number_t))
 						op_type = operand_type::number;
@@ -149,11 +149,80 @@ namespace sc
 		}
 	}
 
+	void simple_calculator::execute()
+	{
+		while (secondary_stack.size() > 0)
+		{
+			auto elem = std::move(secondary_stack.front());
+			secondary_stack.pop_front();
+
+			auto ti = std::type_index(elem.type());
+
+			if (ti == std::type_index(typeid(function_ref_t)))
+			{
+				auto func = std::any_cast<function_ref_t const&>(elem);
+				auto it = functions.find(func.name);
+				if (it == functions.end())
+				{
+					std::ostringstream oss;
+					oss << "No function named '" << func.name << "' found while execution. "
+						<< "This is a program error";
+					throw std::runtime_error(oss.str());
+				}
+				else
+				{
+					if (stack.size() < std::get<0>(it->second))
+					{
+						std::ostringstream oss;
+						oss << "Function '" << func.name << "' requires "
+							<< std::get<0>(it->second) << " elements but only "
+							<< stack.size() << " are left";
+						throw sc::exception(oss.str(), sc::error_type::eval);
+					}
+					else
+					{
+						for (unsigned i = 0; i < std::get<0>(it->second); i++)
+						{
+							const auto& operand = stack[stack.size() - i - 1];
+							const auto operand_index = std::get<0>(it->second) - i - 1;
+
+							if (operand.type() != typeid(number_t) ||
+								operand.type() != typeid(variable_ref_t))
+							{
+								std::ostringstream oss;
+								oss << "Expected operand of type number or variable"
+									<< " at index " << operand_index << " for function '"
+									<< func.name << "'";
+								throw sc::exception(oss.str(), sc::error_type::eval);
+							}
+						}
+					}
+
+					const auto& func_stack = std::get<1>(it->second);
+					for (const auto& elem_func : func_stack)
+					{
+						secondary_stack.push_back(elem_func);
+					}
+				}
+				continue;
+			}
+			else
+			{
+				stack.push_back(std::move(elem));
+			}
+
+			if (ti == std::type_index(typeid(const operation_t*)))
+			{
+				evaluate();
+			}
+		}
+	}
+
 	simple_calculator::number_t simple_calculator::resolve_variable_if(const element_t& e)
 	{
-		if (e.type() == typeid(variable_t))
+		if (e.type() == typeid(variable_ref_t))
 		{
-			auto var = std::any_cast<variable_t const&>(e);
+			auto var = std::any_cast<variable_ref_t const&>(e);
 			return variables[var.name];
 		}
 		else
@@ -197,6 +266,11 @@ namespace sc
 				}
 			}
 
+			if (functions.find(sub) != functions.end())
+			{
+				elem = function_ref_t(sub);
+			}
+
 			if (!elem.has_value())
 			{
 				if (sub[0] == ':')
@@ -225,7 +299,7 @@ namespace sc
 							oss << "No such variable '" << var_name << "' exists";
 							throw sc::exception(oss.str(), sc::error_type::parse);
 						}
-						elem = variable_t(std::move(var_name));
+						elem = variable_ref_t(std::move(var_name));
 					}
 				}
 
@@ -257,11 +331,7 @@ namespace sc
 				}
 				else
 				{
-					stack.push_back(std::move(elem));
-					if (is_op)
-					{
-						evaluate();
-					}
+					secondary_stack.push_back(std::move(elem));
 				}
 			}
 			else
@@ -279,6 +349,8 @@ namespace sc
 				throw sc::exception(oss.str(), sc::error_type::parse);
 			}
 		}
+
+		execute();
 	}
 
 	void simple_calculator::file(std::string_view what)

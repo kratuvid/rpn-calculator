@@ -17,6 +17,8 @@
 #include <any>
 #include <tuple>
 #include <unordered_map>
+#include <deque>
+#include <typeindex>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -30,15 +32,21 @@ namespace sc
 	public:
 		enum class operand_type { number, string };
 		using number_t = long double;
-		struct variable_t {
+		struct variable_ref_t {
 			std::string name;
-			variable_t(const std::string& name) :name(name) {}
-			variable_t(std::string&& name) :name(name) {}
-			variable_t(const std::string_view& name) :name(name) {}
+			variable_ref_t(const std::string& name) :name(name) {}
+			variable_ref_t(std::string&& name) :name(name) {}
+			variable_ref_t(const std::string_view& name) :name(name) {}
+		};
+		struct function_ref_t {
+			std::string name;
+			function_ref_t(const std::string& name) :name(name) {}
+			function_ref_t(std::string&& name) :name(name) {}
+			function_ref_t(const std::string_view& name) :name(name) {}
 		};
 		using element_t = std::any;
 		using operation_t = std::tuple<std::string, std::vector<operand_type>, void(*)(simple_calculator*)>;
-		using function_t = std::tuple<unsigned, std::vector<element_t>>; // name will be in the map
+		using function_t = std::tuple<unsigned, std::deque<element_t>>; // name will be in the map
 
 	private:
 		const std::array<operation_t, 27> operations {{
@@ -72,7 +80,8 @@ namespace sc
 		    }
 		};
 
-		std::vector<element_t> stack;
+		std::deque<element_t> stack;
+		std::deque<element_t> secondary_stack;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
 		bool verbose = false;
@@ -119,6 +128,7 @@ namespace sc
 
 		void perform_operation(const operation_t* op);
 		void evaluate();
+		void execute();
 		number_t resolve_variable_if(const element_t& e);
 
 		void parse(std::string_view what);

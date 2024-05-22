@@ -88,9 +88,9 @@ namespace sc
 			{
 				std::cout << i << ": " << std::any_cast<number_t>(e);
 			}
-			else if (e.type() == typeid(variable_t))
+			else if (e.type() == typeid(variable_ref_t))
 			{
-				auto var = std::any_cast<variable_t const&>(e);
+				auto var = std::any_cast<variable_ref_t const&>(e);
 				std::cout << i << ": $" << var.name << ": " << ins->variables[var.name];
 			}
 			else
@@ -156,9 +156,9 @@ namespace sc
 	{
 		const auto back = ins->stack.back();
 
-		if (back.type() == typeid(variable_t))
+		if (back.type() == typeid(variable_ref_t))
 		{
-			auto var = std::any_cast<variable_t const&>(back);
+			auto var = std::any_cast<variable_ref_t const&>(back);
 			std::cout << "$" << var.name << ": " << ins->variables[var.name];
 		}
 		else
@@ -312,9 +312,9 @@ help: show this screen)" << std::endl;
 			ins->variables.erase(it);
 			for (size_t i=0; i < ins->stack.size(); i++)
 			{
-				if (ins->stack[i].type() == typeid(variable_t))
+				if (ins->stack[i].type() == typeid(variable_ref_t))
 				{
-					auto var = std::any_cast<variable_t const&>(ins->stack[i]);
+					auto var = std::any_cast<variable_ref_t const&>(ins->stack[i]);
 					if (var.name == a)
 					{
 						ins->stack.erase(ins->stack.begin() + i);
@@ -330,7 +330,7 @@ help: show this screen)" << std::endl;
 		ins->variables.clear();
 		for (size_t i=0; i < ins->stack.size(); i++)
 		{
-			if (ins->stack[i].type() == typeid(variable_t))
+			if (ins->stack[i].type() == typeid(variable_ref_t))
 			{
 				ins->stack.erase(ins->stack.begin() + i);
 				if (i != 0) i--;
@@ -384,9 +384,9 @@ help: show this screen)" << std::endl;
 			const auto& function_stack = std::get<1>(it->second);
 			for (const auto& elem : function_stack)
 			{
-				if (elem.type() == typeid(variable_t))
+				if (elem.type() == typeid(variable_ref_t))
 				{
-					auto var = std::any_cast<variable_t const&>(elem);
+					auto var = std::any_cast<variable_ref_t const&>(elem);
 					std::cout << var.name;
 				}
 				else if (elem.type() == typeid(std::string))
