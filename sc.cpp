@@ -271,8 +271,22 @@ namespace sc
 		std::vector<std::string> subs;
 		{
 			std::string tmp;
+			bool is_comment = false;
 			for (char c : what)
 			{
+				if (c == ';')
+				{
+					is_comment = true;
+				}
+				if (is_comment)
+				{
+					if (c == '\n')
+					{
+						is_comment = false;
+					}
+					continue;
+				}
+
 				if (isspace(c))
 				{
 					if (!tmp.empty())
