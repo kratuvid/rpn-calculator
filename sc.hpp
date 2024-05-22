@@ -125,7 +125,6 @@ namespace sc
 		void show_help(char* name);
 		void parse_arguments(int argc, char** argv);
 
-		void perform_operation(const operation_t* op);
 		void execute();
 		void evaluate();
 		number_t resolve_variable_if(const element_t& e);
