@@ -2,7 +2,7 @@
 Arbitrary length calculator or something
 
 # Todo
-- [ ] move operations member variable to map
+- [x] move operations member variable to map
 - [ ] loops
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
