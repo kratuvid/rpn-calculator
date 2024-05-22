@@ -1,4 +1,6 @@
 #include <chrono>
+#include <iomanip>
+
 #include "sc.hpp"
 
 int main(int argc, char** argv)
@@ -35,14 +37,15 @@ int main(int argc, char** argv)
 	{
 		auto tp_end = std::chrono::high_resolution_clock::now();
 		auto tp_diff = tp_end - tp_begin;
-		long double diff_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
-		long double diff_usecs = diff_nsecs / 1.0e3l;
-		long double diff_msecs = diff_nsecs / 1.0e6l;
-		long double diff_secs = diff_nsecs / 1.0e9l;
-		std::cerr << std::scientific << "Runtime: " << diff_nsecs << "ns, "
-				  << diff_usecs << "us, "
-				  << diff_msecs << "ms, "
-				  << diff_secs << "s"
+		auto diff_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
+		auto diff_usecs = std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
+		auto diff_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
+		auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
+		std::cerr << std::setprecision(5) << "Runtime (truncated): "
+				  << (long double)diff_nsecs << "ns, "
+				  << (long double)diff_usecs << "us, "
+				  << (long double)diff_msecs << "ms, "
+				  << (long double)diff_secs << "s"
 				  << std::endl;
 	}
 }
