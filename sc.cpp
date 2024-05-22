@@ -191,19 +191,23 @@ namespace sc
 				}
 				else
 				{
-					if (stack.size() < std::get<0>(it->second))
+					const auto& current_stack = current_function ?
+						std::get<1>(*current_function) :
+						stack;
+
+					if (current_stack.size() < std::get<0>(it->second))
 					{
 						std::ostringstream oss;
 						oss << "Function '" << func.name << "' requires "
 							<< std::get<0>(it->second) << " elements but only "
-							<< stack.size() << " are left";
+							<< current_stack.size() << " are left";
 						throw sc::exception(oss.str(), sc::error_type::eval);
 					}
 					else
 					{
 						for (size_t i = 0; i < std::get<0>(it->second); i++)
 						{
-							const auto& operand = stack[stack.size() - i - 1];
+							const auto& operand = current_stack[current_stack.size() - i - 1];
 							const auto operand_index = std::get<0>(it->second) - i - 1;
 
 							if (operand.type() != typeid(number_t) &&
@@ -268,7 +272,7 @@ namespace sc
 
 	void simple_calculator::parse(std::string_view what)
 	{
-		std::vector<std::string> subs;
+		std::list<std::string> subs;
 		{
 			std::string tmp;
 			bool is_comment = false;

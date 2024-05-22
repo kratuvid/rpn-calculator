@@ -42,11 +42,13 @@ int main(int argc, char** argv)
 		auto diff_usecs = std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
 		auto diff_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
 		auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
+		auto diff_mins = diff_secs / 60;
 		std::cerr << std::setprecision(5) << "Runtime (truncated): "
 				  << (long double)diff_nsecs << "ns, "
 				  << (long double)diff_usecs << "us, "
 				  << (long double)diff_msecs << "ms, "
-				  << (long double)diff_secs << "s"
+				  << (long double)diff_secs << "s, "
+				  << (long double)diff_mins << "m"
 				  << std::endl;
 	}
 }

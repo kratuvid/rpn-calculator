@@ -5,6 +5,7 @@ Arbitrary length calculator or something
 - [ ] loops
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
+- [ ] function local variables
 - [x] comments
 - [x] move operations member variable to map
 - [x] optimize variable deletion by deleting from the last? - removed
