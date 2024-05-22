@@ -23,6 +23,7 @@ int main(int argc, char** argv)
 		std::cerr << "Fatal exception: "
 				  << sc::error_type_str[static_cast<int>(e.type)] << ": "
 				  << e.what() << std::endl;
+		return 2;
 	}
 	catch (const std::exception& e)
 	{
