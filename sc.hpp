@@ -30,23 +30,26 @@ namespace sc
 	{
 	public:
 		enum class operand_type { number, string };
+
+		using element_t = std::any;
+
+		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using function_t = std::tuple<unsigned, std::deque<element_t>>;
+
 		using number_t = long double;
 		struct variable_ref_t {
 			std::string name;
+			variable_ref_t() = delete;
 			variable_ref_t(const std::string& name) :name(name) {}
 			variable_ref_t(std::string&& name) :name(name) {}
-			variable_ref_t(const std::string_view& name) :name(name) {}
 		};
 		struct function_ref_t {
 			std::string name;
+			function_ref_t() = delete;
 			function_ref_t(const std::string& name) :name(name) {}
 			function_ref_t(std::string&& name) :name(name) {}
-			function_ref_t(const std::string_view& name) :name(name) {}
 		};
-		using element_t = std::any;
-		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
 		using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
-		using function_t = std::tuple<unsigned, std::deque<element_t>>; // name will be in the map
 
 	private:
 		const std::unordered_map<std::string, operation_t> operations {{
@@ -69,6 +72,7 @@ namespace sc
 				{"clear", {{}, op_clear}}, {"file", {{operand_type::string}, op_file}},
 
 				{"var", {{operand_type::number, operand_type::string}, op_var}},
+				{"varg", {{operand_type::number, operand_type::string}, op_varg}},
 				{"vars", {{}, op_vars}},
 				{"del", {{operand_type::string}, op_del}},
 				{"delall", {{}, op_delall}},
@@ -77,6 +81,8 @@ namespace sc
 				{"end", {{}, op_end}},
 				{"describe", {{operand_type::string}, op_describe}},
 				{"funcs", {{}, op_funcs}},
+				{"_push_locals", {{}, op__push_locals}},
+				{"_pop_locals", {{}, op__pop_locals}},
 		    }
 		};
 
@@ -84,7 +90,7 @@ namespace sc
 		std::deque<element_t> secondary_stack;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
-		std::unordered_map<std::string, std::unordered_map<std::string, number_t>> variables_local;
+		std::list<std::unordered_map<std::string, number_t>> variables_local;
 
 		std::string current_eval_function;
 		bool verbose = false;
@@ -114,6 +120,7 @@ namespace sc
 		static void op_file(simple_calculator* ins);
 
 		static void op_var(simple_calculator* ins);
+		static void op_varg(simple_calculator* ins);
 		static void op_vars(simple_calculator* ins);
 		static void op_del(simple_calculator* ins);
 		static void op_delall(simple_calculator* ins);
@@ -122,6 +129,8 @@ namespace sc
 		static void op_end(simple_calculator* ins);
 		static void op_describe(simple_calculator* ins);
 		static void op_funcs(simple_calculator* ins);
+		static void op__push_locals(simple_calculator* ins);
+		static void op__pop_locals(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);

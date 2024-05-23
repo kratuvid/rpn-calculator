@@ -102,56 +102,61 @@ namespace sc
 
 	void simple_calculator::execute()
 	{
-		while (stack.size() > 0 && stack.back().type() == typeid(operations_iter_t))
+		while (stack.size() > 0)
 		{
-			auto op = std::any_cast<operations_iter_t>(std::move(stack.back()));
-			stack.pop_back();
-
-			if (stack.size() < std::get<0>(op->second).size())
+			if (stack.back().type() == typeid(operations_iter_t))
 			{
-				std::ostringstream oss;
-				oss << "Operation '" << op->first << "' requires "
-					<< std::get<0>(op->second).size() << " elements but only "
-					<< stack.size() << " are left";
-				throw sc::exception(oss.str(), sc::error_type::exec);
-			}
-			else
-			{
-				const auto& op_list = std::get<0>(op->second);
+				auto op = std::any_cast<operations_iter_t&&>(std::move(stack.back()));
+				stack.pop_back();
 
-				for (unsigned i = 0; i < op_list.size(); i++)
+				if (stack.size() < std::get<0>(op->second).size())
 				{
-					const auto& operand = stack[stack.size() - i - 1];
-					const auto operand_index = op_list.size() - i - 1;
-					const auto need_operand_type = op_list[operand_index];
-
-					operand_type op_type;
-					if (operand.type() == typeid(number_t))
-						op_type = operand_type::number;
-					else if (operand.type() == typeid(std::string))
-						op_type = operand_type::string;
-					else
-					{
-						std::ostringstream oss;
-						oss << "Unknown operand type '" << operand.type().name()
-							<< "'. This is a program error";
-						throw std::runtime_error(oss.str());
-					}
-
-					if (need_operand_type != op_type)
-					{
-						std::ostringstream oss;
-						oss << "Expected operand of type ";
-						if (need_operand_type == operand_type::string) oss << "string";
-						else if (need_operand_type == operand_type::number) oss << "number";
-						else oss << "unknown";
-						oss << " at index " << operand_index << " for operation '" << op->first << "'";
-						throw sc::exception(oss.str(), sc::error_type::exec);
-					}
+					std::ostringstream oss;
+					oss << "Operation '" << op->first << "' requires "
+						<< std::get<0>(op->second).size() << " elements but only "
+						<< stack.size() << " are left";
+					throw sc::exception(oss.str(), sc::error_type::exec);
 				}
+				else
+				{
+					const auto& opr_list = std::get<0>(op->second);
 
-				std::get<1>(op->second)(this);
+					for (unsigned i=0; i < opr_list.size(); i++)
+					{
+						const auto& operand = stack[stack.size() - i - 1];
+						const auto operand_index = opr_list.size() - i - 1;
+						const auto need_operand_type = opr_list[operand_index];
+
+						operand_type opr_type;
+						if (operand.type() == typeid(number_t))
+							opr_type = operand_type::number;
+						else if (operand.type() == typeid(std::string))
+							opr_type = operand_type::string;
+						else
+						{
+							std::ostringstream oss;
+							oss << "Unknown operand type '" << operand.type().name() << "' "
+								<< "encountered while executing operation '" << op->first
+								<< "'. This is a program error";
+							throw std::runtime_error(oss.str());
+						}
+
+						if (need_operand_type != opr_type)
+						{
+							std::ostringstream oss;
+							oss << "Expected operand of type ";
+							if (need_operand_type == operand_type::string) oss << "string";
+							else if (need_operand_type == operand_type::number) oss << "number";
+							else oss << "unknown";
+							oss << " at index " << operand_index << " for operation '" << op->first << "'";
+							throw sc::exception(oss.str(), sc::error_type::exec);
+						}
+					}
+
+					std::get<1>(op->second)(this);
+				}
 			}
+			else break;
 		}
 	}
 
@@ -168,15 +173,30 @@ namespace sc
 				{
 					auto var = std::any_cast<variable_ref_t const&>(elem);
 
-					auto it = variables.find(var.name);
-					if (it == variables.end())
+					if (variables_local.size() > 0)
 					{
-						std::ostringstream oss;
-						oss << "No such variable '" << var.name << "' exists";
-						throw sc::exception(oss.str(), sc::error_type::eval);
+						const auto& local = variables_local.back();
+						auto it_local = local.find(var.name);
+						if (it_local != local.end())
+						{
+							elem = it_local->second;
+							goto done;
+						}
 					}
 
-					elem = it->second;
+					{
+						auto it_global = variables.find(var.name);
+						if (it_global == variables.end())
+						{
+							std::ostringstream oss;
+							oss << "No such variable '" << var.name << "' exists";
+							throw sc::exception(oss.str(), sc::error_type::eval);
+						}
+						elem = it_global->second;
+					}
+
+				  done:
+					[[maybe_unused]] int _placeholder_suppress_warning;
 				}
 			}
 			else if (elem.type() == typeid(function_ref_t))
@@ -194,21 +214,22 @@ namespace sc
 					const auto& current_stack = !current_eval_function.empty() ?
 						std::get<1>(functions[current_eval_function]) :
 						stack;
+					const auto op_count = std::get<0>(it->second);
 
-					if (current_stack.size() < std::get<0>(it->second))
+					if (current_stack.size() < op_count)
 					{
 						std::ostringstream oss;
 						oss << "Function '" << func.name << "' requires "
-							<< std::get<0>(it->second) << " elements but only "
+							<< op_count << " elements but only "
 							<< current_stack.size() << " are left";
 						throw sc::exception(oss.str(), sc::error_type::eval);
 					}
 					else
 					{
-						for (size_t i = 0; i < std::get<0>(it->second); i++)
+						for (size_t i = 0; i < op_count; i++)
 						{
 							const auto& operand = current_stack[current_stack.size() - i - 1];
-							const auto operand_index = std::get<0>(it->second) - i - 1;
+							const auto operand_index = op_count - i - 1;
 
 							if (operand.type() != typeid(number_t) &&
 								operand.type() != typeid(variable_ref_t))
@@ -223,10 +244,12 @@ namespace sc
 					}
 
 					const auto& func_stack = std::get<1>(it->second);
+					secondary_stack.push_front(operations.find("_pop_locals"));
 					for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
 					{
 						secondary_stack.push_front(*it2);
 					}
+					secondary_stack.push_front(operations.find("_push_locals"));
 				}
 				continue;
 			}

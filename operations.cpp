@@ -192,7 +192,8 @@ pop: n: pop the stack
 replace: n, n: replaces the top of the stack
 swap: n, n: swap the last two elements
 ---
-var: n, s: set a variable s with n
+var: n, s: set a global/local variable s with n depending on context
+varg: n, s: set a global variable s with n
 vars: list all variables
 del: s: delete variable s
 delall: delete all variables
@@ -268,10 +269,43 @@ help: show this screen)" << std::endl;
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
+		bool local = false;
+
+		if (ins->variables_local.size() > 0)
+		{
+			local = true;
+			ins->variables_local.back()[a] = b;
+		}
+		else
+		{
+			ins->variables[a] = b;
+		}
+
+		if (ins->verbose)
+		{
+			std::cerr << ins->stack.size() << "> ";
+			if (local)
+			{
+				std::cerr << "local:" << ins->variables_local.size()-1 << ' ';
+			}
+			std::cerr << '$' << a << " = " << b << std::endl;
+		}
+	}
+
+	void simple_calculator::op_varg(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		auto b = ins->resolve_variable_if(ins->stack.back());
+		ins->stack.pop_back();
+
 		ins->variables[a] = b;
 
 		if (ins->verbose)
+		{
 			std::cerr << ins->stack.size() << "> $" << a << " = " << b << std::endl;
+		}
 	}
 
 	void simple_calculator::op_vars(simple_calculator* ins)
@@ -279,6 +313,17 @@ help: show this screen)" << std::endl;
 		for (const auto& v : ins->variables)
 		{
 			std::cout << '$' << v.first << ": " << v.second << std::endl;
+		}
+
+		unsigned i = 0;
+		for (const auto& locals : ins->variables_local)
+		{
+			for (const auto& v : locals)
+			{
+				std::cout << "local:" << i << " $" << v.first << ": "
+						  << v.second << std::endl;
+			}
+			i++;
 		}
 	}
 
@@ -389,5 +434,19 @@ help: show this screen)" << std::endl;
 			std::cout << '@' << f.first << ": " << std::get<0>(f.second) << " arguments, "
 					  << std::get<1>(f.second).size() << " elements" << std::endl;
 		}
+	}
+
+	void simple_calculator::op__push_locals(simple_calculator* ins)
+	{
+		ins->variables_local.push_back({});
+	}
+
+	void simple_calculator::op__pop_locals(simple_calculator* ins)
+	{
+		if (ins->variables_local.empty())
+		{
+			throw std::runtime_error("Operation '_pop_locals' executed on an empty list. This is a program error");
+		}
+		ins->variables_local.pop_back();
 	}
 }; // namespace sc
