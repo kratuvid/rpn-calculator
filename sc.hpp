@@ -70,6 +70,7 @@ namespace sc
 
 				{"help", {{}, op_help}}, {"stack", {{}, op_stack}}, {"quit", {{}, op_quit}},
 				{"clear", {{}, op_clear}}, {"file", {{operand_type::string}, op_file}},
+				{"_view", {{}, op__view}},
 
 				{"var", {{operand_type::number, operand_type::string}, op_var}},
 				{"varg", {{operand_type::number, operand_type::string}, op_varg}},
@@ -118,6 +119,7 @@ namespace sc
 		static void op_quit(simple_calculator* ins);
 		static void op_clear(simple_calculator* ins);
 		static void op_file(simple_calculator* ins);
+		static void op__view(simple_calculator* ins);
 
 		static void op_var(simple_calculator* ins);
 		static void op_varg(simple_calculator* ins);
@@ -138,6 +140,7 @@ namespace sc
 
 		void execute();
 		void evaluate();
+		void ensure_pop_locals();
 		number_t resolve_variable_if(const element_t& e);
 
 		void parse(std::string_view what);

@@ -8,3 +8,4 @@ end
 
 funcs
 :f describe
+@f

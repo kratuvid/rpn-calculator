@@ -160,123 +160,160 @@ namespace sc
 		}
 	}
 
+	void simple_calculator::ensure_pop_locals()
+	{
+		const auto it_pop_locals = operations.find("_pop_locals");
+		std::list<std::string> names;
+
+		if (variables_local.size() > 0)
+		{
+			std::list<std::deque<element_t>::iterator> it_names;
+			for (auto it = secondary_stack.begin(); it != secondary_stack.end(); it++)
+			{
+				if ((*it).type() == typeid(operations_iter_t))
+					if (std::any_cast<operations_iter_t>(*it) == it_pop_locals)
+					{
+						it_names.push_back(it-1);
+					}
+			}
+			for (auto& it_name : it_names)
+				names.push_back(std::any_cast<std::string&&>(std::move(*it_name)));
+		}
+
+		secondary_stack.clear();
+		for (auto& name : names)
+		{
+			secondary_stack.push_back(std::move(name));
+			secondary_stack.push_back(it_pop_locals);
+			evaluate();
+		}
+	}
+
 	void simple_calculator::evaluate()
 	{
-		while (secondary_stack.size() > 0)
+		try
 		{
-			auto elem = std::move(secondary_stack.front());
-			secondary_stack.pop_front();
-
-			if (elem.type() == typeid(variable_ref_t))
+			while (secondary_stack.size() > 0)
 			{
-				if (current_eval_function.empty())
-				{
-					auto var = std::any_cast<variable_ref_t const&>(elem);
+				auto elem = std::move(secondary_stack.front());
+				secondary_stack.pop_front();
 
-					if (variables_local.size() > 0)
+				if (elem.type() == typeid(variable_ref_t))
+				{
+					if (current_eval_function.empty())
 					{
-						const auto& local = variables_local.back();
-						auto it_local = local.find(var.name);
-						if (it_local != local.end())
+						auto var = std::any_cast<variable_ref_t const&>(elem);
+
+						if (variables_local.size() > 0)
 						{
-							elem = it_local->second;
-							goto done;
+							const auto& local = variables_local.back();
+							auto it_local = local.find(var.name);
+							if (it_local != local.end())
+							{
+								elem = it_local->second;
+								goto done;
+							}
 						}
-					}
 
-					{
-						auto it_global = variables.find(var.name);
-						if (it_global == variables.end())
 						{
-							std::ostringstream oss;
-							oss << "No such variable '" << var.name << "' exists";
-							throw sc::exception(oss.str(), sc::error_type::eval);
+							auto it_global = variables.find(var.name);
+							if (it_global == variables.end())
+							{
+								std::ostringstream oss;
+								oss << "No such variable '" << var.name << "' exists";
+								throw sc::exception(oss.str(), sc::error_type::eval);
+							}
+							elem = it_global->second;
 						}
-						elem = it_global->second;
+
+					  done:
+						[[maybe_unused]] int _placeholder_suppress_warning;
 					}
-
-				  done:
-					[[maybe_unused]] int _placeholder_suppress_warning;
 				}
-			}
-			else if (elem.type() == typeid(function_ref_t))
-			{
-				auto func = std::any_cast<function_ref_t const&>(elem);
-				auto it = functions.find(func.name);
-				if (it == functions.end())
+				else if (elem.type() == typeid(function_ref_t))
 				{
-					std::ostringstream oss;
-					oss << "No such function '" << func.name << "' exists";
-					throw sc::exception(oss.str(), sc::error_type::eval);
-				}
-				else
-				{
-					const auto& current_stack = !current_eval_function.empty() ?
-						std::get<1>(functions[current_eval_function]) :
-						stack;
-					const auto op_count = std::get<0>(it->second);
-
-					if (current_stack.size() < op_count)
+					auto func = std::any_cast<function_ref_t const&>(elem);
+					auto it = functions.find(func.name);
+					if (it == functions.end())
 					{
 						std::ostringstream oss;
-						oss << "Function '" << func.name << "' requires "
-							<< op_count << " elements but only "
-							<< current_stack.size() << " are left";
+						oss << "No such function '" << func.name << "' exists";
 						throw sc::exception(oss.str(), sc::error_type::eval);
 					}
 					else
 					{
-						for (size_t i = 0; i < op_count; i++)
-						{
-							const auto& operand = current_stack[current_stack.size() - i - 1];
-							const auto operand_index = op_count - i - 1;
+						const auto& current_stack = !current_eval_function.empty() ?
+							std::get<1>(functions[current_eval_function]) :
+							stack;
+						const auto op_count = std::get<0>(it->second);
 
-							if (operand.type() != typeid(number_t) &&
-								operand.type() != typeid(variable_ref_t))
+						if (current_stack.size() < op_count)
+						{
+							std::ostringstream oss;
+							oss << "Function '" << func.name << "' requires "
+								<< op_count << " elements but only "
+								<< current_stack.size() << " are left";
+							throw sc::exception(oss.str(), sc::error_type::eval);
+						}
+						else
+						{
+							for (size_t i = 0; i < op_count; i++)
 							{
-								std::ostringstream oss;
-								oss << "Expected operand of type number or variable"
-									<< " at index " << operand_index << " for function '"
-									<< func.name << "'";
-								throw sc::exception(oss.str(), sc::error_type::eval);
+								const auto& operand = current_stack[current_stack.size() - i - 1];
+								const auto operand_index = op_count - i - 1;
+
+								if (operand.type() != typeid(number_t) &&
+									operand.type() != typeid(variable_ref_t))
+								{
+									std::ostringstream oss;
+									oss << "Expected operand of type number or variable"
+										<< " at index " << operand_index << " for function '"
+										<< func.name << "'";
+									throw sc::exception(oss.str(), sc::error_type::eval);
+								}
 							}
 						}
-					}
 
-					const auto& func_stack = std::get<1>(it->second);
-					secondary_stack.push_front(operations.find("_pop_locals"));
-					secondary_stack.push_front(func.name);
-					for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
-					{
-						secondary_stack.push_front(*it2);
+						const auto& func_stack = std::get<1>(it->second);
+						secondary_stack.push_front(operations.find("_pop_locals"));
+						secondary_stack.push_front(func.name);
+						for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
+						{
+							secondary_stack.push_front(*it2);
+						}
+						secondary_stack.push_front(operations.find("_push_locals"));
+						secondary_stack.push_front(func.name);
 					}
-					secondary_stack.push_front(operations.find("_push_locals"));
-					secondary_stack.push_front(func.name);
+					continue;
 				}
-				continue;
-			}
 
-			const bool is_op = elem.type() == typeid(operations_iter_t);
-			bool is_op_end = false;
-			if (is_op)
-			{
-				const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
-				is_op_end = op_name == "end";
-			}
-
-			if (!current_eval_function.empty() && !is_op_end)
-			{
-				auto& func_stack = std::get<1>(functions[current_eval_function]);
-				func_stack.push_back(std::move(elem));
-			}
-			else
-			{
-				stack.push_back(std::move(elem));
+				const bool is_op = elem.type() == typeid(operations_iter_t);
+				bool is_op_end = false;
 				if (is_op)
 				{
-					execute();
+					const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
+					is_op_end = op_name == "end";
+				}
+
+				if (!current_eval_function.empty() && !is_op_end)
+				{
+					auto& func_stack = std::get<1>(functions[current_eval_function]);
+					func_stack.push_back(std::move(elem));
+				}
+				else
+				{
+					stack.push_back(std::move(elem));
+					if (is_op)
+					{
+						execute();
+					}
 				}
 			}
+		}
+		catch(...)
+		{
+			ensure_pop_locals();
+			throw;
 		}
 	}
 
@@ -297,6 +334,8 @@ namespace sc
 
 	void simple_calculator::parse(std::string_view what)
 	{
+		secondary_stack.clear();
+
 		std::list<std::string> subs;
 		{
 			std::string tmp;

@@ -147,6 +147,43 @@ namespace sc
 		ins->file(a);
 	}
 
+	void simple_calculator::op__view(simple_calculator* ins)
+	{
+		bool any = false;
+		for (const auto& elem : ins->stack)
+		{
+			any = true;
+			if (elem.type() == typeid(variable_ref_t))
+			{
+				auto var = std::any_cast<variable_ref_t const&>(elem);
+				std::cout << '$' << var.name;
+			}
+			else if (elem.type() == typeid(function_ref_t))
+			{
+				auto func = std::any_cast<function_ref_t const&>(elem);
+				std::cout << '@' << func.name;
+			}
+			else if (elem.type() == typeid(std::string))
+			{
+				auto str = std::any_cast<std::string const&>(elem);
+				std::cout << ':' << str;
+			}
+			else if (elem.type() == typeid(operations_iter_t))
+			{
+				auto op_it = std::any_cast<operations_iter_t>(elem);
+				std::cout << op_it->first;
+			}
+			else
+			{
+				auto num = std::any_cast<number_t const&>(elem);
+				std::cout << num;
+			}
+			std::cout << ' ';
+		}
+		if (any)
+			std::cout << std::endl;
+	}
+
 	void simple_calculator::op_top(simple_calculator* ins)
 	{
 		const auto back = ins->stack.back();
@@ -463,7 +500,11 @@ help: show this screen)" << std::endl;
 		if (ins->verbose)
 		{
 			std::cerr << ins->stack.size() << "> end:" << ins->variables_local.size()-1
-					  << " @" << a << std::endl;
+					  << " @" << a;
+			if (ins->variables_local.back().size() > 0)
+				std::cerr << " - freed " << ins->variables_local.back().size()
+						  << " variables";
+			std::cerr << std::endl;
 		}
 
 		ins->variables_local.pop_back();
