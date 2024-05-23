@@ -81,8 +81,8 @@ namespace sc
 				{"end", {{}, op_end}},
 				{"describe", {{operand_type::string}, op_describe}},
 				{"funcs", {{}, op_funcs}},
-				{"_push_locals", {{}, op__push_locals}},
-				{"_pop_locals", {{}, op__pop_locals}},
+				{"_push_locals", {{operand_type::string}, op__push_locals}},
+				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
 		    }
 		};
 

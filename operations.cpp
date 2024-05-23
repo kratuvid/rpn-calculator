@@ -438,15 +438,34 @@ help: show this screen)" << std::endl;
 
 	void simple_calculator::op__push_locals(simple_calculator* ins)
 	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		if (ins->verbose)
+		{
+			std::cerr << ins->stack.size() << "> begin:" << ins->variables_local.size()
+					  << " @" << a << std::endl;
+		}
+
 		ins->variables_local.push_back({});
 	}
 
 	void simple_calculator::op__pop_locals(simple_calculator* ins)
 	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
 		if (ins->variables_local.empty())
 		{
 			throw std::runtime_error("Operation '_pop_locals' executed on an empty list. This is a program error");
 		}
+
+		if (ins->verbose)
+		{
+			std::cerr << ins->stack.size() << "> end:" << ins->variables_local.size()-1
+					  << " @" << a << std::endl;
+		}
+
 		ins->variables_local.pop_back();
 	}
 }; // namespace sc

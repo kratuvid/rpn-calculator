@@ -245,11 +245,13 @@ namespace sc
 
 					const auto& func_stack = std::get<1>(it->second);
 					secondary_stack.push_front(operations.find("_pop_locals"));
+					secondary_stack.push_front(func.name);
 					for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
 					{
 						secondary_stack.push_front(*it2);
 					}
 					secondary_stack.push_front(operations.find("_push_locals"));
+					secondary_stack.push_front(func.name);
 				}
 				continue;
 			}
