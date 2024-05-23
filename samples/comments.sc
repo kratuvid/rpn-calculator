@@ -2,10 +2,10 @@
 50 50 +
 ;garbage
 
-1 :f begin ;none
+1 :f defun ;none
   ;5 / ;none2
 end
 
-funcs
+defuns
 :f describe
 @f

@@ -1,4 +1,4 @@
-4 :det2x2 begin
+4 :det2x2 defun
   :22 var :21 var
   :12 var :11 var
 
@@ -7,7 +7,7 @@
   -
 end
 
-9 :det3x3 begin
+9 :det3x3 defun
   :33 var :32 var :31 var
   :23 var :22 var :21 var
   :13 var :12 var :11 var

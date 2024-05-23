@@ -235,9 +235,9 @@ vars: list all variables
 del: s: delete variable s
 delall: delete all variables
 ---
-begin: n, s: begin a function declaration
+defun: n, s: begin a function declaration
 end: end the function declaration
-describe: s: show the elements of the function
+desc: s: show the elements of the function
 funcs: briefly list out all functions
 ---
 file: s: read commands from file
@@ -387,7 +387,7 @@ help: show this screen)" << std::endl;
 		ins->variables.clear();
 	}
 
-	void simple_calculator::op_begin(simple_calculator* ins)
+	void simple_calculator::op_defun(simple_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -416,7 +416,7 @@ help: show this screen)" << std::endl;
 		ins->current_eval_function.clear();
 	}
 
-	void simple_calculator::op_describe(simple_calculator* ins)
+	void simple_calculator::op_desc(simple_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -480,8 +480,9 @@ help: show this screen)" << std::endl;
 
 		if (ins->verbose)
 		{
-			std::cerr << ins->stack.size() << "> begin:" << ins->variables_local.size()
-					  << " @" << a << std::endl;
+			std::cerr << ins->stack.size() << "> "
+					  << '@' << a << ':' << ins->variables_local.size()
+					  << std::endl;
 		}
 
 		ins->variables_local.push_back({});
@@ -499,8 +500,8 @@ help: show this screen)" << std::endl;
 
 		if (ins->verbose)
 		{
-			std::cerr << ins->stack.size() << "> end:" << ins->variables_local.size()-1
-					  << " @" << a;
+			std::cerr << ins->stack.size() << "> end"
+					  << " @" << a << ':' << ins->variables_local.size()-1;
 			if (ins->variables_local.back().size() > 0)
 				std::cerr << " - freed " << ins->variables_local.back().size()
 						  << " variables";

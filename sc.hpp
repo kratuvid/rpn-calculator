@@ -78,9 +78,9 @@ namespace sc
 				{"del", {{operand_type::string}, op_del}},
 				{"delall", {{}, op_delall}},
 
-				{"begin", {{operand_type::number, operand_type::string}, op_begin}},
+				{"defun", {{operand_type::number, operand_type::string}, op_defun}},
 				{"end", {{}, op_end}},
-				{"describe", {{operand_type::string}, op_describe}},
+				{"desc", {{operand_type::string}, op_desc}},
 				{"funcs", {{}, op_funcs}},
 				{"_push_locals", {{operand_type::string}, op__push_locals}},
 				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
@@ -127,9 +127,9 @@ namespace sc
 		static void op_del(simple_calculator* ins);
 		static void op_delall(simple_calculator* ins);
 
-		static void op_begin(simple_calculator* ins);
+		static void op_defun(simple_calculator* ins);
 		static void op_end(simple_calculator* ins);
-		static void op_describe(simple_calculator* ins);
+		static void op_desc(simple_calculator* ins);
 		static void op_funcs(simple_calculator* ins);
 		static void op__push_locals(simple_calculator* ins);
 		static void op__pop_locals(simple_calculator* ins);

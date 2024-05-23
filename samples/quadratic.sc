@@ -1,4 +1,4 @@
-3 :quadratic_roots begin
+3 :quadratic_roots defun
   :c var :b var :a var
 
   $b 2 ^
