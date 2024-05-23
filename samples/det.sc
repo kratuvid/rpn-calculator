@@ -5,8 +5,6 @@
   $-11 $-22 *
   $-21 $-12 *
   -
-
-  top
 end
 
 9 :det3x3 begin
@@ -27,6 +25,8 @@ end
   $.21 $.22 $.31 $.32 @det2x2
   *
   +
-
-  top
 end
+
+2 -3 5
+6 0 4
+1 5 -7 stack @det3x3 top

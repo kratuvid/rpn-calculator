@@ -50,9 +50,9 @@ namespace sc
 	void simple_calculator::op_divide(simple_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
-		if (a == 0)
-			throw sc::exception("Cannot divide by 0", sc::error_type::exec);
 		ins->stack.pop_back();
+		if (std::fpclassify(a) == FP_ZERO)
+			throw sc::exception("Cannot divide by 0", sc::error_type::exec);
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
