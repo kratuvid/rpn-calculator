@@ -84,8 +84,9 @@ namespace sc
 		std::deque<element_t> secondary_stack;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
+		std::unordered_map<std::string, std::unordered_map<std::string, number_t>> variables_local;
 
-		function_t* current_function = nullptr;
+		std::string current_eval_function;
 		bool verbose = false;
 
 	private:

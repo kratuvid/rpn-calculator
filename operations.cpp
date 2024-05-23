@@ -313,7 +313,7 @@ help: show this screen)" << std::endl;
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		if (ins->current_function)
+		if (!ins->current_eval_function.empty())
 		{
 			std::ostringstream oss;
 			oss << "Cannot begin parsing '" << a << "' as another function is currently being";
@@ -321,17 +321,17 @@ help: show this screen)" << std::endl;
 		}
 
 		ins->functions[a] = function_t(b, {});
-		ins->current_function = &ins->functions[a];
+		ins->current_eval_function = a;
 	}
 
 	void simple_calculator::op_end(simple_calculator* ins)
 	{
-		if (ins->current_function == nullptr)
+		if (ins->current_eval_function.empty())
 		{
 			throw sc::exception("Unexpected call to operation end", sc::error_type::exec);
 		}
 
-		ins->current_function = nullptr;
+		ins->current_eval_function.clear();
 	}
 
 	void simple_calculator::op_describe(simple_calculator* ins)

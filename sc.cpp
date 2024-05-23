@@ -164,7 +164,7 @@ namespace sc
 
 			if (elem.type() == typeid(variable_ref_t))
 			{
-				if (!current_function)
+				if (current_eval_function.empty())
 				{
 					auto var = std::any_cast<variable_ref_t const&>(elem);
 
@@ -191,8 +191,8 @@ namespace sc
 				}
 				else
 				{
-					const auto& current_stack = current_function ?
-						std::get<1>(*current_function) :
+					const auto& current_stack = !current_eval_function.empty() ?
+						std::get<1>(functions[current_eval_function]) :
 						stack;
 
 					if (current_stack.size() < std::get<0>(it->second))
@@ -239,9 +239,9 @@ namespace sc
 				is_op_end = op_name == "end";
 			}
 
-			if (current_function && !is_op_end)
+			if (!current_eval_function.empty() && !is_op_end)
 			{
-				auto& func_stack = std::get<1>(*current_function);
+				auto& func_stack = std::get<1>(functions[current_eval_function]);
 				func_stack.push_back(std::move(elem));
 			}
 			else
