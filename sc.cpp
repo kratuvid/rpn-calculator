@@ -162,7 +162,8 @@ namespace sc
 
 	void simple_calculator::ensure_pop_locals()
 	{
-		const auto it_pop_locals = operations.find("_pop_locals");
+		const auto it_pop_locals = operations.find("_pop_locals"),
+			it_push_locals = operations.find("_push_locals");
 		std::list<std::string> names;
 
 		if (variables_local.size() > 0)
@@ -171,10 +172,17 @@ namespace sc
 			for (auto it = secondary_stack.begin(); it != secondary_stack.end(); it++)
 			{
 				if ((*it).type() == typeid(operations_iter_t))
-					if (std::any_cast<operations_iter_t>(*it) == it_pop_locals)
+				{
+					auto it_op = std::any_cast<operations_iter_t>(*it);
+					if (it_op == it_pop_locals)
 					{
 						it_names.push_back(it-1);
 					}
+					else if (it_op == it_push_locals)
+					{
+						break;
+					}
+				}
 			}
 			for (auto& it_name : it_names)
 				names.push_back(std::any_cast<std::string&&>(std::move(*it_name)));
