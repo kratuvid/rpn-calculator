@@ -30,6 +30,7 @@ namespace sc
 	{
 	public:
 		enum class operand_type { number, string };
+		enum class scope_type { function, loop };
 
 		using element_t = std::any;
 
@@ -87,7 +88,7 @@ namespace sc
 				{"end", {{}, op_end}},
 				{"desc", {{operand_type::string}, op_desc}},
 				{"funcs", {{}, op_funcs}},
-				{"_push_locals", {{operand_type::string}, op__push_locals}},
+				{"_push_locals", {{operand_type::number, operand_type::string}, op__push_locals}},
 				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
 
 				{"times", {{operand_type::number}, op_times}},
@@ -103,7 +104,7 @@ namespace sc
 		std::deque<std::tuple<unsigned, std::deque<element_t>>> times;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
-		std::list<std::unordered_map<std::string, number_t>> variables_local;
+		std::list<std::tuple<scope_type, std::unordered_map<std::string, number_t>>> variables_local;
 
 		int current_eval_times = -1;
 		std::string current_eval_function;

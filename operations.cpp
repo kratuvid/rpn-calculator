@@ -317,7 +317,7 @@ help: show this screen)" << std::endl;
 		if (ins->variables_local.size() > 0)
 		{
 			local = true;
-			ins->variables_local.back()[a] = b;
+			std::get<1>(ins->variables_local.back())[a] = b;
 		}
 		else
 		{
@@ -359,11 +359,13 @@ help: show this screen)" << std::endl;
 		}
 
 		unsigned i = 0;
-		for (const auto& locals : ins->variables_local)
+		for (const auto& locals_raw : ins->variables_local)
 		{
+			auto scope = static_cast<int>(std::get<0>(locals_raw));
+			const auto& locals = std::get<1>(locals_raw);
 			for (const auto& v : locals)
 			{
-				std::cout << "local:" << i << " $" << v.first << ": "
+				std::cout << "local:" << scope << ',' << i << " $" << v.first << ": "
 						  << v.second << std::endl;
 			}
 			i++;
@@ -484,14 +486,17 @@ help: show this screen)" << std::endl;
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
+		auto b = std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
 		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> "
-					  << '@' << a << ':' << ins->variables_local.size()
+					  << a << ':' << b << ',' << ins->variables_local.size()
 					  << std::endl;
 		}
 
-		ins->variables_local.push_back({});
+		ins->variables_local.push_back({static_cast<scope_type>(b), {}});
 	}
 
 	void simple_calculator::op__pop_locals(simple_calculator* ins)
@@ -506,11 +511,12 @@ help: show this screen)" << std::endl;
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> end"
-					  << " @" << a << ':' << ins->variables_local.size()-1;
-			if (ins->variables_local.back().size() > 0)
-				std::cerr << " - freed " << ins->variables_local.back().size()
-						  << " variables";
+			auto scope = static_cast<int>(std::get<0>(ins->variables_local.back()));
+			auto num = std::get<1>(ins->variables_local.back()).size();
+			std::cerr << ins->stack.size() << "> end "
+					  << a << ':' << scope << ',' << ins->variables_local.size()-1;
+			if (num > 0)
+				std::cerr << " - freed " << num << " variables";
 			std::cerr << std::endl;
 		}
 

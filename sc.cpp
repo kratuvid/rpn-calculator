@@ -214,12 +214,20 @@ namespace sc
 
 						if (variables_local.size() > 0)
 						{
-							const auto& local = variables_local.back();
-							auto it_local = local.find(var.name);
-							if (it_local != local.end())
+							for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
 							{
-								elem = it_local->second;
-								goto done;
+								auto scope = std::get<0>(*it);
+								const auto& local = std::get<1>(*it);
+
+								auto it_local = local.find(var.name);
+								if (it_local != local.end())
+								{
+									elem = it_local->second;
+									goto done;
+								}
+
+								if (scope != scope_type::loop)
+									break;
 							}
 						}
 
@@ -291,6 +299,7 @@ namespace sc
 						}
 						secondary_stack.push_front(operations.find("_push_locals"));
 						secondary_stack.push_front(func.name);
+						secondary_stack.push_front(static_cast<number_t>(scope_type::function));
 					}
 					continue;
 				}
