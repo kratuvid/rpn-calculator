@@ -227,60 +227,67 @@ namespace sc
 				}
 				else if (elem.type() == typeid(function_ref_t))
 				{
-					auto func = std::any_cast<function_ref_t const&>(elem);
-					auto it = functions.find(func.name);
-					if (it == functions.end())
+					if (current_eval_function.empty() && current_eval_times == -1)
 					{
-						std::ostringstream oss;
-						oss << "No such function '" << func.name << "' exists";
-						throw sc::exception(oss.str(), sc::error_type::eval);
-					}
-					else
-					{
-						const auto& current_stack = !current_eval_function.empty() ?
-							std::get<1>(functions[current_eval_function]) :
-							stack;
-						const auto op_count = std::get<0>(it->second);
-
-						if (current_stack.size() < op_count)
+						auto func = std::any_cast<function_ref_t const&>(elem);
+						auto it = functions.find(func.name);
+						if (it == functions.end())
 						{
 							std::ostringstream oss;
-							oss << "Function '" << func.name << "' requires "
-								<< op_count << " elements but only "
-								<< current_stack.size() << " are left";
+							oss << "No such function '" << func.name << "' exists";
 							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
 						else
 						{
-							for (size_t i = 0; i < op_count; i++)
-							{
-								const auto& operand = current_stack[current_stack.size() - i - 1];
-								const auto operand_index = op_count - i - 1;
+							std::deque<element_t>* cs_raw = &stack;
+							if (current_eval_times != -1)
+								cs_raw = &std::get<1>(times[current_eval_times]);
+							else if (!current_eval_function.empty())
+								cs_raw = &std::get<1>(functions[current_eval_function]);
 
-								if (operand.type() != typeid(number_t) &&
-									operand.type() != typeid(variable_ref_t))
+							const auto& current_stack = *cs_raw;
+							const auto op_count = std::get<0>(it->second);
+
+							if (current_stack.size() < op_count)
+							{
+								std::ostringstream oss;
+								oss << "Function '" << func.name << "' requires "
+									<< op_count << " elements but only "
+									<< current_stack.size() << " are left";
+								throw sc::exception(oss.str(), sc::error_type::eval);
+							}
+							else
+							{
+								for (size_t i = 0; i < op_count; i++)
 								{
-									std::ostringstream oss;
-									oss << "Expected operand of type number or variable"
-										<< " at index " << operand_index << " for function '"
-										<< func.name << "'";
-									throw sc::exception(oss.str(), sc::error_type::eval);
+									const auto& operand = current_stack[current_stack.size() - i - 1];
+									const auto operand_index = op_count - i - 1;
+
+									if (operand.type() != typeid(number_t) &&
+										operand.type() != typeid(variable_ref_t))
+									{
+										std::ostringstream oss;
+										oss << "Expected operand of type number or variable"
+											<< " at index " << operand_index << " for function '"
+											<< func.name << "'";
+										throw sc::exception(oss.str(), sc::error_type::eval);
+									}
 								}
 							}
-						}
 
-						const auto& func_stack = std::get<1>(it->second);
-						secondary_stack.push_front(operations.find("_pop_locals"));
-						secondary_stack.push_front(func.name);
-						for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
-						{
-							secondary_stack.push_front(*it2);
+							const auto& func_stack = std::get<1>(it->second);
+							secondary_stack.push_front(operations.find("_pop_locals"));
+							secondary_stack.push_front(func.name);
+							for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
+							{
+								secondary_stack.push_front(*it2);
+							}
+							secondary_stack.push_front(operations.find("_push_locals"));
+							secondary_stack.push_front(func.name);
+							secondary_stack.push_front(static_cast<number_t>(scope_type::function));
 						}
-						secondary_stack.push_front(operations.find("_push_locals"));
-						secondary_stack.push_front(func.name);
-						secondary_stack.push_front(static_cast<number_t>(scope_type::function));
+						continue;
 					}
-					continue;
 				}
 				else if (elem.type() == typeid(times_ref_t))
 				{
@@ -688,7 +695,7 @@ namespace sc
 			else if (elem.type() == typeid(times_ref_t))
 			{
 				auto time = std::any_cast<times_ref_t const&>(elem);
-				std::cout << '*' << time.index;
+				std::cout << "*times:" << time.index;
 			}
 			else if (elem.type() == typeid(std::string))
 			{

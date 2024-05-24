@@ -6,7 +6,7 @@
   1 :result var
 
   1 :counter var
-  10 times
+  15 times
   	 $numerator $x * :numerator set
 	 $denominator $counter * :denominator set
 
@@ -18,16 +18,13 @@
   $result
 end
 
-1 :sin_x defun
+5 :_base_sin_cos_x defun
+  :counter var :sol var :den var :num var
   :x var
 
   1 :alt var
-  $x :num var
-  1 :den var
-  $x :sol var
 
-  1 :counter var
-  5 times
+  15 times
 	 $alt neg :alt set
   	 $num $x * $x * :num set
   	 $den $counter 1 + * $counter 2 + * :den set
@@ -44,6 +41,16 @@ end
   $sol
 end
 
+1 :sin_x defun
+  :x var
+  $x $x 1 $x 1 @_base_sin_cos_x
+end
+
+1 :cos_x defun
+  :x var
+  $x 1 1 1 0 @_base_sin_cos_x
+end
+
 1 :rad defun
   $pi 180 / *
 end
@@ -52,6 +59,13 @@ end
   180 $pi / *
 end
 
-180 @rad @sin_x
-stack
-clear
+0 :angle var
+25 times
+   $angle top pop
+   $angle @rad :angle_rad var
+
+   $angle_rad cos top pop
+   $angle_rad @cos_x top pop
+
+   $angle 15 + :angle set
+end-times
