@@ -2,9 +2,10 @@
 Arbitrary length calculator or something
 
 # Todo
-- [ ] loops
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
+- [ ] optimized loops
+- [x] unoptimized loops
 - [x] function local variables ) pop locals on error
 - [x] comments
 - [x] move operations member variable to map
