@@ -342,7 +342,11 @@ namespace sc
 						(*last_stack).pop_back();
 
 						if (last_elem.type() != typeid(number_t))
-							throw sc::exception("Last element in the last stack isn't a number_t", sc::error_type::eval);
+						{
+							std::ostringstream oss;
+							oss << "Can't create new times:" << times.size() << " as the last element in the last stack isn't a number_t";
+							throw sc::exception(oss.str(), sc::error_type::eval);
+						}
 
 						stack.push_back(std::move(last_elem));
 					}
