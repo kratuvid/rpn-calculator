@@ -6,6 +6,6 @@
   ;5 / ;none2
 end
 
-defuns
+funcs
 :f describe
 @f

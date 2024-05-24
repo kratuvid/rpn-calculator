@@ -510,4 +510,22 @@ help: show this screen)" << std::endl;
 
 		ins->variables_local.pop_back();
 	}
+
+	void simple_calculator::op_times(simple_calculator* ins)
+	{
+		auto a = ins->resolve_variable_if(ins->stack.back());
+		ins->stack.pop_back();
+
+	    ins->current_eval_times = ins->times.size();
+		ins->times.push_back({(unsigned)a, {}});
+	}
+
+	void simple_calculator::op_end_times(simple_calculator* ins)
+	{
+		if (ins->current_eval_times == -1)
+		{
+			throw std::runtime_error("Unexpected operation 'end-times'");
+		}
+		ins->current_eval_times = -1;
+	}
 }; // namespace sc

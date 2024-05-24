@@ -43,6 +43,11 @@ namespace sc
 			variable_ref_t(const std::string& name) :name(name) {}
 			variable_ref_t(std::string&& name) :name(name) {}
 		};
+		struct times_ref_t {
+			unsigned index;
+			times_ref_t() = delete;
+			times_ref_t(size_t index) :index(index) {}
+		};
 		struct function_ref_t {
 			std::string name;
 			function_ref_t() = delete;
@@ -84,15 +89,20 @@ namespace sc
 				{"funcs", {{}, op_funcs}},
 				{"_push_locals", {{operand_type::string}, op__push_locals}},
 				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
+
+				{"times", {{operand_type::number}, op_times}},
+				{"end-times", {{}, op_end_times}},
 		    }
 		};
 
 		std::deque<element_t> stack;
 		std::deque<element_t> secondary_stack;
+		std::deque<std::tuple<unsigned, std::deque<element_t>>> times;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables;
 		std::list<std::unordered_map<std::string, number_t>> variables_local;
 
+		int current_eval_times = -1;
 		std::string current_eval_function;
 		bool verbose = false;
 
@@ -133,6 +143,9 @@ namespace sc
 		static void op_funcs(simple_calculator* ins);
 		static void op__push_locals(simple_calculator* ins);
 		static void op__pop_locals(simple_calculator* ins);
+
+		static void op_times(simple_calculator* ins);
+		static void op_end_times(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);

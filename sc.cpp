@@ -294,16 +294,37 @@ namespace sc
 					}
 					continue;
 				}
+				else if (elem.type() == typeid(times_ref_t))
+				{
+					auto t = std::any_cast<times_ref_t const&>(elem);
+					const auto& times_stack = std::get<1>(times[t.index]);
+
+					for (unsigned i=0; i < std::get<0>(times[t.index]); i++)
+					{
+						for (auto it = times_stack.rbegin(); it != times_stack.rend(); it++)
+						{
+							secondary_stack.push_front(*it);
+						}
+					}
+					continue;
+				}
 
 				const bool is_op = elem.type() == typeid(operations_iter_t);
-				bool is_op_end = false;
+				bool is_op_end = false, is_op_end_times = false;
 				if (is_op)
 				{
 					const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
 					is_op_end = op_name == "end";
+					is_op_end_times = op_name == "end-times";
 				}
 
-				if (!current_eval_function.empty() && !is_op_end)
+				const bool is_only_stack = is_op_end_times || is_op_end;
+
+				if (current_eval_times != -1 && !is_only_stack)
+				{
+					std::get<1>(times.back()).push_back(std::move(elem));
+				}
+				else if (!current_eval_function.empty() && !is_only_stack)
 				{
 					auto& func_stack = std::get<1>(functions[current_eval_function]);
 					func_stack.push_back(std::move(elem));
@@ -311,10 +332,7 @@ namespace sc
 				else
 				{
 					stack.push_back(std::move(elem));
-					if (is_op)
-					{
-						execute();
-					}
+					if (is_op) execute();
 				}
 			}
 		}
@@ -357,10 +375,9 @@ namespace sc
 				if (is_comment)
 				{
 					if (c == '\n')
-					{
 						is_comment = false;
-					}
-					continue;
+					else
+						continue;
 				}
 
 				if (isspace(c))
@@ -375,6 +392,14 @@ namespace sc
 			}
 			if (!tmp.empty())
 				subs.push_back(std::move(tmp));
+		}
+
+		for (auto it = subs.begin(); it != subs.end(); it++)
+		{
+			if (*it == "end-times")
+			{
+				subs.insert(std::next(it), "*_use_times");
+			}
 		}
 
 		for (const auto& sub : subs)
@@ -420,6 +445,17 @@ namespace sc
 					else
 					{
 						elem = function_ref_t(std::move(sub.substr(1)));
+					}
+				}
+				else if (sub[0] == '*')
+				{
+					if (sub != "*_use_times")
+					{
+						throw sc::exception("* is internally reserved for *_use_times and shouldn't be used on will", sc::error_type::parse);
+					}
+					else
+					{
+						elem = times_ref_t(times.size()-1);
 					}
 				}
 
