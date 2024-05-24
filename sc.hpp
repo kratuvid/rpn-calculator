@@ -79,6 +79,7 @@ namespace sc
 				{"_view", {{}, op__view}},
 
 				{"var", {{operand_type::number, operand_type::string}, op_var}},
+				{"set", {{operand_type::number, operand_type::string}, op_set}},
 				{"varg", {{operand_type::number, operand_type::string}, op_varg}},
 				{"vars", {{}, op_vars}},
 				{"del", {{operand_type::string}, op_del}},
@@ -136,6 +137,7 @@ namespace sc
 		static void op__view(simple_calculator* ins);
 
 		static void op_var(simple_calculator* ins);
+		static void op_set(simple_calculator* ins);
 		static void op_varg(simple_calculator* ins);
 		static void op_vars(simple_calculator* ins);
 		static void op_del(simple_calculator* ins);

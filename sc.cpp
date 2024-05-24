@@ -212,6 +212,8 @@ namespace sc
 					{
 						auto var = std::any_cast<variable_ref_t const&>(elem);
 
+						bool found = false;
+
 						if (variables_local.size() > 0)
 						{
 							for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
@@ -222,8 +224,9 @@ namespace sc
 								auto it_local = local.find(var.name);
 								if (it_local != local.end())
 								{
+									found = true;
 									elem = it_local->second;
-									goto done;
+									break;
 								}
 
 								if (scope != scope_type::loop)
@@ -231,19 +234,17 @@ namespace sc
 							}
 						}
 
+						if (!found)
 						{
 							auto it_global = variables.find(var.name);
 							if (it_global == variables.end())
 							{
 								std::ostringstream oss;
-								oss << "No such variable '" << var.name << "' exists";
+								oss << "No such variable '" << var.name << "' exists in relevant scopes";
 								throw sc::exception(oss.str(), sc::error_type::eval);
 							}
 							elem = it_global->second;
 						}
-
-					  done:
-						[[maybe_unused]] int _placeholder_suppress_warning;
 					}
 				}
 				else if (elem.type() == typeid(function_ref_t))

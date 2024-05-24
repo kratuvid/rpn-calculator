@@ -7,12 +7,12 @@
 
 1 :counter var
 15 times
-  $numerator $x * :numerator varg
-  $denominator $counter * :denominator varg
+  $numerator $x * :numerator set
+  $denominator $counter * :denominator set
 
-  $numerator $denominator / $result + :result varg
+  $numerator $denominator / $result + :result set
 
-  $counter 1 + :counter varg
+  $counter 1 + :counter set
 end-times
 
 vars

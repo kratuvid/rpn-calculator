@@ -335,6 +335,62 @@ help: show this screen)" << std::endl;
 		}
 	}
 
+	void simple_calculator::op_set(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		auto b = ins->resolve_variable_if(ins->stack.back());
+		ins->stack.pop_back();
+
+		bool is_local = false, found = false;
+		int local_index;
+
+		local_index = (int)ins->variables_local.size() - 1;
+		for (auto it = ins->variables_local.rbegin(); it != ins->variables_local.rend(); it++, local_index--)
+		{
+			auto scope = std::get<0>(*it);
+			auto& local = std::get<1>(*it);
+
+			auto it_local = local.find(a);
+			if (it_local != local.end())
+			{
+				found = is_local = true;
+				it_local->second = b;
+			}
+
+			if (scope != scope_type::loop)
+				break;
+		}
+
+		if (!found)
+		{
+			auto it_global = ins->variables.find(a);
+			if (it_global != ins->variables.end())
+			{
+				found = true;
+				it_global->second = b;
+			}
+		}
+
+		if (!found)
+		{
+			std::ostringstream oss;
+			oss << "No such variables '" << a << "' exists in relevant scopes";
+			throw sc::exception(oss.str(), sc::error_type::exec);
+		}
+
+		if (ins->verbose && !ins->suppress_verbose)
+		{
+			std::cerr << ins->stack.size() << "> ";
+			if (is_local)
+			{
+				std::cerr << "local:" << local_index << ' ';
+			}
+			std::cerr << '$' << a << " = " << b << std::endl;
+		}
+	}
+
 	void simple_calculator::op_varg(simple_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
