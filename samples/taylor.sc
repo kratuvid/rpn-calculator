@@ -1,19 +1,18 @@
-:xx var
-1 :x var
+:x var
 
+1 :numerator var
 1 :denominator var
+
+1 :result var
+
 1 :counter var
+15 times
+  $numerator $x * :numerator varg
+  $denominator $counter * :denominator varg
 
-1 1 / :result var
+  $numerator $denominator / $result + :result varg
 
-
-5 times
-  $x $xx * :x var
-  $denominator $counter * :denominator var
-
-  $x $denominator / $result + :result var
-
-  $counter 1 + :counter var
+  $counter 1 + :counter varg
 end-times
 
 vars

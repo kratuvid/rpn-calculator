@@ -208,7 +208,7 @@ namespace sc
 
 				if (elem.type() == typeid(variable_ref_t))
 				{
-					if (current_eval_function.empty())
+					if (current_eval_function.empty() && current_eval_times == -1)
 					{
 						auto var = std::any_cast<variable_ref_t const&>(elem);
 
@@ -308,12 +308,18 @@ namespace sc
 					auto t = std::any_cast<times_ref_t const&>(elem);
 					const auto& times_stack = std::get<1>(times[t.index]);
 
+					std::string name = "times";
 					for (unsigned i=0; i < std::get<0>(times[t.index]); i++)
 					{
+						secondary_stack.push_front(operations.find("_pop_locals"));
+						secondary_stack.push_front(name);
 						for (auto it = times_stack.rbegin(); it != times_stack.rend(); it++)
 						{
 							secondary_stack.push_front(*it);
 						}
+						secondary_stack.push_front(operations.find("_push_locals"));
+						secondary_stack.push_front(name);
+						secondary_stack.push_front(static_cast<number_t>(scope_type::loop));
 					}
 					continue;
 				}
