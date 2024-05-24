@@ -18,13 +18,13 @@
   $result
 end
 
-5 :_base_sin_cos_x defun
+5 :_base_sin_cos defun
   :counter var :sol var :den var :num var
   :x var
 
   1 :alt var
 
-  15 times
+  20 times
 	 $alt neg :alt set
   	 $num $x * $x * :num set
   	 $den $counter 1 + * $counter 2 + * :den set
@@ -41,14 +41,14 @@ end
   $sol
 end
 
-1 :sin_x defun
+1 :sin defun
   :x var
-  $x $x 1 $x 1 @_base_sin_cos_x
+  $x $x 1 $x 1 @_base_sin_cos
 end
 
-1 :cos_x defun
+1 :cos defun
   :x var
-  $x 1 1 1 0 @_base_sin_cos_x
+  $x 1 1 1 0 @_base_sin_cos
 end
 
 1 :rad defun
@@ -61,11 +61,14 @@ end
 
 0 :angle var
 25 times
-   $angle top pop
+   :deg:~ print $angle top pop
    $angle @rad :angle_rad var
+   :rad:~ print $angle_rad top pop
 
-   $angle_rad cos top pop
-   $angle_rad @cos_x top pop
+   :sin:~ print $angle_rad @sin top pop
+   :cos:~ print $angle_rad @cos top pop
 
    $angle 15 + :angle set
+   
+   :~ println
 end-times

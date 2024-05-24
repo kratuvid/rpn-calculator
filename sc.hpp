@@ -47,7 +47,7 @@ namespace sc
 		struct times_ref_t {
 			unsigned index;
 			times_ref_t() = delete;
-			times_ref_t(size_t index) :index(index) {}
+			times_ref_t(unsigned index) :index(index) {}
 		};
 		struct function_ref_t {
 			std::string name;
@@ -99,6 +99,9 @@ namespace sc
 
 				{"noverbose", {{}, op_noverbose}},
 				{"verbose", {{}, op_verbose}},
+
+				{"print", {{operand_type::string}, op_print}},
+				{"println", {{operand_type::string}, op_println}},
 		    }
 		};
 
@@ -163,6 +166,9 @@ namespace sc
 
 		static void op_noverbose(simple_calculator* ins);
 		static void op_verbose(simple_calculator* ins);
+
+		static void op_print(simple_calculator* ins);
+		static void op_println(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);

@@ -216,6 +216,9 @@ end-times: end the last times loop
 noverbose: suppress verbose even if enabled
 verbose: unsuppress verbose
 ---
+print: s: print s to standard output. '~' will be replaced with space
+println: s: print s and a newline to the standard output. Same with '~'
+---
 file: s: read commands from file
 quit: quit the REPL
 ---
@@ -606,5 +609,23 @@ help: show this screen)" << std::endl;
 	void simple_calculator::op_verbose(simple_calculator* ins)
 	{
 		ins->suppress_verbose = false;
+	}
+
+	void simple_calculator::op_print(simple_calculator* ins)
+	{
+		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+
+		for (unsigned i=0; i < a.size(); i++)
+			if (a[i] == '~')
+				a[i] = ' ';
+
+		std::cout << a;
+	}
+
+	void simple_calculator::op_println(simple_calculator* ins)
+	{
+		op_print(ins);
+		std::cout << std::endl;
 	}
 }; // namespace sc

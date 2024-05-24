@@ -5,7 +5,7 @@ Arbitrary length calculator or something
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
 - [ ] optimized loops ) proper scoped loops, still "unoptimized"
-- [ ] optimize elements when calling a function from another function
+- [x] optimize elements when calling a function from another function
 - [x] separate variable declration and setting
 - [x] 'var' set variables in the previous scope if not present in the current - new oper "set"
 - [x] unoptimized loops
