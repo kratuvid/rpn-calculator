@@ -580,7 +580,7 @@ help: show this screen)" << std::endl;
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> "
+			std::cerr << ins->stack.size() << "> begin "
 					  << a << ':' << b << ',' << ins->variables_local.size()
 					  << std::endl;
 		}

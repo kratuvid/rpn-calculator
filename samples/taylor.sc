@@ -2,7 +2,6 @@
 
 1 :numerator var
 1 :denominator var
-
 1 :result var
 
 1 :counter var
