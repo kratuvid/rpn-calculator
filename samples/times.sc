@@ -9,7 +9,7 @@ clear
 end-times top
 
 clear
-2
-5 1 - times
+1
+5 times
   2 *
 end-times top

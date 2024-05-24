@@ -11,7 +11,7 @@ namespace sc
 
 		auto r = b + a;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -26,7 +26,7 @@ namespace sc
 
 		auto r = b - a;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -41,7 +41,7 @@ namespace sc
 
 		auto r = b * a;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -58,7 +58,7 @@ namespace sc
 
 		auto r = b / a;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -73,7 +73,7 @@ namespace sc
 
 		auto r = std::pow(b, a);
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -106,7 +106,7 @@ namespace sc
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(a));
@@ -119,7 +119,7 @@ namespace sc
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(a));
@@ -131,7 +131,7 @@ namespace sc
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size() << "> " << "pop " << a << std::endl;
 	}
 
@@ -201,7 +201,7 @@ namespace sc
 
 		auto r = -a;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = -(" << a << ")" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -240,6 +240,12 @@ end: end the function declaration
 desc: s: show the elements of the function
 funcs: briefly list out all functions
 ---
+times: n: execute the loop code n times
+end-times: end the last times loop
+---
+noverbose: suppress verbose even if enabled
+verbose: unsuppress verbose
+---
 file: s: read commands from file
 quit: quit the REPL
 ---
@@ -253,7 +259,7 @@ help: show this screen)" << std::endl;
 
 		auto r = std::sin(a);
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -266,7 +272,7 @@ help: show this screen)" << std::endl;
 
 		auto r = std::cos(a);
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -279,7 +285,7 @@ help: show this screen)" << std::endl;
 
 		auto r = std::floor(a);
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -292,7 +298,7 @@ help: show this screen)" << std::endl;
 
 		auto r = std::ceil(a);
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 			std::cerr << ins->stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
 
 		ins->stack.push_back(std::make_any<number_t>(r));
@@ -318,7 +324,7 @@ help: show this screen)" << std::endl;
 			ins->variables[a] = b;
 		}
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> ";
 			if (local)
@@ -339,7 +345,7 @@ help: show this screen)" << std::endl;
 
 		ins->variables[a] = b;
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> $" << a << " = " << b << std::endl;
 		}
@@ -478,7 +484,7 @@ help: show this screen)" << std::endl;
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> "
 					  << '@' << a << ':' << ins->variables_local.size()
@@ -498,7 +504,7 @@ help: show this screen)" << std::endl;
 			throw std::runtime_error("Operation '_pop_locals' executed on an empty list. This is a program error");
 		}
 
-		if (ins->verbose)
+		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> end"
 					  << " @" << a << ':' << ins->variables_local.size()-1;
@@ -527,5 +533,15 @@ help: show this screen)" << std::endl;
 			throw std::runtime_error("Unexpected operation 'end-times'");
 		}
 		ins->current_eval_times = -1;
+	}
+
+	void simple_calculator::op_noverbose(simple_calculator* ins)
+	{
+		ins->suppress_verbose = true;
+	}
+
+	void simple_calculator::op_verbose(simple_calculator* ins)
+	{
+		ins->suppress_verbose = false;
 	}
 }; // namespace sc

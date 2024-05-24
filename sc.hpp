@@ -92,6 +92,9 @@ namespace sc
 
 				{"times", {{operand_type::number}, op_times}},
 				{"end-times", {{}, op_end_times}},
+
+				{"noverbose", {{}, op_noverbose}},
+				{"verbose", {{}, op_verbose}},
 		    }
 		};
 
@@ -104,7 +107,7 @@ namespace sc
 
 		int current_eval_times = -1;
 		std::string current_eval_function;
-		bool verbose = false;
+		bool verbose = false, suppress_verbose = false;
 
 	private:
 		static void op_add(simple_calculator* ins);
@@ -146,6 +149,9 @@ namespace sc
 
 		static void op_times(simple_calculator* ins);
 		static void op_end_times(simple_calculator* ins);
+
+		static void op_noverbose(simple_calculator* ins);
+		static void op_verbose(simple_calculator* ins);
 
 	private:
 		void show_help(char* name);
