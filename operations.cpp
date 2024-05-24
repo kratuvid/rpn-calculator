@@ -312,22 +312,44 @@ help: show this screen)" << std::endl;
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		bool local = false;
+		bool is_local = false, exists = true;
 
 		if (ins->variables_local.size() > 0)
 		{
-			local = true;
-			std::get<1>(ins->variables_local.back())[a] = b;
+			auto& local = std::get<1>(ins->variables_local.back());
+
+			auto it_local = local.find(a);
+			if (it_local == local.end())
+			{
+				is_local = true;
+				exists = false;
+				local[a] = b;
+			}
 		}
 		else
 		{
-			ins->variables[a] = b;
+			auto it_global = ins->variables.find(a);
+			if (it_global == ins->variables.end())
+			{
+				exists = false;
+				ins->variables[a] = b;
+			}
+		}
+
+		if (exists)
+		{
+			std::ostringstream oss;
+			oss << "Variable '" << a << "' already exists at scope ";
+			if (is_local) oss << "local";
+			else oss << "global";
+			oss << ". You probably meant to use operation 'set'";
+			throw sc::exception(oss.str(), sc::error_type::exec);
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> ";
-			if (local)
+			std::cerr << ins->stack.size() << "> new ";
+			if (is_local)
 			{
 				std::cerr << "local:" << ins->variables_local.size()-1 << ' ';
 			}
@@ -400,11 +422,21 @@ help: show this screen)" << std::endl;
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		ins->variables[a] = b;
+		auto it_global = ins->variables.find(a);
+		if (it_global == ins->variables.end())
+		{
+			ins->variables[a] = b;
+		}
+		else
+		{
+			std::ostringstream oss;
+			oss << "Variable '" << a << "' already exists at scope global. You probably meant to use operation 'set'";
+			throw sc::exception(oss.str(), sc::error_type::exec);
+		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> $" << a << " = " << b << std::endl;
+			std::cerr << ins->stack.size() << "> new $" << a << " = " << b << std::endl;
 		}
 	}
 
