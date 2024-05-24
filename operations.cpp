@@ -575,7 +575,7 @@ help: show this screen)" << std::endl;
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		auto b = std::any_cast<number_t>(ins->stack.back());
+		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (ins->verbose && !ins->suppress_verbose)

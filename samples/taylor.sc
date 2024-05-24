@@ -18,4 +18,7 @@
   $result
 end
 
+noverbose
+1 @e_x top
+1.5 @e_x top
 2 @e_x top

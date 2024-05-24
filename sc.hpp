@@ -162,6 +162,7 @@ namespace sc
 
 		void execute();
 		void evaluate();
+		bool dereference_variable(const variable_ref_t& what, number_t& out);
 		void ensure_pop_locals();
 		number_t resolve_variable_if(const element_t& e);
 

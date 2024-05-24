@@ -214,44 +214,15 @@ namespace sc
 					{
 						auto var = std::any_cast<variable_ref_t const&>(elem);
 
-						bool found = false;
-
-						if (variables_local.size() > 0)
-						{
-							for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
-							{
-								auto scope = std::get<0>(*it);
-								const auto& local = std::get<1>(*it);
-
-								auto it_local = local.find(var.name);
-								if (it_local != local.end())
-								{
-									found = true;
-									elem = it_local->second;
-									break;
-								}
-
-								if (scope != scope_type::loop)
-									break;
-							}
-						}
-
-						if (!found)
-						{
-							auto it_global = variables.find(var.name);
-							if (it_global != variables.end())
-							{
-								found = true;
-								elem = it_global->second;
-							}
-						}
-
-						if (!found)
+						number_t out;
+						if (!dereference_variable(var, out))
 						{
 							std::ostringstream oss;
 							oss << "No such variable '" << var.name << "' exists in relevant scopes";
 							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
+
+						elem = out;
 					}
 				}
 				else if (elem.type() == typeid(function_ref_t))
@@ -390,13 +361,57 @@ namespace sc
 		}
 	}
 
+	bool simple_calculator::dereference_variable(const simple_calculator::variable_ref_t& what, number_t& out)
+	{
+		bool found = false;
+
+		if (variables_local.size() > 0)
+		{
+			for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
+			{
+				auto scope = std::get<0>(*it);
+				const auto& local = std::get<1>(*it);
+
+				auto it_local = local.find(what.name);
+				if (it_local != local.end())
+				{
+					found = true;
+					out = it_local->second;
+					break;
+				}
+
+				if (scope != scope_type::loop)
+					break;
+			}
+		}
+
+		if (!found)
+		{
+			auto it_global = variables.find(what.name);
+			if (it_global != variables.end())
+			{
+				found = true;
+				out = it_global->second;
+			}
+		}
+
+		return found;
+	}
+
 	simple_calculator::number_t simple_calculator::resolve_variable_if(const element_t& e)
 	{
 		if (e.type() == typeid(variable_ref_t))
 		{
 			throw std::runtime_error("Variables shouldn't be on the stack. This is a removed feature");
 			// auto var = std::any_cast<variable_ref_t const&>(e);
-			// return variables[var.name];
+			// number_t out;
+			// if (!dereference_variable(var, out))
+			// {
+			// 	std::ostringstream oss;
+			// 	oss << "No such variable '" << var.name << "' exists in relevant scopes";
+			// 	throw sc::exception(oss.str(), sc::error_type::exec);
+			// }
+			// return out;
 		}
 		else
 		{
