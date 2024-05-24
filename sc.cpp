@@ -284,23 +284,26 @@ namespace sc
 				}
 				else if (elem.type() == typeid(times_ref_t))
 				{
-					auto t = std::any_cast<times_ref_t const&>(elem);
-					const auto& times_stack = std::get<1>(times[t.index]);
-
-					std::string name = "times";
-					for (unsigned i=0; i < std::get<0>(times[t.index]); i++)
+					if (current_eval_function.empty() && current_eval_times == -1)
 					{
-						secondary_stack.push_front(operations.find("_pop_locals"));
-						secondary_stack.push_front(name);
-						for (auto it = times_stack.rbegin(); it != times_stack.rend(); it++)
+						auto t = std::any_cast<times_ref_t const&>(elem);
+						const auto& times_stack = std::get<1>(times[t.index]);
+
+						std::string name = "times";
+						for (unsigned i=0; i < std::get<0>(times[t.index]); i++)
 						{
-							secondary_stack.push_front(*it);
+							secondary_stack.push_front(operations.find("_pop_locals"));
+							secondary_stack.push_front(name);
+							for (auto it = times_stack.rbegin(); it != times_stack.rend(); it++)
+							{
+								secondary_stack.push_front(*it);
+							}
+							secondary_stack.push_front(operations.find("_push_locals"));
+							secondary_stack.push_front(name);
+							secondary_stack.push_front(static_cast<number_t>(scope_type::loop));
 						}
-						secondary_stack.push_front(operations.find("_push_locals"));
-						secondary_stack.push_front(name);
-						secondary_stack.push_front(static_cast<number_t>(scope_type::loop));
+						continue;
 					}
-					continue;
 				}
 
 				const bool is_op = elem.type() == typeid(operations_iter_t);
@@ -665,4 +668,47 @@ namespace sc
 			goto begin;
 		}
 	}
+
+	void simple_calculator::display_stack(const std::deque<element_t>& that_stack)
+	{
+		bool any = false;
+		for (const auto& elem : that_stack)
+		{
+			any = true;
+			if (elem.type() == typeid(variable_ref_t))
+			{
+				auto var = std::any_cast<variable_ref_t const&>(elem);
+				std::cout << '$' << var.name;
+			}
+			else if (elem.type() == typeid(function_ref_t))
+			{
+				auto func = std::any_cast<function_ref_t const&>(elem);
+				std::cout << '@' << func.name;
+			}
+			else if (elem.type() == typeid(times_ref_t))
+			{
+				auto time = std::any_cast<times_ref_t const&>(elem);
+				std::cout << '*' << time.index;
+			}
+			else if (elem.type() == typeid(std::string))
+			{
+				auto str = std::any_cast<std::string const&>(elem);
+				std::cout << ':' << str;
+			}
+			else if (elem.type() == typeid(operations_iter_t))
+			{
+				auto op_it = std::any_cast<operations_iter_t>(elem);
+				std::cout << op_it->first;
+			}
+			else
+			{
+				auto num = std::any_cast<number_t const&>(elem);
+				std::cout << num;
+			}
+			std::cout << ' ';
+		}
+		if (any)
+			std::cout << std::endl;
+	}
+
 }; // namespace sc

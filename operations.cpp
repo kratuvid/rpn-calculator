@@ -149,39 +149,7 @@ namespace sc
 
 	void simple_calculator::op__view(simple_calculator* ins)
 	{
-		bool any = false;
-		for (const auto& elem : ins->stack)
-		{
-			any = true;
-			if (elem.type() == typeid(variable_ref_t))
-			{
-				auto var = std::any_cast<variable_ref_t const&>(elem);
-				std::cout << '$' << var.name;
-			}
-			else if (elem.type() == typeid(function_ref_t))
-			{
-				auto func = std::any_cast<function_ref_t const&>(elem);
-				std::cout << '@' << func.name;
-			}
-			else if (elem.type() == typeid(std::string))
-			{
-				auto str = std::any_cast<std::string const&>(elem);
-				std::cout << ':' << str;
-			}
-			else if (elem.type() == typeid(operations_iter_t))
-			{
-				auto op_it = std::any_cast<operations_iter_t>(elem);
-				std::cout << op_it->first;
-			}
-			else
-			{
-				auto num = std::any_cast<number_t const&>(elem);
-				std::cout << num;
-			}
-			std::cout << ' ';
-		}
-		if (any)
-			std::cout << std::endl;
+		ins->display_stack(ins->stack);
 	}
 
 	void simple_calculator::op_top(simple_calculator* ins)
@@ -241,6 +209,8 @@ desc: s: show the elements of the function
 funcs: briefly list out all functions
 ---
 times: n: execute the loop code n times
+desc-loop: n: show the elements of loop n
+loops: briefly list out all loops
 end-times: end the last times loop
 ---
 noverbose: suppress verbose even if enabled
@@ -528,36 +498,7 @@ help: show this screen)" << std::endl;
 		else
 		{
 			const auto& function_stack = std::get<1>(it->second);
-			for (const auto& elem : function_stack)
-			{
-				if (elem.type() == typeid(variable_ref_t))
-				{
-					auto var = std::any_cast<variable_ref_t const&>(elem);
-					std::cout << '$' << var.name;
-				}
-				else if (elem.type() == typeid(function_ref_t))
-				{
-					auto func = std::any_cast<function_ref_t const&>(elem);
-					std::cout << '@' << func.name;
-				}
-				else if (elem.type() == typeid(std::string))
-				{
-					auto str = std::any_cast<std::string const&>(elem);
-					std::cout << ':' << str;
-				}
-				else if (elem.type() == typeid(operations_iter_t))
-				{
-					auto op_it = std::any_cast<operations_iter_t>(elem);
-					std::cout << op_it->first;
-				}
-				else
-				{
-					auto num = std::any_cast<number_t const&>(elem);
-					std::cout << num;
-				}
-				std::cout << ' ';
-			}
-			std::cout << std::endl;
+			ins->display_stack(function_stack);
 		}
 	}
 
@@ -619,6 +560,33 @@ help: show this screen)" << std::endl;
 
 	    ins->current_eval_times = ins->times.size();
 		ins->times.push_back({(unsigned)a, {}});
+	}
+
+	void simple_calculator::op_loops(simple_calculator* ins)
+	{
+		unsigned i=0;
+		for (const auto& l : ins->times)
+		{
+			std::cout << "times:" << i << ": " << std::get<0>(l) << " times, "
+					  << std::get<1>(l).size() << " elements" << std::endl;
+			i++;
+		}
+	}
+
+	void simple_calculator::op_desc_loop(simple_calculator* ins)
+	{
+		auto a = (unsigned)std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		if (a >= ins->times.size())
+		{
+			std::ostringstream oss;
+			oss << "No loop at index " << a << " exists";
+			throw sc::exception(oss.str(), sc::error_type::exec);
+		}
+
+		const auto& times_stack = std::get<1>(ins->times[a]);
+		ins->display_stack(times_stack);
 	}
 
 	void simple_calculator::op_end_times(simple_calculator* ins)

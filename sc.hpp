@@ -93,6 +93,8 @@ namespace sc
 				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
 
 				{"times", {{operand_type::number}, op_times}},
+				{"desc-loop", {{operand_type::number}, op_desc_loop}},
+				{"loops", {{}, op_loops}},
 				{"end-times", {{}, op_end_times}},
 
 				{"noverbose", {{}, op_noverbose}},
@@ -104,7 +106,11 @@ namespace sc
 		std::deque<element_t> secondary_stack;
 		std::deque<std::tuple<unsigned, std::deque<element_t>>> times;
 		std::unordered_map<std::string, function_t> functions;
-		std::unordered_map<std::string, number_t> variables;
+		std::unordered_map<std::string, number_t> variables {{
+				{"pi", 3.141592653589793238L},
+				{"e", 2.718281828459045235L}
+			}
+		};
 		std::list<std::tuple<scope_type, std::unordered_map<std::string, number_t>>> variables_local;
 
 		int current_eval_times = -1;
@@ -151,6 +157,8 @@ namespace sc
 		static void op__pop_locals(simple_calculator* ins);
 
 		static void op_times(simple_calculator* ins);
+		static void op_loops(simple_calculator* ins);
+		static void op_desc_loop(simple_calculator* ins);
 		static void op_end_times(simple_calculator* ins);
 
 		static void op_noverbose(simple_calculator* ins);
@@ -170,6 +178,8 @@ namespace sc
 		void file(std::string_view what);
 		void file(std::istream& is);
 		void repl();
+
+		void display_stack(const std::deque<element_t>& that_stack);
 
 	public:
 		simple_calculator(int argc, char** argv)
