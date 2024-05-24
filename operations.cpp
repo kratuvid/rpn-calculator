@@ -357,6 +357,7 @@ help: show this screen)" << std::endl;
 			{
 				found = is_local = true;
 				it_local->second = b;
+				break;
 			}
 
 			if (scope != scope_type::loop)

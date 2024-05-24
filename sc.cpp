@@ -237,13 +237,18 @@ namespace sc
 						if (!found)
 						{
 							auto it_global = variables.find(var.name);
-							if (it_global == variables.end())
+							if (it_global != variables.end())
 							{
-								std::ostringstream oss;
-								oss << "No such variable '" << var.name << "' exists in relevant scopes";
-								throw sc::exception(oss.str(), sc::error_type::eval);
+								found = true;
+								elem = it_global->second;
 							}
-							elem = it_global->second;
+						}
+
+						if (!found)
+						{
+							std::ostringstream oss;
+							oss << "No such variable '" << var.name << "' exists in relevant scopes";
+							throw sc::exception(oss.str(), sc::error_type::eval);
 						}
 					}
 				}
