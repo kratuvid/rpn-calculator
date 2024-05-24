@@ -203,6 +203,8 @@ namespace sc
 		{
 			while (secondary_stack.size() > 0)
 			{
+				static std::deque<element_t>* last_stack = nullptr;
+
 				auto elem = std::move(secondary_stack.front());
 				secondary_stack.pop_front();
 
@@ -331,28 +333,52 @@ namespace sc
 				}
 
 				const bool is_op = elem.type() == typeid(operations_iter_t);
-				bool is_op_end = false, is_op_end_times = false;
+				bool is_op_end = false, is_op_end_times = false,
+					is_op_defun = false, is_op_times = false;
 				if (is_op)
 				{
 					const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
 					is_op_end = op_name == "end";
 					is_op_end_times = op_name == "end-times";
+					is_op_defun = op_name == "defun";
+					is_op_times = op_name == "times";
 				}
 
-				const bool is_only_stack = is_op_end_times || is_op_end;
+				const bool is_only_stack = is_op_end || is_op_end_times || is_op_defun || is_op_times;
 
 				if (current_eval_times != -1 && !is_only_stack)
 				{
-					std::get<1>(times.back()).push_back(std::move(elem));
+					auto& times_stack = std::get<1>(times.back());
+					times_stack.push_back(std::move(elem));
+					last_stack = &times_stack;
 				}
 				else if (!current_eval_function.empty() && !is_only_stack)
 				{
 					auto& func_stack = std::get<1>(functions[current_eval_function]);
 					func_stack.push_back(std::move(elem));
+					last_stack = &func_stack;
 				}
 				else
 				{
+					if (is_op_times)
+					{
+						if (!last_stack)
+							throw sc::exception("Pointer to the last stack is null. Probably a malformed expression", sc::error_type::eval);
+						if ((*last_stack).size() == 0)
+							throw sc::exception("Last stack is empty", sc::error_type::eval);
+
+						auto last_elem = std::move((*last_stack).back());
+						(*last_stack).pop_back();
+
+						if (last_elem.type() != typeid(number_t))
+							throw sc::exception("Last element in the last stack isn't a number_t", sc::error_type::eval);
+
+						stack.push_back(std::move(last_elem));
+					}
+
 					stack.push_back(std::move(elem));
+					last_stack = &stack;
+
 					if (is_op) execute();
 				}
 			}
