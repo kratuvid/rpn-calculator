@@ -237,28 +237,21 @@ namespace sc
 						}
 						else
 						{
-							std::deque<element_t>* cs_raw = &stack;
-							if (current_eval_times != -1)
-								cs_raw = &std::get<1>(times[current_eval_times]);
-							else if (!current_eval_function.empty())
-								cs_raw = &std::get<1>(functions[current_eval_function]);
-
-							const auto& current_stack = *cs_raw;
 							const auto op_count = std::get<0>(it->second);
 
-							if (current_stack.size() < op_count)
+							if (stack.size() < op_count)
 							{
 								std::ostringstream oss;
 								oss << "Function '" << func.name << "' requires "
 									<< op_count << " elements but only "
-									<< current_stack.size() << " are left";
+									<< stack.size() << " are left";
 								throw sc::exception(oss.str(), sc::error_type::eval);
 							}
 							else
 							{
 								for (size_t i = 0; i < op_count; i++)
 								{
-									const auto& operand = current_stack[current_stack.size() - i - 1];
+									const auto& operand = stack[stack.size() - i - 1];
 									const auto operand_index = op_count - i - 1;
 
 									if (operand.type() != typeid(number_t) &&
