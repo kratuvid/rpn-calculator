@@ -10,7 +10,6 @@
 #include <exception>
 #include <regex>
 #include <vector>
-#include <stack>
 #include <array>
 #include <cmath>
 #include <list>
@@ -102,8 +101,7 @@ namespace sc
 
 				{"print", {{operand_type::string}, op_print}},
 				{"println", {{operand_type::string}, op_println}},
-		    }
-		};
+		}};
 
 		std::deque<element_t> stack;
 		std::deque<element_t> secondary_stack;

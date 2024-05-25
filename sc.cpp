@@ -25,7 +25,7 @@ namespace sc
 			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 			{
 				show_help(argv[0]);
-				SC_EXCEPTION(sc::error_type::init_help, "");
+				SC_EXCEPTION(init_help, "");
 			}
 
 			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
@@ -38,7 +38,7 @@ namespace sc
 				}
 				else
 				{
-					SC_EXCEPTION(sc::error_type::init, "Please supply an expression to calculate");
+					SC_EXCEPTION(init, "Please supply an expression to calculate");
 				}
 			}
 
@@ -57,7 +57,7 @@ namespace sc
 				}
 				else
 				{
-					SC_EXCEPTION(sc::error_type::init, "Please supply a file to read");
+					SC_EXCEPTION(init, "Please supply a file to read");
 				}
 			}
 
@@ -79,7 +79,7 @@ namespace sc
 			else
 			{
 				show_help(argv[0]);
-				SC_EXCEPTION(sc::error_type::init, "Unknown argument: '" << argv[i] << "'");
+				SC_EXCEPTION(init, "Unknown argument: '" << argv[i] << "'");
 			}
 		}
 
@@ -109,8 +109,7 @@ namespace sc
 
 				if (stack.size() < std::get<0>(op->second).size())
 				{
-					SC_EXCEPTION(sc::error_type::exec,
-								 "Operation '" << op->first << "' requires "
+					SC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
 								 << std::get<0>(op->second).size() << " elements but only "
 								 << stack.size() << " are left");
 				}
@@ -138,7 +137,7 @@ namespace sc
 
 						if (need_operand_type != opr_type)
 						{
-							SC_EXCEPTION(sc::error_type::exec, "Expected an operand of type ";
+							SC_EXCEPTION(exec, "Expected an operand of type ";
 										 if (need_operand_type == operand_type::string) oss << "string";
 										 else if (need_operand_type == operand_type::number) oss << "number";
 										 else oss << "unknown";
@@ -209,8 +208,7 @@ namespace sc
 
 						number_t out;
 						if (!dereference_variable(var, out))
-							SC_EXCEPTION(sc::error_type::eval,
-										 "No such variable '" << var.name << "' exists in relevant scopes");
+							SC_EXCEPTION(eval, "No such variable '" << var.name << "' exists in relevant scopes");
 
 						elem = out;
 					}
@@ -221,8 +219,7 @@ namespace sc
 						auto it = functions.find(func.name);
 						if (it == functions.end())
 						{
-							SC_EXCEPTION(sc::error_type::eval,
-										 "No such function '" << func.name << "' exists");
+							SC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
 						}
 						else
 						{
@@ -230,8 +227,7 @@ namespace sc
 
 							if (stack.size() < opr_count)
 							{
-								SC_EXCEPTION(sc::error_type::eval,
-											 "Function '" << func.name << "' requires "
+								SC_EXCEPTION(eval, "Function '" << func.name << "' requires "
 											 << opr_count << " elements but only "
 											 << stack.size() << " are left");
 							}
@@ -245,8 +241,7 @@ namespace sc
 									if (operand.type() != typeid(number_t) &&
 										operand.type() != typeid(variable_ref_t))
 									{
-										SC_EXCEPTION(sc::error_type::eval,
-													 "Expected operand of type number or variable"
+										SC_EXCEPTION(eval, "Expected operand of type number or variable"
 													 << " at index " << operand_index << " for function '"
 													 << func.name << "'");
 									}
@@ -319,19 +314,16 @@ namespace sc
 					if (is_op_times)
 					{
 						if (!last_stack)
-							SC_EXCEPTION(sc::error_type::eval,
-										 "Pointer to the last stack is null. Probably a malformed expression");
+							SC_EXCEPTION(eval, "Pointer to the last stack is null. Probably a malformed expression");
 						if ((*last_stack).size() == 0)
-							SC_EXCEPTION(sc::error_type::eval,
-										 "Last stack is empty");
+							SC_EXCEPTION(eval, "Last stack is empty");
 
 						auto last_elem = std::move((*last_stack).back());
 						(*last_stack).pop_back();
 
 						if (last_elem.type() != typeid(number_t))
 						{
-							SC_EXCEPTION(sc::error_type::eval,
-										 "Can't create new times:" << times.size()
+							SC_EXCEPTION(eval, "Can't create new times:" << times.size()
 										 << " as the last element in the last stack isn't a number_t");
 						}
 
@@ -468,7 +460,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(sc::error_type::parse, "Empty string provided");
+						SC_EXCEPTION(parse, "Empty string provided");
 					}
 					else
 					{
@@ -479,7 +471,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(sc::error_type::parse, "Empty variable provided");
+						SC_EXCEPTION(parse, "Empty variable provided");
 					}
 					else
 					{
@@ -490,7 +482,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(sc::error_type::parse, "Empty function provided");
+						SC_EXCEPTION(parse, "Empty function provided");
 					}
 					else
 					{
@@ -501,8 +493,7 @@ namespace sc
 				{
 					if (sub != "*_use_times")
 					{
-						SC_EXCEPTION(sc::error_type::parse,
-									 "* is internally reserved for *_use_times and shouldn't be used on will");
+						SC_EXCEPTION(parse, "* is internally reserved for *_use_times and shouldn't be used on will");
 					}
 					else
 					{
@@ -527,7 +518,7 @@ namespace sc
 			}
 			else
 			{
-				SC_EXCEPTION(sc::error_type::parse, "Garbage sub-parseession: '" << sub << "'");
+				SC_EXCEPTION(parse, "Garbage sub-parseession: '" << sub << "'");
 			}
 		}
 
@@ -543,7 +534,7 @@ namespace sc
 		}
 		else
 		{
-			SC_EXCEPTION(sc::error_type::file, "Cannot open file '" << what << "'");
+			SC_EXCEPTION(file, "Cannot open file '" << what << "'");
 		}
 	}
 
@@ -582,7 +573,7 @@ namespace sc
 
 					std::cerr << stack.size() << ">> ";
 					if (!std::getline(std::cin, what))
-						SC_EXCEPTION(sc::error_type::repl_quit, "");
+						SC_EXCEPTION(repl_quit, "");
 
 					if (what.size() > 0)
 					{
@@ -599,7 +590,7 @@ namespace sc
 						prompt += ">> ";
 
 						what = readline(prompt.c_str());
-						if (!what) SC_EXCEPTION(sc::error_type::repl_quit, "");
+						if (!what) SC_EXCEPTION(repl_quit, "");
 
 						if (*what)
 						{

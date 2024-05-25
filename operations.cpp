@@ -52,7 +52,7 @@ namespace sc
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 		if (std::fpclassify(a) == FP_ZERO)
-			SC_EXCEPTION(sc::error_type::exec, "Cannot divide by 0");
+			SC_EXCEPTION(exec, "Cannot divide by 0");
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
@@ -96,7 +96,7 @@ namespace sc
 
 	void simple_calculator::op_quit(simple_calculator* ins)
 	{
-		SC_EXCEPTION(sc::error_type::repl_quit, "");
+		SC_EXCEPTION(repl_quit, "");
 	}
 
 	void simple_calculator::op_replace(simple_calculator* ins)
@@ -311,8 +311,7 @@ help: show this screen)" << std::endl;
 
 		if (exists)
 		{
-			SC_EXCEPTION(sc::error_type::exec,
-						 "Variable '" << a << "' already exists at scope ";
+			SC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope ";
 						 if (is_local) oss << "local";
 						 else oss << "global";
 						 oss << ". You probably meant to use operation 'set'");
@@ -370,8 +369,7 @@ help: show this screen)" << std::endl;
 
 		if (!found)
 		{
-			SC_EXCEPTION(sc::error_type::exec,
-						 "No such variables '" << a << "' exists in relevant scopes");
+			SC_EXCEPTION(exec, "No such variables '" << a << "' exists in relevant scopes");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -400,8 +398,7 @@ help: show this screen)" << std::endl;
 		}
 		else
 		{
-			SC_EXCEPTION(sc::error_type::exec,
-						 "Variable '" << a << "' already exists at scope global."
+			SC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope global."
 						 "You probably meant to use operation 'set'");
 		}
 
@@ -440,7 +437,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->variables.find(a);
 		if (it == ins->variables.end())
 		{
-			SC_EXCEPTION(sc::error_type::exec, "No such variable '" << a << "' exists");
+			SC_EXCEPTION(exec, "No such variable '" << a << "' exists");
 		}
 		else
 		{
@@ -463,7 +460,7 @@ help: show this screen)" << std::endl;
 
 		if (!ins->current_eval_function.empty())
 		{
-			SC_EXCEPTION(sc::error_type::exec, "Cannot begin parsing '" << a
+			SC_EXCEPTION(exec, "Cannot begin parsing '" << a
 						 << "' as another function is currently being");
 		}
 
@@ -475,7 +472,7 @@ help: show this screen)" << std::endl;
 	{
 		if (ins->current_eval_function.empty())
 		{
-			SC_EXCEPTION(sc::error_type::exec, "Unexpected call to operation end");
+			SC_EXCEPTION(exec, "Unexpected call to operation end");
 		}
 
 		ins->current_eval_function.clear();
@@ -489,7 +486,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->functions.find(a);
 		if (it == ins->functions.end())
 		{
-			SC_EXCEPTION(sc::error_type::exec, "No such function '" << a << "' exists");
+			SC_EXCEPTION(exec, "No such function '" << a << "' exists");
 		}
 		else
 		{
@@ -576,7 +573,7 @@ help: show this screen)" << std::endl;
 
 		if (a >= ins->times.size())
 		{
-			SC_EXCEPTION(sc::error_type::exec, "No loop at index " << a << " exists");
+			SC_EXCEPTION(exec, "No loop at index " << a << " exists");
 		}
 
 		const auto& times_stack = std::get<1>(ins->times[a]);

@@ -69,6 +69,6 @@ end
    :cos:~ print $angle_rad @cos top pop
 
    $angle 15 + :angle set
-   
+
    :~ println
 end-times

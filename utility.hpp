@@ -5,10 +5,10 @@
 #include <array>
 #include <sstream>
 
-#define SC_EXCEPTION(error_type, ...) {				\
-		std::ostringstream oss;						\
-		oss << __VA_ARGS__;							\
-		throw sc::exception(oss.str(), error_type); \
+#define SC_EXCEPTION(type, ...) {								\
+		std::ostringstream oss;									\
+		oss << __VA_ARGS__;										\
+		throw sc::exception(oss.str(), sc::error_type::type);	\
 	}
 
 #define SC_STD_EXCEPTION(...) {					\
