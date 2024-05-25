@@ -116,6 +116,7 @@ namespace sc
 		};
 		std::list<std::tuple<scope_type, std::unordered_map<std::string, number_t>>> variables_local;
 
+		unsigned current_times_ref_index = 0;
 		int current_eval_times = -1;
 		std::string current_eval_function;
 		bool verbose = false, suppress_verbose = false;
@@ -185,7 +186,7 @@ namespace sc
 		void file(std::istream& is);
 		void repl();
 
-		void display_stack(const std::deque<element_t>& that_stack);
+		static void display_stack(const std::deque<element_t>& that_stack);
 
 	public:
 		simple_calculator(int argc, char** argv)

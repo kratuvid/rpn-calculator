@@ -531,7 +531,7 @@ namespace sc
 					}
 					else
 					{
-						elem = times_ref_t(times.size()-1);
+						elem = times_ref_t(current_times_ref_index++);
 					}
 				}
 
@@ -587,6 +587,17 @@ namespace sc
 
 	void simple_calculator::repl()
 	{
+		auto cleanup_local = [](char*& what) {
+			if (what)
+			{
+				free(what);
+				what = nullptr;
+			}
+		};
+		auto cleanup_global = []() {
+			rl_clear_history();
+		};
+
 		using_history();
 
 	  begin:
@@ -594,26 +605,22 @@ namespace sc
 		{
 			while (true)
 			{
-				if (false)
+				#ifdef SC_USE_TRADITIONAL_GETLINE
 				{
 					std::string what;
 
-					std::cerr << "> ";
-					std::getline(std::cin, what);
+					std::cerr << stack.size() << ">> ";
+					if (!std::getline(std::cin, what))
+						throw sc::exception("", sc::error_type::repl_quit);
 
-					parse(what);
+					if (what.size() > 0)
+					{
+						parse(what);
+					}
 				}
-				else
+				#else
 				{
 					char* what = nullptr;
-
-					auto cleanup_local = [&]() {
-						if (what)
-						{
-							free(what);
-							what = nullptr;
-						}
-					};
 
 					try
 					{
@@ -631,12 +638,13 @@ namespace sc
 					}
 					catch (...)
 					{
-						cleanup_local();
+						cleanup_local(what);
 						throw;
 					}
 
-					cleanup_local();
+					cleanup_local(what);
 				}
+				#endif
 
 				if (stack.size() > 0)
 				{
@@ -647,10 +655,6 @@ namespace sc
 		}
 		catch (const sc::exception& e)
 		{
-			auto cleanup_global = [&]() {
-				rl_clear_history();
-			};
-
 			switch (e.type)
 			{
 			case sc::error_type::parse:
@@ -678,10 +682,8 @@ namespace sc
 
 	void simple_calculator::display_stack(const std::deque<element_t>& that_stack)
 	{
-		bool any = false;
 		for (const auto& elem : that_stack)
 		{
-			any = true;
 			if (elem.type() == typeid(variable_ref_t))
 			{
 				auto var = std::any_cast<variable_ref_t const&>(elem);
@@ -714,8 +716,7 @@ namespace sc
 			}
 			std::cout << ' ';
 		}
-		if (any)
+		if (!that_stack.empty())
 			std::cout << std::endl;
 	}
-
 }; // namespace sc
