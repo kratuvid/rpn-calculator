@@ -132,8 +132,8 @@ namespace sc
 						else
 						{
 							SC_STD_EXCEPTION("Unknown operand type '" << operand.type().name() << "' "
-										  << "encountered while executing operation '" << op->first
-										  << "'. This is a program error");
+											 << "encountered while executing operation '" << op->first
+											 << "'. This is a program error");
 						}
 
 						if (need_operand_type != opr_type)
@@ -226,21 +226,21 @@ namespace sc
 						}
 						else
 						{
-							const auto op_count = std::get<0>(it->second);
+							const auto opr_count = std::get<0>(it->second);
 
-							if (stack.size() < op_count)
+							if (stack.size() < opr_count)
 							{
 								SC_EXCEPTION(sc::error_type::eval,
 											 "Function '" << func.name << "' requires "
-											 << op_count << " elements but only "
+											 << opr_count << " elements but only "
 											 << stack.size() << " are left");
 							}
 							else
 							{
-								for (size_t i = 0; i < op_count; i++)
+								for (size_t i = 0; i < opr_count; i++)
 								{
 									const auto& operand = stack[stack.size() - i - 1];
-									const auto operand_index = op_count - i - 1;
+									const auto operand_index = opr_count - i - 1;
 
 									if (operand.type() != typeid(number_t) &&
 										operand.type() != typeid(variable_ref_t))
@@ -293,7 +293,7 @@ namespace sc
 					is_op_defun = false, is_op_times = false;
 				if (is_op)
 				{
-					const auto& op_name = std::any_cast<operations_iter_t>(elem)->first;
+					const auto& op_name = std::any_cast<operations_iter_t const&>(elem)->first;
 					is_op_end = op_name == "end";
 					is_op_end_times = op_name == "end-times";
 					is_op_defun = op_name == "defun";
@@ -576,7 +576,7 @@ namespace sc
 		{
 			while (true)
 			{
-				#ifdef SC_USE_TRADITIONAL_GETLINE
+#ifdef SC_USE_TRADITIONAL_GETLINE
 				{
 					std::string what;
 
@@ -589,7 +589,7 @@ namespace sc
 						parse(what);
 					}
 				}
-				#else
+#else
 				{
 					char* what = nullptr;
 
@@ -615,7 +615,7 @@ namespace sc
 
 					cleanup_local(what);
 				}
-				#endif
+#endif
 
 				if (stack.size() > 0)
 				{
@@ -642,9 +642,8 @@ namespace sc
 			}
 
 			std::ostringstream oss;
-			oss << "Error: ";
-			oss << sc::error_type_str[static_cast<int>(e.type)] << ": ";
-			oss << e.what();
+			oss << "Error: " << sc::error_type_str[static_cast<int>(e.type)] << ": "
+				<< e.what();
 			std::cerr << oss.str() << std::endl;
 
 			goto begin;
