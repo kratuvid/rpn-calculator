@@ -52,7 +52,7 @@ namespace sc
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 		if (std::fpclassify(a) == FP_ZERO)
-			throw sc::exception("Cannot divide by 0", sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "Cannot divide by 0");
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
@@ -89,14 +89,14 @@ namespace sc
 				std::cout << i << ": " << std::any_cast<number_t>(e);
 			}
 			else
-				throw std::logic_error("There shouldn't be non-number on the stack. This is a program error");
+				SC_STD_EXCEPTION("There shouldn't be non-number on the stack. This is a program error");
 			std::cout << std::endl;
 		}
 	}
 
 	void simple_calculator::op_quit(simple_calculator* ins)
 	{
-		throw sc::exception("", sc::error_type::repl_quit);
+		SC_EXCEPTION(sc::error_type::repl_quit, "");
 	}
 
 	void simple_calculator::op_replace(simple_calculator* ins)
@@ -311,12 +311,11 @@ help: show this screen)" << std::endl;
 
 		if (exists)
 		{
-			std::ostringstream oss;
-			oss << "Variable '" << a << "' already exists at scope ";
-			if (is_local) oss << "local";
-			else oss << "global";
-			oss << ". You probably meant to use operation 'set'";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec,
+						 "Variable '" << a << "' already exists at scope ";
+						 if (is_local) oss << "local";
+						 else oss << "global";
+						 oss << ". You probably meant to use operation 'set'");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -371,9 +370,8 @@ help: show this screen)" << std::endl;
 
 		if (!found)
 		{
-			std::ostringstream oss;
-			oss << "No such variables '" << a << "' exists in relevant scopes";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec,
+						 "No such variables '" << a << "' exists in relevant scopes");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -402,9 +400,9 @@ help: show this screen)" << std::endl;
 		}
 		else
 		{
-			std::ostringstream oss;
-			oss << "Variable '" << a << "' already exists at scope global. You probably meant to use operation 'set'";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec,
+						 "Variable '" << a << "' already exists at scope global."
+						 "You probably meant to use operation 'set'");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -442,9 +440,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->variables.find(a);
 		if (it == ins->variables.end())
 		{
-			std::ostringstream oss;
-			oss << "No such variable '" << a << "' exists";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "No such variable '" << a << "' exists");
 		}
 		else
 		{
@@ -467,9 +463,8 @@ help: show this screen)" << std::endl;
 
 		if (!ins->current_eval_function.empty())
 		{
-			std::ostringstream oss;
-			oss << "Cannot begin parsing '" << a << "' as another function is currently being";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "Cannot begin parsing '" << a
+						 << "' as another function is currently being");
 		}
 
 		ins->functions[a] = function_t(b, {});
@@ -480,7 +475,7 @@ help: show this screen)" << std::endl;
 	{
 		if (ins->current_eval_function.empty())
 		{
-			throw sc::exception("Unexpected call to operation end", sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "Unexpected call to operation end");
 		}
 
 		ins->current_eval_function.clear();
@@ -494,9 +489,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->functions.find(a);
 		if (it == ins->functions.end())
 		{
-			std::ostringstream oss;
-			oss << "No such function '" << a << "' exists";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "No such function '" << a << "' exists");
 		}
 		else
 		{
@@ -539,7 +532,7 @@ help: show this screen)" << std::endl;
 
 		if (ins->variables_local.empty())
 		{
-			throw std::runtime_error("Operation '_pop_locals' executed on an empty list. This is a program error");
+			SC_STD_EXCEPTION("Operation '_pop_locals' executed on an empty list. This is a program error");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -583,9 +576,7 @@ help: show this screen)" << std::endl;
 
 		if (a >= ins->times.size())
 		{
-			std::ostringstream oss;
-			oss << "No loop at index " << a << " exists";
-			throw sc::exception(oss.str(), sc::error_type::exec);
+			SC_EXCEPTION(sc::error_type::exec, "No loop at index " << a << " exists");
 		}
 
 		const auto& times_stack = std::get<1>(ins->times[a]);
@@ -596,7 +587,7 @@ help: show this screen)" << std::endl;
 	{
 		if (ins->current_eval_times == -1)
 		{
-			throw std::runtime_error("Unexpected operation 'end-times'");
+			SC_STD_EXCEPTION("Unexpected operation 'end-times'");
 		}
 		ins->current_eval_times = -1;
 	}

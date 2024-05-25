@@ -3,6 +3,19 @@
 #include <exception>
 #include <string_view>
 #include <array>
+#include <sstream>
+
+#define SC_EXCEPTION(error_type, ...) {				\
+		std::ostringstream oss;						\
+		oss << __VA_ARGS__;							\
+		throw sc::exception(oss.str(), error_type); \
+	}
+
+#define SC_STD_EXCEPTION(...) {					\
+		std::ostringstream oss;					\
+		oss << __VA_ARGS__;						\
+		throw std::runtime_error(oss.str());	\
+	}
 
 namespace sc
 {
