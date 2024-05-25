@@ -208,9 +208,9 @@ namespace sc
 				auto elem = std::move(secondary_stack.front());
 				secondary_stack.pop_front();
 
-				if (elem.type() == typeid(variable_ref_t))
+				if (current_eval_function.empty() && current_eval_times == -1)
 				{
-					if (current_eval_function.empty() && current_eval_times == -1)
+					if (elem.type() == typeid(variable_ref_t))
 					{
 						auto var = std::any_cast<variable_ref_t const&>(elem);
 
@@ -224,12 +224,10 @@ namespace sc
 
 						elem = out;
 					}
-				}
-				else if (elem.type() == typeid(function_ref_t))
-				{
-					if (current_eval_function.empty() && current_eval_times == -1)
+					else if (elem.type() == typeid(function_ref_t))
 					{
 						auto func = std::any_cast<function_ref_t const&>(elem);
+
 						auto it = functions.find(func.name);
 						if (it == functions.end())
 						{
@@ -288,10 +286,7 @@ namespace sc
 						}
 						continue;
 					}
-				}
-				else if (elem.type() == typeid(times_ref_t))
-				{
-					if (current_eval_function.empty() && current_eval_times == -1)
+					else if (elem.type() == typeid(times_ref_t))
 					{
 						auto t = std::any_cast<times_ref_t const&>(elem);
 						const auto& times_stack = std::get<1>(times[t.index]);
@@ -379,24 +374,21 @@ namespace sc
 	{
 		bool found = false;
 
-		if (variables_local.size() > 0)
+		for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
 		{
-			for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
+			auto scope = std::get<0>(*it);
+			const auto& local = std::get<1>(*it);
+
+			auto it_local = local.find(what.name);
+			if (it_local != local.end())
 			{
-				auto scope = std::get<0>(*it);
-				const auto& local = std::get<1>(*it);
-
-				auto it_local = local.find(what.name);
-				if (it_local != local.end())
-				{
-					found = true;
-					out = it_local->second;
-					break;
-				}
-
-				if (scope != scope_type::loop)
-					break;
+				found = true;
+				out = it_local->second;
+				break;
 			}
+
+			if (scope != scope_type::loop)
+				break;
 		}
 
 		if (!found)
