@@ -41,6 +41,7 @@ namespace wc
 				  << "\t-r, --repl: Start the REPL" << std::endl
 				  << "\t-f, --file [FILE]: Read expressions from FILE" << std::endl
 				  << "\t-s, --stdin: Read expression from standard input until EOF" << std::endl
+				  << "\t-p, --prefix: Use prefix notation" << std::endl
 				  << "\t-t, --time: Show runtime" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
@@ -82,6 +83,10 @@ namespace wc
 			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)
 			{
 				list_work.push_back({work_type::stdin, std::string_view("")});
+			}
+			else if (strcmp(argv[i], "--prefix") == 0 || strcmp(argv[i], "-p") == 0)
+			{
+				is_prefix = true;
 			}
 			else if (strcmp(argv[i], "--time") == 0 || strcmp(argv[i], "-t") == 0)
 			{
@@ -403,6 +408,11 @@ namespace wc
 			}
 			if (!tmp.empty())
 				subs.push_back(std::move(tmp));
+		}
+
+		if (is_prefix)
+		{
+			std::reverse(subs.begin(), subs.end());
 		}
 
 		for (auto it = subs.begin(); it != subs.end(); it++)

@@ -18,6 +18,7 @@
 #include <deque>
 #include <iomanip>
 #include <chrono>
+#include <algorithm>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -117,6 +118,7 @@ namespace wc
 		std::list<unsigned> current_eval_times;
 		std::string current_eval_function;
 		bool verbose = false, suppress_verbose = false;
+		bool is_prefix = false;
 
 		bool is_time = false;
 		std::chrono::high_resolution_clock::time_point tp_begin;
