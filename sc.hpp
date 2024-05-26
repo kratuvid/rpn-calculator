@@ -32,15 +32,16 @@ namespace sc
 		enum class operand_type { number, string };
 		enum class scope_type { function, loop };
 
-		template<typename T> using stack_base_t = std::deque<T>;
-
+		using number_t = long double;
 		using element_t = std::any;
+
+		template<typename T> using stack_base_t = std::deque<T>;
 		using stack_t = stack_base_t<element_t>;
 
-		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
 		using function_t = std::tuple<unsigned, stack_t>;
+		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 
-		using number_t = long double;
 		struct variable_ref_t {
 			std::string name;
 			variable_ref_t() = delete;
@@ -58,7 +59,6 @@ namespace sc
 			function_ref_t(const std::string& name) :name(name) {}
 			function_ref_t(std::string&& name) :name(name) {}
 		};
-		using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 
 	private:
 		const std::unordered_map<std::string, operation_t> operations {{
@@ -107,8 +107,7 @@ namespace sc
 				{"println", {{operand_type::string}, op_println}},
 		}};
 
-		stack_t stack;
-		stack_t secondary_stack;
+		stack_t stack, secondary_stack;
 		std::deque<std::tuple<unsigned, stack_t>> times;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables {{
