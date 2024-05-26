@@ -37,11 +37,11 @@ namespace wc
 	{
 		std::cerr << name << ": Wtf Calculator: Another RPN calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
-				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION" << std::endl
+				  << "\t-e, --expr [EXPRESSION]: Calculates EXPRESSION" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
-				  << "\t-f, --file=[FILE]: Read expressions from FILE" << std::endl
+				  << "\t-f, --file [FILE]: Read expressions from FILE" << std::endl
 				  << "\t-s, --stdin: Read expression from standard input until EOF" << std::endl
-				  << "\t-t, --time: Profile runtime" << std::endl
+				  << "\t-t, --time: Show runtime" << std::endl
 				  << "\t-v, --verbose: Be verbose"
 				  << std::endl;
 	}
@@ -600,10 +600,8 @@ namespace wc
 				throw;
 			}
 
-			std::ostringstream oss;
-			oss << "Error: " << wc::error_type_str[static_cast<int>(e.type)] << ": "
-				<< e.what();
-			std::cerr << oss.str() << std::endl;
+			std::cerr << "Error: " << wc::error_type_str[static_cast<int>(e.type)]
+					  << ": " << e.what() << std::endl;
 
 			goto begin;
 		}
