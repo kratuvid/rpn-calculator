@@ -20,11 +20,11 @@ end
 
 5 :_base_sin_cos defun
   :counter var :sol var :den var :num var
-  :x var
+  :many var :x var
 
   1 :alt var
 
-  20 times
+  $many times
 	 $alt neg :alt set
   	 $num $x * $x * :num set
   	 $den $counter 1 + * $counter 2 + * :den set
@@ -43,12 +43,22 @@ end
 
 1 :sin defun
   :x var
-  $x $x 1 $x 1 @_base_sin_cos
+  $x 10 $x 1 $x 1 @_base_sin_cos
 end
 
 1 :cos defun
   :x var
-  $x 1 1 1 0 @_base_sin_cos
+  $x 10 1 1 1 0 @_base_sin_cos
+end
+
+2 :sin_flex defun
+  :many var :x var
+  $x $many $x 1 $x 1 @_base_sin_cos
+end
+
+2 :cos_flex defun
+  :many var :x var
+  $x $many 1 1 1 0 @_base_sin_cos
 end
 
 1 :rad defun

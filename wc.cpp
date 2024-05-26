@@ -233,7 +233,7 @@ namespace wc
 					{
 						auto func = std::any_cast<function_ref_t const&>(elem);
 
-						auto it_func = functions.find(func.name);
+						const auto it_func = functions.find(func.name);
 						if (it_func == functions.end())
 						{
 							WC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
