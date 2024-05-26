@@ -441,6 +441,11 @@ help: show this screen)" << std::endl;
 		else
 		{
 			ins->variables.erase(it);
+
+			if (ins->verbose && !ins->suppress_verbose)
+			{
+				std::cerr << ins->stack.size() << "> del $" << name << std::endl;
+			}
 		}
 	}
 

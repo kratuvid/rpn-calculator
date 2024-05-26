@@ -61,17 +61,36 @@ end
   $x $many 1 1 1 0 @_base_sin_cos
 end
 
+1 :atan defun
+  :x var
+  $x $x * :x-sq var
+  1 :alt var
+  $x :res var
+  $x :num var
+  1 :den var
+
+  80 times
+  	 $alt neg :alt set
+	 $num $x-sq * :num set
+	 $den 2 + :den set
+
+	 $num $alt * $den /
+	 $res + :res set
+  end-times
+
+  $res
+end
+
 1 :rad defun
-  $pi 180 / *
+  0.017453292519943295 *
 end
 
 1 :deg defun
-  180 $pi / *
+  57.29577951308232 *
 end
 
-70 :iter var
-0 :angle var
-25 times
+70 :iter var 0 :angle var
+0 times
    :--- println
 
    $angle @rad :angle_rad var
@@ -98,3 +117,4 @@ end
 
    $angle 15 + :angle set
 end-times
+:iter del :angle del

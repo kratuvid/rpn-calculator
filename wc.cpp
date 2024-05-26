@@ -391,7 +391,7 @@ namespace wc
 						continue;
 				}
 
-				if (isspace(c))
+				if (isspace(c) || c == '~')
 				{
 					if (!tmp.empty())
 						subs.push_back(std::move(tmp));
