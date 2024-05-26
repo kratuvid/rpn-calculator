@@ -67,6 +67,7 @@ namespace wc
 				{"swap", {{operand_type::number, operand_type::number}, op_swap}},
 				{"pop", {{operand_type::number}, op_pop}},
 				{"top", {{operand_type::number}, op_top}},
+				{"topb", {{operand_type::number}, op_topb}},
 
 				{"neg", {{operand_type::number}, op_neg}},
 				{"sin", {{operand_type::number}, op_sin}}, {"cos", {{operand_type::number}, op_cos}},
@@ -131,6 +132,7 @@ namespace wc
 		static void op_swap(wtf_calculator* ins);
 		static void op_pop(wtf_calculator* ins);
 		static void op_top(wtf_calculator* ins);
+		static void op_topb(wtf_calculator* ins);
 
 		static void op_neg(wtf_calculator* ins);
 		static void op_sin(wtf_calculator* ins);

@@ -154,12 +154,16 @@ namespace wc
 
 	void wtf_calculator::op_top(wtf_calculator* ins)
 	{
+		wtf_calculator::op_topb(ins);
+		std::cout << std::endl;
+	}
+
+	void wtf_calculator::op_topb(wtf_calculator* ins)
+	{
 		const auto back = ins->stack.back();
 
 		auto a = std::any_cast<number_t>(back);
 		std::cout << a;
-
-		std::cout << std::endl;
 	}
 
 	void wtf_calculator::op_neg(wtf_calculator* ins)
@@ -196,6 +200,8 @@ clear: empty the stack
 pop: n: pop the stack
 replace: n, n: replaces the top of the stack
 swap: n, n: swap the last two elements
+top: n: display the top of the stack
+topb: n: display the top of the stack without the newline
 ---
 var: n, s: set a global/local variable s with n depending on context
 varg: n, s: set a global variable s with n
@@ -483,7 +489,7 @@ help: show this screen)" << std::endl;
 		else
 		{
 			const auto& func_stack = std::get<1>(it->second);
-			ins->display_stack(func_stack);
+			wtf_calculator::display_stack(func_stack);
 		}
 	}
 
@@ -564,7 +570,7 @@ help: show this screen)" << std::endl;
 		}
 
 		const auto& times_stack = ins->times[index];
-		ins->display_stack(times_stack);
+		wtf_calculator::display_stack(times_stack);
 	}
 
 	void wtf_calculator::op_end_times(wtf_calculator* ins)
