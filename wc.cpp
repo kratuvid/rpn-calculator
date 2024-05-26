@@ -214,8 +214,6 @@ namespace wc
 		{
 			while (secondary_stack.size() > 0)
 			{
-				static stack_t* last_stack = nullptr;
-
 				auto elem = std::move(secondary_stack.front());
 				secondary_stack.pop_front();
 
@@ -235,14 +233,14 @@ namespace wc
 					{
 						auto func = std::any_cast<function_ref_t const&>(elem);
 
-						auto it = functions.find(func.name);
-						if (it == functions.end())
+						auto it_func = functions.find(func.name);
+						if (it_func == functions.end())
 						{
 							WC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
 						}
 						else
 						{
-							const auto opr_count = std::get<0>(it->second);
+							const auto opr_count = std::get<0>(it_func->second);
 
 							if (stack.size() < opr_count)
 							{
@@ -267,12 +265,12 @@ namespace wc
 								}
 							}
 
-							const auto& func_stack = std::get<1>(it->second);
+							const auto& func_stack = std::get<1>(it_func->second);
 							secondary_stack.push_front(operations.find("_pop_locals"));
 							secondary_stack.push_front(func.name);
-							for (auto it2 = func_stack.rbegin(); it2 != func_stack.rend(); it2++)
+							for (auto it = func_stack.rbegin(); it != func_stack.rend(); it++)
 							{
-								secondary_stack.push_front(*it2);
+								secondary_stack.push_front(*it);
 							}
 							secondary_stack.push_front(operations.find("_push_locals"));
 							secondary_stack.push_front(func.name);
@@ -280,78 +278,35 @@ namespace wc
 						}
 						continue;
 					}
-					else if (elem.type() == typeid(times_ref_t))
-					{
-						auto t = std::any_cast<times_ref_t const&>(elem);
-						const auto& times_stack = std::get<1>(times[t.index]);
-
-						std::string name = "times";
-						for (unsigned i=0; i < std::get<0>(times[t.index]); i++)
-						{
-							secondary_stack.push_front(operations.find("_pop_locals"));
-							secondary_stack.push_front(name);
-							for (auto it = times_stack.rbegin(); it != times_stack.rend(); it++)
-							{
-								secondary_stack.push_front(*it);
-							}
-							secondary_stack.push_front(operations.find("_push_locals"));
-							secondary_stack.push_front(name);
-							secondary_stack.push_front(static_cast<number_t>(scope_type::loop));
-						}
-						continue;
-					}
 				}
 
 				const bool is_op = elem.type() == typeid(operations_iter_t);
-				bool is_op_end = false, is_op_end_times = false,
-					is_op_defun = false, is_op_times = false;
+				bool is_only_stack = false;
+
 				if (is_op)
 				{
-					const auto& op_name = std::any_cast<operations_iter_t const&>(elem)->first;
-					is_op_end = op_name == "end";
-					is_op_end_times = op_name == "end-times";
-					is_op_defun = op_name == "defun";
-					is_op_times = op_name == "times";
+					const auto& name = std::any_cast<operations_iter_t const&>(elem)->first;
+					for (const auto& what : {"defun", "end", "times", "end-times"})
+						if (name == what)
+						{
+							is_only_stack = true;
+							break;
+						}
 				}
-
-				const bool is_only_stack = is_op_end || is_op_end_times || is_op_defun || is_op_times;
 
 				if (current_eval_times != -1 && !is_only_stack)
 				{
-					auto& times_stack = std::get<1>(times.back());
+					auto& times_stack = times.back();
 					times_stack.push_back(std::move(elem));
-					last_stack = &times_stack;
 				}
 				else if (!current_eval_function.empty() && !is_only_stack)
 				{
 					auto& func_stack = std::get<1>(functions[current_eval_function]);
 					func_stack.push_back(std::move(elem));
-					last_stack = &func_stack;
 				}
 				else
 				{
-					if (is_op_times)
-					{
-						if (!last_stack)
-							WC_EXCEPTION(eval, "Pointer to the last stack is null. Probably a malformed expression");
-						if ((*last_stack).size() == 0)
-							WC_EXCEPTION(eval, "Last stack is empty");
-
-						auto last_elem = std::move((*last_stack).back());
-						(*last_stack).pop_back();
-
-						if (last_elem.type() != typeid(number_t))
-						{
-							WC_EXCEPTION(eval, "Can't create new times:" << times.size()
-										 << " as the last element in the last stack isn't a number_t");
-						}
-
-						stack.push_back(std::move(last_elem));
-					}
-
 					stack.push_back(std::move(elem));
-					last_stack = &stack;
-
 					if (is_op) execute();
 				}
 			}
@@ -459,7 +414,8 @@ namespace wc
 		{
 			if (*it == "end-times")
 			{
-				subs.insert(std::next(it), "*_use_times");
+				subs.insert(std::next(it), "_use_times");
+				subs.insert(std::next(it), std::to_string(number_t(current_times_index++)));
 			}
 		}
 
@@ -506,17 +462,6 @@ namespace wc
 					else
 					{
 						elem = function_ref_t(std::move(sub.substr(1)));
-					}
-				}
-				else if (sub[0] == '*')
-				{
-					if (sub != "*_use_times")
-					{
-						WC_EXCEPTION(parse, "* is internally reserved for *_use_times and shouldn't be used on will");
-					}
-					else
-					{
-						elem = times_ref_t(current_times_ref_index++);
 					}
 				}
 
@@ -673,11 +618,6 @@ namespace wc
 			{
 				auto func = std::any_cast<function_ref_t const&>(elem);
 				std::cout << '@' << func.name;
-			}
-			else if (elem.type() == typeid(times_ref_t))
-			{
-				auto time = std::any_cast<times_ref_t const&>(elem);
-				std::cout << "*times:" << time.index;
 			}
 			else if (elem.type() == typeid(std::string))
 			{

@@ -548,11 +548,8 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_times(wtf_calculator* ins)
 	{
-		auto a = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
 	    ins->current_eval_times = ins->times.size();
-		ins->times.push_back({(unsigned)a, {}});
+		ins->times.push_back({});
 	}
 
 	void wtf_calculator::op_loops(wtf_calculator* ins)
@@ -560,8 +557,7 @@ help: show this screen)" << std::endl;
 		unsigned i=0;
 		for (const auto& l : ins->times)
 		{
-			std::cout << "times:" << i << ": " << std::get<0>(l) << " times, "
-					  << std::get<1>(l).size() << " elements" << std::endl;
+			std::cout << "times:" << i << ": " << l.size() << " elements" << std::endl;
 			i++;
 		}
 	}
@@ -576,7 +572,7 @@ help: show this screen)" << std::endl;
 			WC_EXCEPTION(exec, "No loop at index " << a << " exists");
 		}
 
-		const auto& times_stack = std::get<1>(ins->times[a]);
+		const auto& times_stack = ins->times[a];
 		ins->display_stack(times_stack);
 	}
 
@@ -587,6 +583,29 @@ help: show this screen)" << std::endl;
 			WC_STD_EXCEPTION("Unexpected operation 'end-times'");
 		}
 		ins->current_eval_times = -1;
+	}
+
+	void wtf_calculator::op__use_times(wtf_calculator* ins)
+	{
+		auto index = (unsigned)std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		auto loops = (unsigned)std::any_cast<number_t>(ins->stack.back());
+		ins->stack.pop_back();
+
+		std::string name = "times";
+		for (unsigned i=0; i < loops; i++)
+		{
+			ins->secondary_stack.push_front(ins->operations.find("_pop_locals"));
+			ins->secondary_stack.push_front(name);
+			for (auto it = ins->times[index].rbegin(); it != ins->times[index].rend(); it++)
+			{
+				ins->secondary_stack.push_front(*it);
+			}
+			ins->secondary_stack.push_front(ins->operations.find("_push_locals"));
+			ins->secondary_stack.push_front(name);
+			ins->secondary_stack.push_front(static_cast<number_t>(wtf_calculator::scope_type::loop));
+		}
 	}
 
 	void wtf_calculator::op_noverbose(wtf_calculator* ins)

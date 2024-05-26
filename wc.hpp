@@ -48,11 +48,6 @@ namespace wc
 			variable_ref_t(const std::string& name) :name(name) {}
 			variable_ref_t(std::string&& name) :name(name) {}
 		};
-		struct times_ref_t {
-			unsigned index;
-			times_ref_t() = delete;
-			times_ref_t(unsigned index) :index(index) {}
-		};
 		struct function_ref_t {
 			std::string name;
 			function_ref_t() = delete;
@@ -95,10 +90,11 @@ namespace wc
 				{"_push_locals", {{operand_type::number, operand_type::string}, op__push_locals}},
 				{"_pop_locals", {{operand_type::string}, op__pop_locals}},
 
-				{"times", {{operand_type::number}, op_times}},
+				{"times", {{}, op_times}},
 				{"desc-loop", {{operand_type::number}, op_desc_loop}},
 				{"loops", {{}, op_loops}},
 				{"end-times", {{}, op_end_times}},
+				{"_use_times", {{operand_type::number, operand_type::number}, op__use_times}},
 
 				{"noverbose", {{}, op_noverbose}},
 				{"verbose", {{}, op_verbose}},
@@ -108,7 +104,7 @@ namespace wc
 		}};
 
 		stack_t stack, secondary_stack;
-		std::deque<std::tuple<unsigned, stack_t>> times;
+		std::deque<stack_t> times;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables {{
 				{"pi", 3.141592653589793238L},
@@ -117,7 +113,7 @@ namespace wc
 		};
 		std::list<std::tuple<scope_type, decltype(variables)>> variables_local;
 
-		unsigned current_times_ref_index = 0;
+		unsigned current_times_index = 0;
 		int current_eval_times = -1;
 		std::string current_eval_function;
 		bool verbose = false, suppress_verbose = false;
@@ -168,6 +164,7 @@ namespace wc
 		static void op_loops(wtf_calculator* ins);
 		static void op_desc_loop(wtf_calculator* ins);
 		static void op_end_times(wtf_calculator* ins);
+		static void op__use_times(wtf_calculator* ins);
 
 		static void op_noverbose(wtf_calculator* ins);
 		static void op_verbose(wtf_calculator* ins);
