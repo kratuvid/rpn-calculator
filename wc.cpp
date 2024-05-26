@@ -119,7 +119,7 @@ namespace wc
 			}
 		}
 
-		if (is_repl)
+		if (is_repl || list_work.empty())
 			repl();
 	}
 
