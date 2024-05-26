@@ -16,6 +16,8 @@
 #include <tuple>
 #include <unordered_map>
 #include <deque>
+#include <iomanip>
+#include <chrono>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -118,6 +120,9 @@ namespace sc
 		std::string current_eval_function;
 		bool verbose = false, suppress_verbose = false;
 
+		bool is_time = false;
+		std::chrono::high_resolution_clock::time_point tp_begin;
+
 	private:
 		static void op_add(simple_calculator* ins);
 		static void op_subtract(simple_calculator* ins);
@@ -186,9 +191,7 @@ namespace sc
 		static void display_stack(const std::deque<element_t>& that_stack);
 
 	public:
-		simple_calculator(int argc, char** argv)
-		{
-			parse_arguments(argc, argv);
-		}
+		simple_calculator(int argc, char** argv);
+		~simple_calculator();
 	};
 };

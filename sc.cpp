@@ -2,6 +2,33 @@
 
 namespace sc
 {
+	simple_calculator::simple_calculator(int argc, char** argv)
+	{
+		tp_begin = std::chrono::high_resolution_clock::now();
+		parse_arguments(argc, argv);
+	}
+
+	simple_calculator::~simple_calculator()
+	{
+		if (is_time)
+		{
+			auto tp_end = std::chrono::high_resolution_clock::now();
+			auto tp_diff = tp_end - tp_begin;
+			auto diff_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
+			auto diff_usecs = std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
+			auto diff_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
+			auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
+			auto diff_mins = diff_secs / 60;
+			std::cerr << std::setprecision(5) << "Runtime (truncated): "
+					  << (long double)diff_nsecs << "ns, "
+					  << (long double)diff_usecs << "us, "
+					  << (long double)diff_msecs << "ms, "
+					  << (long double)diff_secs << "s, "
+					  << (long double)diff_mins << "m"
+					  << std::endl;
+		}
+	}
+
 	void simple_calculator::show_help(char* name)
 	{
 		std::cerr << name << ": Arbitrary length calculator" << std::endl
@@ -58,7 +85,7 @@ namespace sc
 
 			else if (strcmp(argv[i], "--time") == 0 || strcmp(argv[i], "-t") == 0)
 			{
-				// handled by main()
+				is_time = true;
 			}
 
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
