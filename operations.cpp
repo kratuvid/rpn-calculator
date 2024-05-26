@@ -142,9 +142,9 @@ namespace wc
 
 	void wtf_calculator::op_file(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
-		ins->file(a);
+		ins->file(name);
 	}
 
 	void wtf_calculator::op__view(wtf_calculator* ins)
@@ -156,8 +156,8 @@ namespace wc
 	{
 		const auto back = ins->stack.back();
 
-		auto num = std::any_cast<number_t>(back);
-		std::cout << num;
+		auto a = std::any_cast<number_t>(back);
+		std::cout << a;
 
 		std::cout << std::endl;
 	}
@@ -216,8 +216,8 @@ end-times: end the last times loop
 noverbose: suppress verbose even if enabled
 verbose: unsuppress verbose
 ---
-print: s: print s to standard output. '~' will be replaced with space
-println: s: print s and a newline to the standard output. Same with '~'
+print: s: print s to standard output. '`' will be replaced with space
+println: s: print s and a newline to the standard output. Same with '`'
 ---
 file: s: read commands from file
 quit: quit the REPL
@@ -279,39 +279,38 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_var(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
-
-		auto b = ins->resolve_variable_if(ins->stack.back());
+		auto value = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		bool is_local = false, exists = true;
 
 		if (ins->variables_local.size() > 0)
 		{
-			auto& local = std::get<1>(ins->variables_local.back());
+			auto& locals = std::get<1>(ins->variables_local.back());
 
-			auto it_local = local.find(a);
-			if (it_local == local.end())
+			auto it_local = locals.find(name);
+			if (it_local == locals.end())
 			{
 				is_local = true;
 				exists = false;
-				local[a] = b;
+				locals[name] = value;
 			}
 		}
 		else
 		{
-			auto it_global = ins->variables.find(a);
+			auto it_global = ins->variables.find(name);
 			if (it_global == ins->variables.end())
 			{
 				exists = false;
-				ins->variables[a] = b;
+				ins->variables[name] = value;
 			}
 		}
 
 		if (exists)
 		{
-			WC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope ";
+			WC_EXCEPTION(exec, "Variable '" << name << "' already exists at scope ";
 						 if (is_local) oss << "local";
 						 else oss << "global";
 						 oss << ". You probably meant to use operation 'set'");
@@ -324,32 +323,29 @@ help: show this screen)" << std::endl;
 			{
 				std::cerr << "local:" << ins->variables_local.size()-1 << ' ';
 			}
-			std::cerr << '$' << a << " = " << b << std::endl;
+			std::cerr << '$' << name << " = " << value << std::endl;
 		}
 	}
 
 	void wtf_calculator::op_set(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
-
-		auto b = ins->resolve_variable_if(ins->stack.back());
+		auto value = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		bool is_local = false, found = false;
-		int local_index;
+		int local_index = (int)ins->variables_local.size() - 1;
 
-		local_index = (int)ins->variables_local.size() - 1;
 		for (auto it = ins->variables_local.rbegin(); it != ins->variables_local.rend(); it++, local_index--)
 		{
-			auto scope = std::get<0>(*it);
-			auto& local = std::get<1>(*it);
+			auto& [scope, locals] = *it;
 
-			auto it_local = local.find(a);
-			if (it_local != local.end())
+			auto it_local = locals.find(name);
+			if (it_local != locals.end())
 			{
 				found = is_local = true;
-				it_local->second = b;
+				it_local->second = value;
 				break;
 			}
 
@@ -359,17 +355,17 @@ help: show this screen)" << std::endl;
 
 		if (!found)
 		{
-			auto it_global = ins->variables.find(a);
+			auto it_global = ins->variables.find(name);
 			if (it_global != ins->variables.end())
 			{
 				found = true;
-				it_global->second = b;
+				it_global->second = value;
 			}
 		}
 
 		if (!found)
 		{
-			WC_EXCEPTION(exec, "No such variables '" << a << "' exists in relevant scopes");
+			WC_EXCEPTION(exec, "No such variables '" << name << "' exists in relevant scopes");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -379,51 +375,48 @@ help: show this screen)" << std::endl;
 			{
 				std::cerr << "local:" << local_index << ' ';
 			}
-			std::cerr << '$' << a << " = " << b << std::endl;
+			std::cerr << '$' << name << " = " << value << std::endl;
 		}
 	}
 
 	void wtf_calculator::op_varg(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		ins->stack.pop_back();
+		auto value = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
-		auto b = ins->resolve_variable_if(ins->stack.back());
-		ins->stack.pop_back();
-
-		auto it_global = ins->variables.find(a);
+		auto it_global = ins->variables.find(name);
 		if (it_global == ins->variables.end())
 		{
-			ins->variables[a] = b;
+			ins->variables[name] = value;
 		}
 		else
 		{
-			WC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope global."
+			WC_EXCEPTION(exec, "Variable '" << name << "' already exists at scope global."
 						 "You probably meant to use operation 'set'");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> new $" << a << " = " << b << std::endl;
+			std::cerr << ins->stack.size() << "> new $" << name << " = " << value << std::endl;
 		}
 	}
 
 	void wtf_calculator::op_vars(wtf_calculator* ins)
 	{
-		for (const auto& v : ins->variables)
+		for (const auto& [name, value] : ins->variables)
 		{
-			std::cout << '$' << v.first << ": " << v.second << std::endl;
+			std::cout << '$' << name << ": " << value << std::endl;
 		}
 
 		unsigned i = 0;
-		for (const auto& locals_raw : ins->variables_local)
+		for (const auto& [scope, locals] : ins->variables_local)
 		{
-			auto scope = static_cast<int>(std::get<0>(locals_raw));
-			const auto& locals = std::get<1>(locals_raw);
-			for (const auto& v : locals)
+			for (const auto& [name, value] : locals)
 			{
-				std::cout << "local:" << scope << ',' << i << " $" << v.first << ": "
-						  << v.second << std::endl;
+				std::cout << "local:" << static_cast<int>(scope) << ',' << i << " $" << name << ": "
+						  << value << std::endl;
 			}
 			i++;
 		}
@@ -431,13 +424,13 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_del(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		const auto it = ins->variables.find(a);
+		const auto it = ins->variables.find(name);
 		if (it == ins->variables.end())
 		{
-			WC_EXCEPTION(exec, "No such variable '" << a << "' exists");
+			WC_EXCEPTION(exec, "No such variable '" << name << "' exists");
 		}
 		else
 		{
@@ -452,20 +445,19 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_defun(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
-
-		auto b = ins->resolve_variable_if(ins->stack.back());
+		auto num = (unsigned) ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (!ins->current_eval_function.empty())
 		{
-			WC_EXCEPTION(exec, "Cannot begin parsing '" << a
+			WC_EXCEPTION(exec, "Cannot begin parsing '" << name
 						 << "' as another function is currently being");
 		}
 
-		ins->functions[a] = function_t(b, {});
-		ins->current_eval_function = a;
+		ins->functions[name] = function_t(num, {});
+		ins->current_eval_function = name;
 	}
 
 	void wtf_calculator::op_end(wtf_calculator* ins)
@@ -480,51 +472,50 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_desc(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		const auto it = ins->functions.find(a);
+		const auto it = ins->functions.find(name);
 		if (it == ins->functions.end())
 		{
-			WC_EXCEPTION(exec, "No such function '" << a << "' exists");
+			WC_EXCEPTION(exec, "No such function '" << name << "' exists");
 		}
 		else
 		{
-			const auto& function_stack = std::get<1>(it->second);
-			ins->display_stack(function_stack);
+			const auto& func_stack = std::get<1>(it->second);
+			ins->display_stack(func_stack);
 		}
 	}
 
     void wtf_calculator::op_funcs(wtf_calculator* ins)
 	{
-		for (const auto& f : ins->functions)
+		for (const auto& [name, stuff] : ins->functions)
 		{
-			std::cout << '@' << f.first << ": " << std::get<0>(f.second) << " arguments, "
-					  << std::get<1>(f.second).size() << " elements" << std::endl;
+			std::cout << '@' << name << ": " << std::get<0>(stuff) << " arguments, "
+					  << std::get<1>(stuff).size() << " elements" << std::endl;
 		}
 	}
 
 	void wtf_calculator::op__push_locals(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
-
-		auto b = ins->resolve_variable_if(ins->stack.back());
+		auto scope = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> begin "
-					  << a << " - " << b << ',' << ins->variables_local.size()
+					  << name << " - " << scope << ',' << ins->variables_local.size()
 					  << std::endl;
 		}
 
-		ins->variables_local.push_back({static_cast<scope_type>(b), {}});
+		ins->variables_local.push_back({static_cast<scope_type>(scope), {}});
 	}
 
 	void wtf_calculator::op__pop_locals(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
 		if (ins->variables_local.empty())
@@ -535,11 +526,11 @@ help: show this screen)" << std::endl;
 		if (ins->verbose && !ins->suppress_verbose)
 		{
 			auto scope = static_cast<int>(std::get<0>(ins->variables_local.back()));
-			auto num = std::get<1>(ins->variables_local.back()).size();
+			auto freed = std::get<1>(ins->variables_local.back()).size();
 			std::cerr << ins->stack.size() << "> end "
-					  << a << " - " << scope << ',' << ins->variables_local.size()-1;
-			if (num > 0)
-				std::cerr << " - freed " << num << " variables";
+					  << name << " - " << scope << ',' << ins->variables_local.size()-1;
+			if (freed > 0)
+				std::cerr << " - freed " << freed << " variables";
 			std::cerr << std::endl;
 		}
 
@@ -564,15 +555,15 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_desc_loop(wtf_calculator* ins)
 	{
-		auto a = (unsigned)std::any_cast<number_t>(ins->stack.back());
+		auto index = (unsigned)std::any_cast<number_t>(ins->stack.back());
 		ins->stack.pop_back();
 
-		if (a >= ins->times.size())
+		if (index >= ins->times.size())
 		{
-			WC_EXCEPTION(exec, "No loop at index " << a << " exists");
+			WC_EXCEPTION(exec, "No times at index " << index << " exists");
 		}
 
-		const auto& times_stack = ins->times[a];
+		const auto& times_stack = ins->times[index];
 		ins->display_stack(times_stack);
 	}
 
@@ -589,7 +580,6 @@ help: show this screen)" << std::endl;
 	{
 		auto index = (unsigned)std::any_cast<number_t>(ins->stack.back());
 		ins->stack.pop_back();
-
 		auto loops = (unsigned)std::any_cast<number_t>(ins->stack.back());
 		ins->stack.pop_back();
 
@@ -621,14 +611,14 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_print(wtf_calculator* ins)
 	{
-		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+		auto what = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
-		for (unsigned i=0; i < a.size(); i++)
-			if (a[i] == '~')
-				a[i] = ' ';
+		for (unsigned i=0; i < what.size(); i++)
+			if (what[i] == '`')
+				what[i] = ' ';
 
-		std::cout << a;
+		std::cout << what;
 	}
 
 	void wtf_calculator::op_println(wtf_calculator* ins)

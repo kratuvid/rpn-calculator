@@ -98,18 +98,19 @@ namespace wc
 			}
 		}
 
-		for (const auto& what : list_work)
+		for (const auto& [type, what] : list_work)
 		{
-			switch(what.first)
+			switch(type)
 			{
 			case work_type::expression:
-				parse(what.second);
+				parse(what);
 				break;
 			case work_type::file:
-				file(what.second);
+				file(what);
 				break;
 			case work_type::stdin:
 				file(std::cin);
+				break;
 			}
 		}
 
@@ -119,55 +120,51 @@ namespace wc
 
 	void wtf_calculator::execute()
 	{
-		while (stack.size() > 0)
+		while (stack.size() > 0 && stack.back().type() == typeid(operations_iter_t))
 		{
-			if (stack.back().type() == typeid(operations_iter_t))
+			auto op = std::any_cast<operations_iter_t&&>(std::move(stack.back()));
+			stack.pop_back();
+
+			const auto& [opr_list, op_func] = op->second;
+
+			if (stack.size() < opr_list.size())
 			{
-				auto op = std::any_cast<operations_iter_t&&>(std::move(stack.back()));
-				stack.pop_back();
-
-				if (stack.size() < std::get<0>(op->second).size())
+				WC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
+							 << opr_list.size() << " elements but only "
+							 << stack.size() << " are left");
+			}
+			else
+			{
+				for (unsigned i=0; i < opr_list.size(); i++)
 				{
-					WC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
-								 << std::get<0>(op->second).size() << " elements but only "
-								 << stack.size() << " are left");
-				}
-				else
-				{
-					const auto& opr_list = std::get<0>(op->second);
+					const auto& opr = stack[stack.size() - i - 1];
+					const auto opr_index = opr_list.size() - i - 1;
+					const auto need_opr_type = opr_list[opr_index];
 
-					for (unsigned i=0; i < opr_list.size(); i++)
+					operand_type opr_type;
+					if (opr.type() == typeid(number_t))
+						opr_type = operand_type::number;
+					else if (opr.type() == typeid(std::string))
+						opr_type = operand_type::string;
+					else
 					{
-						const auto& operand = stack[stack.size() - i - 1];
-						const auto operand_index = opr_list.size() - i - 1;
-						const auto need_operand_type = opr_list[operand_index];
-
-						operand_type opr_type;
-						if (operand.type() == typeid(number_t))
-							opr_type = operand_type::number;
-						else if (operand.type() == typeid(std::string))
-							opr_type = operand_type::string;
-						else
-						{
-							WC_STD_EXCEPTION("Unknown operand type '" << operand.type().name() << "' "
-											 << "encountered while executing operation '" << op->first
-											 << "'. This is a program error");
-						}
-
-						if (need_operand_type != opr_type)
-						{
-							WC_EXCEPTION(exec, "Expected an operand of type ";
-										 if (need_operand_type == operand_type::string) oss << "string";
-										 else if (need_operand_type == operand_type::number) oss << "number";
-										 else oss << "unknown";
-										 oss << " at index " << operand_index << " for operation '" << op->first << "'");
-						}
+						WC_STD_EXCEPTION("Unknown operand type '" << opr.type().name() << "' "
+										 << "encountered while executing operation '" << op->first
+										 << "'. This is a program error");
 					}
 
-					std::get<1>(op->second)(this);
+					if (need_opr_type != opr_type)
+					{
+						WC_EXCEPTION(exec, "Expected an operand of type ";
+									 if (need_opr_type == operand_type::string) oss << "string";
+									 else if (need_opr_type == operand_type::number) oss << "number";
+									 else oss << "unknown";
+									 oss << " at index " << opr_index << " for operation '" << op->first << "'");
+					}
 				}
+
+				op_func(this);
 			}
-			else break;
 		}
 	}
 
@@ -240,7 +237,7 @@ namespace wc
 						}
 						else
 						{
-							const auto opr_count = std::get<0>(it_func->second);
+							const auto& [opr_count, func_stack] = it_func->second;
 
 							if (stack.size() < opr_count)
 							{
@@ -252,20 +249,19 @@ namespace wc
 							{
 								for (size_t i = 0; i < opr_count; i++)
 								{
-									const auto& operand = stack[stack.size() - i - 1];
-									const auto operand_index = opr_count - i - 1;
+									const auto& opr = stack[stack.size() - i - 1];
+									const auto opr_index = opr_count - i - 1;
 
-									if (operand.type() != typeid(number_t) &&
-										operand.type() != typeid(variable_ref_t))
+									if (opr.type() != typeid(number_t) &&
+										opr.type() != typeid(variable_ref_t))
 									{
 										WC_EXCEPTION(eval, "Expected operand of type number or variable"
-													 << " at index " << operand_index << " for function '"
+													 << " at index " << opr_index << " for function '"
 													 << func.name << "'");
 									}
 								}
 							}
 
-							const auto& func_stack = std::get<1>(it_func->second);
 							secondary_stack.push_front(operations.find("_pop_locals"));
 							secondary_stack.push_front(func.name);
 							for (auto it = func_stack.rbegin(); it != func_stack.rend(); it++)
@@ -324,11 +320,10 @@ namespace wc
 
 		for (auto it = variables_local.crbegin(); it != variables_local.crend(); it++)
 		{
-			auto scope = std::get<0>(*it);
-			const auto& local = std::get<1>(*it);
+			const auto& [scope, locals] = *it;
 
-			auto it_local = local.find(what.name);
-			if (it_local != local.end())
+			auto it_local = locals.find(what.name);
+			if (it_local != locals.end())
 			{
 				found = true;
 				out = it_local->second;

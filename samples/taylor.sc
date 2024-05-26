@@ -74,10 +74,10 @@ end
 25 times
    :--- println
 
-   :deg:~ print $angle top pop
    $angle @rad :angle_rad var
-   :rad:~ print $angle_rad top pop
-   :~ println
+   :deg:` print $angle top pop
+   :rad:` print $angle_rad top pop
+   :` println
 
    $angle_rad sin :sin_real var
    $angle_rad cos :cos_real var
@@ -86,14 +86,14 @@ end
    $sin_real $sin_approx - :sin_error var
    $cos_real $cos_approx - :cos_error var
 
-   :sin:~ print $sin_real top pop
-   :approx:~ print $sin_approx top pop
-   :error:~ print $sin_error top pop
-   :~ println
+   :sin:` print $sin_real top pop
+   :approx:` print $sin_approx top pop
+   :error:` print $sin_error top pop
+   :` println
 
-   :cos:~ print $cos_real top pop
-   :approx:~ print $cos_approx top pop
-   :error:~ print $cos_error top pop
+   :cos:` print $cos_real top pop
+   :approx:` print $cos_approx top pop
+   :error:` print $cos_error top pop
    :--- println
 
    $angle 15 + :angle set
