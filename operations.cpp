@@ -1,8 +1,8 @@
-#include "sc.hpp"
+#include "wc.hpp"
 
-namespace sc
+namespace wc
 {
-	void simple_calculator::op_add(simple_calculator* ins)
+	void wtf_calculator::op_add(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -17,7 +17,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_subtract(simple_calculator* ins)
+	void wtf_calculator::op_subtract(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -32,7 +32,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_multiply(simple_calculator* ins)
+	void wtf_calculator::op_multiply(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -47,12 +47,12 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_divide(simple_calculator* ins)
+	void wtf_calculator::op_divide(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 		if (std::fpclassify(a) == FP_ZERO)
-			SC_EXCEPTION(exec, "Cannot divide by 0");
+			WC_EXCEPTION(exec, "Cannot divide by 0");
 		auto b = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
 
@@ -64,7 +64,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_power(simple_calculator* ins)
+	void wtf_calculator::op_power(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -79,7 +79,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_stack(simple_calculator* ins)
+	void wtf_calculator::op_stack(wtf_calculator* ins)
 	{
 		for (unsigned i = 0; i < ins->stack.size(); i++)
 		{
@@ -89,17 +89,17 @@ namespace sc
 				std::cout << i << ": " << std::any_cast<number_t>(e);
 			}
 			else
-				SC_STD_EXCEPTION("There shouldn't be non-number on the stack. This is a program error");
+				WC_STD_EXCEPTION("There shouldn't be non-number on the stack. This is a program error");
 			std::cout << std::endl;
 		}
 	}
 
-	void simple_calculator::op_quit(simple_calculator* ins)
+	void wtf_calculator::op_quit(wtf_calculator* ins)
 	{
-		SC_EXCEPTION(repl_quit, "");
+		WC_EXCEPTION(repl_quit, "");
 	}
 
-	void simple_calculator::op_replace(simple_calculator* ins)
+	void wtf_calculator::op_replace(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -112,7 +112,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(a));
 	}
 
-	void simple_calculator::op_swap(simple_calculator* ins)
+	void wtf_calculator::op_swap(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -126,7 +126,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(b));
 	}
 
-	void simple_calculator::op_pop(simple_calculator* ins)
+	void wtf_calculator::op_pop(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -135,24 +135,24 @@ namespace sc
 			std::cerr << ins->stack.size() << "> " << "pop " << a << std::endl;
 	}
 
-	void simple_calculator::op_clear(simple_calculator* ins)
+	void wtf_calculator::op_clear(wtf_calculator* ins)
 	{
 		ins->stack.clear();
 	}
 
-	void simple_calculator::op_file(simple_calculator* ins)
+	void wtf_calculator::op_file(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 		ins->file(a);
 	}
 
-	void simple_calculator::op__view(simple_calculator* ins)
+	void wtf_calculator::op__view(wtf_calculator* ins)
 	{
 		ins->display_stack(ins->stack);
 	}
 
-	void simple_calculator::op_top(simple_calculator* ins)
+	void wtf_calculator::op_top(wtf_calculator* ins)
 	{
 		const auto back = ins->stack.back();
 
@@ -162,7 +162,7 @@ namespace sc
 		std::cout << std::endl;
 	}
 
-	void simple_calculator::op_neg(simple_calculator* ins)
+	void wtf_calculator::op_neg(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -175,7 +175,7 @@ namespace sc
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_help(simple_calculator* ins)
+	void wtf_calculator::op_help(wtf_calculator* ins)
 	{
 		std::cerr << R"(operation: operand size: description:
 -------------------------------------
@@ -225,7 +225,7 @@ quit: quit the REPL
 help: show this screen)" << std::endl;
 	}
 
-	void simple_calculator::op_sin(simple_calculator* ins)
+	void wtf_calculator::op_sin(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -238,7 +238,7 @@ help: show this screen)" << std::endl;
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_cos(simple_calculator* ins)
+	void wtf_calculator::op_cos(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -251,7 +251,7 @@ help: show this screen)" << std::endl;
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_floor(simple_calculator* ins)
+	void wtf_calculator::op_floor(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -264,7 +264,7 @@ help: show this screen)" << std::endl;
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_ceil(simple_calculator* ins)
+	void wtf_calculator::op_ceil(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -277,7 +277,7 @@ help: show this screen)" << std::endl;
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
-	void simple_calculator::op_var(simple_calculator* ins)
+	void wtf_calculator::op_var(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -311,7 +311,7 @@ help: show this screen)" << std::endl;
 
 		if (exists)
 		{
-			SC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope ";
+			WC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope ";
 						 if (is_local) oss << "local";
 						 else oss << "global";
 						 oss << ". You probably meant to use operation 'set'");
@@ -328,7 +328,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_set(simple_calculator* ins)
+	void wtf_calculator::op_set(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -369,7 +369,7 @@ help: show this screen)" << std::endl;
 
 		if (!found)
 		{
-			SC_EXCEPTION(exec, "No such variables '" << a << "' exists in relevant scopes");
+			WC_EXCEPTION(exec, "No such variables '" << a << "' exists in relevant scopes");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -383,7 +383,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_varg(simple_calculator* ins)
+	void wtf_calculator::op_varg(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -398,7 +398,7 @@ help: show this screen)" << std::endl;
 		}
 		else
 		{
-			SC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope global."
+			WC_EXCEPTION(exec, "Variable '" << a << "' already exists at scope global."
 						 "You probably meant to use operation 'set'");
 		}
 
@@ -408,7 +408,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_vars(simple_calculator* ins)
+	void wtf_calculator::op_vars(wtf_calculator* ins)
 	{
 		for (const auto& v : ins->variables)
 		{
@@ -429,7 +429,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_del(simple_calculator* ins)
+	void wtf_calculator::op_del(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -437,7 +437,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->variables.find(a);
 		if (it == ins->variables.end())
 		{
-			SC_EXCEPTION(exec, "No such variable '" << a << "' exists");
+			WC_EXCEPTION(exec, "No such variable '" << a << "' exists");
 		}
 		else
 		{
@@ -445,12 +445,12 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_delall(simple_calculator* ins)
+	void wtf_calculator::op_delall(wtf_calculator* ins)
 	{
 		ins->variables.clear();
 	}
 
-	void simple_calculator::op_defun(simple_calculator* ins)
+	void wtf_calculator::op_defun(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -460,7 +460,7 @@ help: show this screen)" << std::endl;
 
 		if (!ins->current_eval_function.empty())
 		{
-			SC_EXCEPTION(exec, "Cannot begin parsing '" << a
+			WC_EXCEPTION(exec, "Cannot begin parsing '" << a
 						 << "' as another function is currently being");
 		}
 
@@ -468,17 +468,17 @@ help: show this screen)" << std::endl;
 		ins->current_eval_function = a;
 	}
 
-	void simple_calculator::op_end(simple_calculator* ins)
+	void wtf_calculator::op_end(wtf_calculator* ins)
 	{
 		if (ins->current_eval_function.empty())
 		{
-			SC_EXCEPTION(exec, "Unexpected call to operation end");
+			WC_EXCEPTION(exec, "Unexpected call to operation end");
 		}
 
 		ins->current_eval_function.clear();
 	}
 
-	void simple_calculator::op_desc(simple_calculator* ins)
+	void wtf_calculator::op_desc(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -486,7 +486,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->functions.find(a);
 		if (it == ins->functions.end())
 		{
-			SC_EXCEPTION(exec, "No such function '" << a << "' exists");
+			WC_EXCEPTION(exec, "No such function '" << a << "' exists");
 		}
 		else
 		{
@@ -495,7 +495,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-    void simple_calculator::op_funcs(simple_calculator* ins)
+    void wtf_calculator::op_funcs(wtf_calculator* ins)
 	{
 		for (const auto& f : ins->functions)
 		{
@@ -504,7 +504,7 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op__push_locals(simple_calculator* ins)
+	void wtf_calculator::op__push_locals(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -522,14 +522,14 @@ help: show this screen)" << std::endl;
 		ins->variables_local.push_back({static_cast<scope_type>(b), {}});
 	}
 
-	void simple_calculator::op__pop_locals(simple_calculator* ins)
+	void wtf_calculator::op__pop_locals(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
 
 		if (ins->variables_local.empty())
 		{
-			SC_STD_EXCEPTION("Operation '_pop_locals' executed on an empty list. This is a program error");
+			WC_STD_EXCEPTION("Operation '_pop_locals' executed on an empty list. This is a program error");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
@@ -546,7 +546,7 @@ help: show this screen)" << std::endl;
 		ins->variables_local.pop_back();
 	}
 
-	void simple_calculator::op_times(simple_calculator* ins)
+	void wtf_calculator::op_times(wtf_calculator* ins)
 	{
 		auto a = ins->resolve_variable_if(ins->stack.back());
 		ins->stack.pop_back();
@@ -555,7 +555,7 @@ help: show this screen)" << std::endl;
 		ins->times.push_back({(unsigned)a, {}});
 	}
 
-	void simple_calculator::op_loops(simple_calculator* ins)
+	void wtf_calculator::op_loops(wtf_calculator* ins)
 	{
 		unsigned i=0;
 		for (const auto& l : ins->times)
@@ -566,40 +566,40 @@ help: show this screen)" << std::endl;
 		}
 	}
 
-	void simple_calculator::op_desc_loop(simple_calculator* ins)
+	void wtf_calculator::op_desc_loop(wtf_calculator* ins)
 	{
 		auto a = (unsigned)std::any_cast<number_t>(ins->stack.back());
 		ins->stack.pop_back();
 
 		if (a >= ins->times.size())
 		{
-			SC_EXCEPTION(exec, "No loop at index " << a << " exists");
+			WC_EXCEPTION(exec, "No loop at index " << a << " exists");
 		}
 
 		const auto& times_stack = std::get<1>(ins->times[a]);
 		ins->display_stack(times_stack);
 	}
 
-	void simple_calculator::op_end_times(simple_calculator* ins)
+	void wtf_calculator::op_end_times(wtf_calculator* ins)
 	{
 		if (ins->current_eval_times == -1)
 		{
-			SC_STD_EXCEPTION("Unexpected operation 'end-times'");
+			WC_STD_EXCEPTION("Unexpected operation 'end-times'");
 		}
 		ins->current_eval_times = -1;
 	}
 
-	void simple_calculator::op_noverbose(simple_calculator* ins)
+	void wtf_calculator::op_noverbose(wtf_calculator* ins)
 	{
 		ins->suppress_verbose = true;
 	}
 
-	void simple_calculator::op_verbose(simple_calculator* ins)
+	void wtf_calculator::op_verbose(wtf_calculator* ins)
 	{
 		ins->suppress_verbose = false;
 	}
 
-	void simple_calculator::op_print(simple_calculator* ins)
+	void wtf_calculator::op_print(wtf_calculator* ins)
 	{
 		auto a = std::any_cast<std::string&&>(std::move(ins->stack.back()));
 		ins->stack.pop_back();
@@ -611,9 +611,9 @@ help: show this screen)" << std::endl;
 		std::cout << a;
 	}
 
-	void simple_calculator::op_println(simple_calculator* ins)
+	void wtf_calculator::op_println(wtf_calculator* ins)
 	{
 		op_print(ins);
 		std::cout << std::endl;
 	}
-}; // namespace sc
+}; // namespace wc

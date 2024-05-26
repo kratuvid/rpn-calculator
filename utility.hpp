@@ -5,19 +5,19 @@
 #include <array>
 #include <sstream>
 
-#define SC_EXCEPTION(type, ...) {								\
+#define WC_EXCEPTION(type, ...) {								\
 		std::ostringstream oss;									\
 		oss << __VA_ARGS__;										\
-		throw sc::exception(oss.str(), sc::error_type::type);	\
+		throw wc::exception(oss.str(), wc::error_type::type);	\
 	}
 
-#define SC_STD_EXCEPTION(...) {					\
+#define WC_STD_EXCEPTION(...) {					\
 		std::ostringstream oss;					\
 		oss << __VA_ARGS__;						\
 		throw std::runtime_error(oss.str());	\
 	}
 
-namespace sc
+namespace wc
 {
 	enum class error_type
 	{
@@ -49,4 +49,4 @@ namespace sc
 		{
 		}
 	};
-};
+}; // namespace wc

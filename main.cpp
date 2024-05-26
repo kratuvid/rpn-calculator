@@ -1,18 +1,18 @@
-#include "sc.hpp"
+#include "wc.hpp"
 
 int main(int argc, char** argv)
 {
 	try
 	{
-		sc::simple_calculator sc(argc, argv);
+		wc::wtf_calculator app(argc, argv);
 	}
-	catch (const sc::exception& e)
+	catch (const wc::exception& e)
 	{
-		if (e.type == sc::error_type::init_help)
+		if (e.type == wc::error_type::init_help)
 			return 0;
 
 		std::cerr << "Fatal exception: "
-				  << sc::error_type_str[static_cast<int>(e.type)] << ": "
+				  << wc::error_type_str[static_cast<int>(e.type)] << ": "
 				  << e.what() << std::endl;
 		return 2;
 	}

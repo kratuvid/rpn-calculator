@@ -1,14 +1,14 @@
-#include "sc.hpp"
+#include "wc.hpp"
 
-namespace sc
+namespace wc
 {
-	simple_calculator::simple_calculator(int argc, char** argv)
+	wtf_calculator::wtf_calculator(int argc, char** argv)
 	{
 		tp_begin = std::chrono::high_resolution_clock::now();
 		parse_arguments(argc, argv);
 	}
 
-	simple_calculator::~simple_calculator()
+	wtf_calculator::~wtf_calculator()
 	{
 		if (is_time)
 		{
@@ -29,9 +29,9 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::show_help(char* name)
+	void wtf_calculator::show_help(char* name)
 	{
-		std::cerr << name << ": Arbitrary length calculator" << std::endl
+		std::cerr << name << "Wtf Calculator: RPN calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
@@ -42,7 +42,7 @@ namespace sc
 				  << std::endl;
 	}
 
-	void simple_calculator::parse_arguments(int argc, char** argv)
+	void wtf_calculator::parse_arguments(int argc, char** argv)
 	{
 		std::list<std::pair<std::string_view, bool>> list_work; // true if an expression
 		bool is_repl = argc == 1, is_stdin = false;
@@ -52,13 +52,13 @@ namespace sc
 			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 			{
 				show_help(argv[0]);
-				SC_EXCEPTION(init_help, "");
+				WC_EXCEPTION(init_help, "");
 			}
 
 			else if (strcmp(argv[i], "--expr") == 0 || strcmp(argv[i], "-e") == 0)
 			{
 				if (i+1 >= argc)
-					SC_EXCEPTION(init, "Please supply an expression to calculate");
+					WC_EXCEPTION(init, "Please supply an expression to calculate");
 
 				list_work.push_back({std::string_view(argv[i+1]), true});
 				i++;
@@ -72,7 +72,7 @@ namespace sc
 			else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
 			{
 				if (i+1 >= argc)
-					SC_EXCEPTION(init, "Please supply a file to read");
+					WC_EXCEPTION(init, "Please supply a file to read");
 
 				list_work.push_back({std::string_view(argv[i+1]), false});
 				i++;
@@ -96,7 +96,7 @@ namespace sc
 			else
 			{
 				show_help(argv[0]);
-				SC_EXCEPTION(init, "Unknown argument: '" << argv[i] << "'");
+				WC_EXCEPTION(init, "Unknown argument: '" << argv[i] << "'");
 			}
 		}
 
@@ -115,7 +115,7 @@ namespace sc
 			repl();
 	}
 
-	void simple_calculator::execute()
+	void wtf_calculator::execute()
 	{
 		while (stack.size() > 0)
 		{
@@ -126,7 +126,7 @@ namespace sc
 
 				if (stack.size() < std::get<0>(op->second).size())
 				{
-					SC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
+					WC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
 								 << std::get<0>(op->second).size() << " elements but only "
 								 << stack.size() << " are left");
 				}
@@ -147,14 +147,14 @@ namespace sc
 							opr_type = operand_type::string;
 						else
 						{
-							SC_STD_EXCEPTION("Unknown operand type '" << operand.type().name() << "' "
+							WC_STD_EXCEPTION("Unknown operand type '" << operand.type().name() << "' "
 											 << "encountered while executing operation '" << op->first
 											 << "'. This is a program error");
 						}
 
 						if (need_operand_type != opr_type)
 						{
-							SC_EXCEPTION(exec, "Expected an operand of type ";
+							WC_EXCEPTION(exec, "Expected an operand of type ";
 										 if (need_operand_type == operand_type::string) oss << "string";
 										 else if (need_operand_type == operand_type::number) oss << "number";
 										 else oss << "unknown";
@@ -169,7 +169,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::ensure_pop_locals()
+	void wtf_calculator::ensure_pop_locals()
 	{
 		const auto it_pop_locals = operations.find("_pop_locals"),
 			it_push_locals = operations.find("_push_locals");
@@ -206,7 +206,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::evaluate()
+	void wtf_calculator::evaluate()
 	{
 		try
 		{
@@ -225,7 +225,7 @@ namespace sc
 
 						number_t out;
 						if (!dereference_variable(var, out))
-							SC_EXCEPTION(eval, "No such variable '" << var.name << "' exists in relevant scopes");
+							WC_EXCEPTION(eval, "No such variable '" << var.name << "' exists in relevant scopes");
 
 						elem = out;
 					}
@@ -236,7 +236,7 @@ namespace sc
 						auto it = functions.find(func.name);
 						if (it == functions.end())
 						{
-							SC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
+							WC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
 						}
 						else
 						{
@@ -244,7 +244,7 @@ namespace sc
 
 							if (stack.size() < opr_count)
 							{
-								SC_EXCEPTION(eval, "Function '" << func.name << "' requires "
+								WC_EXCEPTION(eval, "Function '" << func.name << "' requires "
 											 << opr_count << " elements but only "
 											 << stack.size() << " are left");
 							}
@@ -258,7 +258,7 @@ namespace sc
 									if (operand.type() != typeid(number_t) &&
 										operand.type() != typeid(variable_ref_t))
 									{
-										SC_EXCEPTION(eval, "Expected operand of type number or variable"
+										WC_EXCEPTION(eval, "Expected operand of type number or variable"
 													 << " at index " << operand_index << " for function '"
 													 << func.name << "'");
 									}
@@ -331,16 +331,16 @@ namespace sc
 					if (is_op_times)
 					{
 						if (!last_stack)
-							SC_EXCEPTION(eval, "Pointer to the last stack is null. Probably a malformed expression");
+							WC_EXCEPTION(eval, "Pointer to the last stack is null. Probably a malformed expression");
 						if ((*last_stack).size() == 0)
-							SC_EXCEPTION(eval, "Last stack is empty");
+							WC_EXCEPTION(eval, "Last stack is empty");
 
 						auto last_elem = std::move((*last_stack).back());
 						(*last_stack).pop_back();
 
 						if (last_elem.type() != typeid(number_t))
 						{
-							SC_EXCEPTION(eval, "Can't create new times:" << times.size()
+							WC_EXCEPTION(eval, "Can't create new times:" << times.size()
 										 << " as the last element in the last stack isn't a number_t");
 						}
 
@@ -361,7 +361,7 @@ namespace sc
 		}
 	}
 
-	bool simple_calculator::dereference_variable(const simple_calculator::variable_ref_t& what, number_t& out)
+	bool wtf_calculator::dereference_variable(const wtf_calculator::variable_ref_t& what, number_t& out)
 	{
 		bool found = false;
 
@@ -395,18 +395,18 @@ namespace sc
 		return found;
 	}
 
-	simple_calculator::number_t simple_calculator::resolve_variable_if(const element_t& e)
+	wtf_calculator::number_t wtf_calculator::resolve_variable_if(const element_t& e)
 	{
 		if (e.type() == typeid(variable_ref_t))
 		{
-			SC_STD_EXCEPTION("Variables shouldn't be on the stack. This is a removed feature");
+			WC_STD_EXCEPTION("Variables shouldn't be on the stack. This is a removed feature");
 			// auto var = std::any_cast<variable_ref_t const&>(e);
 			// number_t out;
 			// if (!dereference_variable(var, out))
 			// {
 			// 	std::ostringstream oss;
 			// 	oss << "No such variable '" << var.name << "' exists in relevant scopes";
-			// 	throw sc::exception(oss.str(), sc::error_type::exec);
+			// 	throw wc::exception(oss.str(), wc::error_type::exec);
 			// }
 			// return out;
 		}
@@ -417,7 +417,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::parse(std::string_view what)
+	void wtf_calculator::parse(std::string_view what)
 	{
 		secondary_stack.clear();
 
@@ -477,7 +477,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(parse, "Empty string provided");
+						WC_EXCEPTION(parse, "Empty string provided");
 					}
 					else
 					{
@@ -488,7 +488,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(parse, "Empty variable provided");
+						WC_EXCEPTION(parse, "Empty variable provided");
 					}
 					else
 					{
@@ -499,7 +499,7 @@ namespace sc
 				{
 					if (sub.size() <= 1)
 					{
-						SC_EXCEPTION(parse, "Empty function provided");
+						WC_EXCEPTION(parse, "Empty function provided");
 					}
 					else
 					{
@@ -510,7 +510,7 @@ namespace sc
 				{
 					if (sub != "*_use_times")
 					{
-						SC_EXCEPTION(parse, "* is internally reserved for *_use_times and shouldn't be used on will");
+						WC_EXCEPTION(parse, "* is internally reserved for *_use_times and shouldn't be used on will");
 					}
 					else
 					{
@@ -535,14 +535,14 @@ namespace sc
 			}
 			else
 			{
-				SC_EXCEPTION(parse, "Garbage sub-parseession: '" << sub << "'");
+				WC_EXCEPTION(parse, "Garbage sub-parseession: '" << sub << "'");
 			}
 		}
 
 		evaluate();
 	}
 
-	void simple_calculator::file(std::string_view what)
+	void wtf_calculator::file(std::string_view what)
 	{
 		std::ifstream ifs(what.data());
 		if (ifs.is_open())
@@ -551,11 +551,11 @@ namespace sc
 		}
 		else
 		{
-			SC_EXCEPTION(file, "Cannot open file '" << what << "'");
+			WC_EXCEPTION(file, "Cannot open file '" << what << "'");
 		}
 	}
 
-	void simple_calculator::file(std::istream& is)
+	void wtf_calculator::file(std::istream& is)
 	{
 		std::string line;
 		while (std::getline(is, line))
@@ -564,7 +564,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::repl()
+	void wtf_calculator::repl()
 	{
 		auto cleanup_local = [](char*& what) {
 			if (what)
@@ -590,7 +590,7 @@ namespace sc
 
 					std::cerr << stack.size() << ">> ";
 					if (!std::getline(std::cin, what))
-						SC_EXCEPTION(repl_quit, "");
+						WC_EXCEPTION(repl_quit, "");
 
 					if (what.size() > 0)
 					{
@@ -607,7 +607,7 @@ namespace sc
 						prompt += ">> ";
 
 						what = readline(prompt.c_str());
-						if (!what) SC_EXCEPTION(repl_quit, "");
+						if (!what) WC_EXCEPTION(repl_quit, "");
 
 						if (*what)
 						{
@@ -632,16 +632,16 @@ namespace sc
 				}
 			}
 		}
-		catch (const sc::exception& e)
+		catch (const wc::exception& e)
 		{
 			switch (e.type)
 			{
-			case sc::error_type::parse:
-			case sc::error_type::eval:
-			case sc::error_type::exec:
-			case sc::error_type::file:
+			case wc::error_type::parse:
+			case wc::error_type::eval:
+			case wc::error_type::exec:
+			case wc::error_type::file:
 				break;
-			case sc::error_type::repl_quit:
+			case wc::error_type::repl_quit:
 				cleanup_global();
 				return;
 			default:
@@ -650,7 +650,7 @@ namespace sc
 			}
 
 			std::ostringstream oss;
-			oss << "Error: " << sc::error_type_str[static_cast<int>(e.type)] << ": "
+			oss << "Error: " << wc::error_type_str[static_cast<int>(e.type)] << ": "
 				<< e.what();
 			std::cerr << oss.str() << std::endl;
 
@@ -658,7 +658,7 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::display_stack(const stack_t& what_stack)
+	void wtf_calculator::display_stack(const stack_t& what_stack)
 	{
 		for (const auto& elem : what_stack)
 		{
@@ -697,4 +697,4 @@ namespace sc
 		if (!what_stack.empty())
 			std::cout << std::endl;
 	}
-}; // namespace sc
+}; // namespace wc

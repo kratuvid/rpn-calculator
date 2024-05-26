@@ -1,4 +1,4 @@
-# Simple Calculator
+# Wtf Calculator
 Arbitrary length calculator or something
 
 # Todo

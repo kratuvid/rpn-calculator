@@ -24,9 +24,9 @@
 
 #include "utility.hpp"
 
-namespace sc
+namespace wc
 {
-	class simple_calculator
+	class wtf_calculator
 	{
 	public:
 		enum class operand_type { number, string };
@@ -39,7 +39,7 @@ namespace sc
 		using stack_t = stack_base_t<element_t>;
 
 		using function_t = std::tuple<unsigned, stack_t>;
-		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
+		using operation_t = std::tuple<std::vector<operand_type>, void(*)(wtf_calculator*)>;
 		using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 
 		struct variable_ref_t {
@@ -126,54 +126,54 @@ namespace sc
 		std::chrono::high_resolution_clock::time_point tp_begin;
 
 	private:
-		static void op_add(simple_calculator* ins);
-		static void op_subtract(simple_calculator* ins);
-		static void op_multiply(simple_calculator* ins);
-		static void op_divide(simple_calculator* ins);
-		static void op_power(simple_calculator* ins);
+		static void op_add(wtf_calculator* ins);
+		static void op_subtract(wtf_calculator* ins);
+		static void op_multiply(wtf_calculator* ins);
+		static void op_divide(wtf_calculator* ins);
+		static void op_power(wtf_calculator* ins);
 
-		static void op_replace(simple_calculator* ins);
-		static void op_swap(simple_calculator* ins);
-		static void op_pop(simple_calculator* ins);
-		static void op_top(simple_calculator* ins);
+		static void op_replace(wtf_calculator* ins);
+		static void op_swap(wtf_calculator* ins);
+		static void op_pop(wtf_calculator* ins);
+		static void op_top(wtf_calculator* ins);
 
-		static void op_neg(simple_calculator* ins);
-		static void op_sin(simple_calculator* ins);
-		static void op_cos(simple_calculator* ins);
-		static void op_floor(simple_calculator* ins);
-		static void op_ceil(simple_calculator* ins);
+		static void op_neg(wtf_calculator* ins);
+		static void op_sin(wtf_calculator* ins);
+		static void op_cos(wtf_calculator* ins);
+		static void op_floor(wtf_calculator* ins);
+		static void op_ceil(wtf_calculator* ins);
 
-		static void op_help(simple_calculator* ins);
-		static void op_stack(simple_calculator* ins);
-		static void op_quit(simple_calculator* ins);
-		static void op_clear(simple_calculator* ins);
-		static void op_file(simple_calculator* ins);
-		static void op__view(simple_calculator* ins);
+		static void op_help(wtf_calculator* ins);
+		static void op_stack(wtf_calculator* ins);
+		static void op_quit(wtf_calculator* ins);
+		static void op_clear(wtf_calculator* ins);
+		static void op_file(wtf_calculator* ins);
+		static void op__view(wtf_calculator* ins);
 
-		static void op_var(simple_calculator* ins);
-		static void op_set(simple_calculator* ins);
-		static void op_varg(simple_calculator* ins);
-		static void op_vars(simple_calculator* ins);
-		static void op_del(simple_calculator* ins);
-		static void op_delall(simple_calculator* ins);
+		static void op_var(wtf_calculator* ins);
+		static void op_set(wtf_calculator* ins);
+		static void op_varg(wtf_calculator* ins);
+		static void op_vars(wtf_calculator* ins);
+		static void op_del(wtf_calculator* ins);
+		static void op_delall(wtf_calculator* ins);
 
-		static void op_defun(simple_calculator* ins);
-		static void op_end(simple_calculator* ins);
-		static void op_desc(simple_calculator* ins);
-		static void op_funcs(simple_calculator* ins);
-		static void op__push_locals(simple_calculator* ins);
-		static void op__pop_locals(simple_calculator* ins);
+		static void op_defun(wtf_calculator* ins);
+		static void op_end(wtf_calculator* ins);
+		static void op_desc(wtf_calculator* ins);
+		static void op_funcs(wtf_calculator* ins);
+		static void op__push_locals(wtf_calculator* ins);
+		static void op__pop_locals(wtf_calculator* ins);
 
-		static void op_times(simple_calculator* ins);
-		static void op_loops(simple_calculator* ins);
-		static void op_desc_loop(simple_calculator* ins);
-		static void op_end_times(simple_calculator* ins);
+		static void op_times(wtf_calculator* ins);
+		static void op_loops(wtf_calculator* ins);
+		static void op_desc_loop(wtf_calculator* ins);
+		static void op_end_times(wtf_calculator* ins);
 
-		static void op_noverbose(simple_calculator* ins);
-		static void op_verbose(simple_calculator* ins);
+		static void op_noverbose(wtf_calculator* ins);
+		static void op_verbose(wtf_calculator* ins);
 
-		static void op_print(simple_calculator* ins);
-		static void op_println(simple_calculator* ins);
+		static void op_print(wtf_calculator* ins);
+		static void op_println(wtf_calculator* ins);
 
 	private:
 		void show_help(char* name);
@@ -193,7 +193,7 @@ namespace sc
 		static void display_stack(const stack_t& what_stack);
 
 	public:
-		simple_calculator(int argc, char** argv);
-		~simple_calculator();
+		wtf_calculator(int argc, char** argv);
+		~wtf_calculator();
 	};
 };
