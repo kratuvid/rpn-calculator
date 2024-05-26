@@ -17,7 +17,7 @@ namespace sc
 
 	void simple_calculator::parse_arguments(int argc, char** argv)
 	{
-		std::list<std::pair<std::string, bool>> list_work; // true if an expression
+		std::list<std::pair<std::string_view, bool>> list_work; // true if an expression
 		bool is_repl = argc == 1, is_stdin = false;
 
 		for (int i=1; i < argc; i++)
@@ -28,18 +28,13 @@ namespace sc
 				SC_EXCEPTION(init_help, "");
 			}
 
-			else if (strncmp(argv[i], "--expr", 2+4) == 0 || strncmp(argv[i], "-e", 1+1) == 0)
+			else if (strcmp(argv[i], "--expr") == 0 || strcmp(argv[i], "-e") == 0)
 			{
-				std::regex reg(R"(--expr=(.+))"), reg2(R"(-e=(.+))");
-				std::cmatch match;
-				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
-				{
-					list_work.push_back(std::make_pair(std::move(match[1].str()), true));
-				}
-				else
-				{
+				if (i+1 >= argc)
 					SC_EXCEPTION(init, "Please supply an expression to calculate");
-				}
+
+				list_work.push_back({std::string_view(argv[i+1]), true});
+				i++;
 			}
 
 			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
@@ -47,18 +42,13 @@ namespace sc
 				is_repl = true;
 			}
 
-			else if (strncmp(argv[i], "--file", 2+4) == 0 || strncmp(argv[i], "-f", 1+1) == 0)
+			else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
 			{
-				std::regex reg(R"(--file=(.+))"), reg2(R"(-f=(.+))");
-				std::cmatch match;
-				if (std::regex_match(argv[i], match, reg) || std::regex_match(argv[i], match, reg2))
-				{
-					list_work.push_back(std::make_pair(std::move(match[1].str()), false));
-				}
-				else
-				{
+				if (i+1 >= argc)
 					SC_EXCEPTION(init, "Please supply a file to read");
-				}
+
+				list_work.push_back({std::string_view(argv[i+1]), false});
+				i++;
 			}
 
 			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)

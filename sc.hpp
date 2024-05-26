@@ -8,7 +8,6 @@
 #include <string_view>
 #include <cstring>
 #include <exception>
-#include <regex>
 #include <vector>
 #include <array>
 #include <cmath>
