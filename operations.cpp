@@ -515,7 +515,7 @@ help: show this screen)" << std::endl;
 		if (ins->verbose && !ins->suppress_verbose)
 		{
 			std::cerr << ins->stack.size() << "> begin "
-					  << a << ':' << b << ',' << ins->variables_local.size()
+					  << a << " - " << b << ',' << ins->variables_local.size()
 					  << std::endl;
 		}
 
@@ -537,7 +537,7 @@ help: show this screen)" << std::endl;
 			auto scope = static_cast<int>(std::get<0>(ins->variables_local.back()));
 			auto num = std::get<1>(ins->variables_local.back()).size();
 			std::cerr << ins->stack.size() << "> end "
-					  << a << ':' << scope << ',' << ins->variables_local.size()-1;
+					  << a << " - " << scope << ',' << ins->variables_local.size()-1;
 			if (num > 0)
 				std::cerr << " - freed " << num << " variables";
 			std::cerr << std::endl;
@@ -593,7 +593,8 @@ help: show this screen)" << std::endl;
 		auto loops = (unsigned)std::any_cast<number_t>(ins->stack.back());
 		ins->stack.pop_back();
 
-		std::string name = "times";
+		std::string name = "times:";
+		name += std::to_string(index);
 		for (unsigned i=0; i < loops; i++)
 		{
 			ins->secondary_stack.push_front(ins->operations.find("_pop_locals"));
