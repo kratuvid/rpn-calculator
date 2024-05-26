@@ -43,12 +43,12 @@ end
 
 1 :sin defun
   :x var
-  $x 10 $x 1 $x 1 @_base_sin_cos
+  $x 30 $x 1 $x 1 @_base_sin_cos
 end
 
 1 :cos defun
   :x var
-  $x 10 1 1 1 0 @_base_sin_cos
+  $x 30 1 1 1 0 @_base_sin_cos
 end
 
 2 :sin_flex defun
@@ -69,16 +69,32 @@ end
   180 $pi / *
 end
 
+70 :iter var
 0 :angle var
 25 times
+   :--- println
+
    :deg:~ print $angle top pop
    $angle @rad :angle_rad var
    :rad:~ print $angle_rad top pop
+   :~ println
 
-   :sin:~ print $angle_rad @sin top pop
-   :cos:~ print $angle_rad @cos top pop
+   $angle_rad sin :sin_real var
+   $angle_rad cos :cos_real var
+   $angle_rad $iter @sin_flex :sin_approx var
+   $angle_rad $iter @cos_flex :cos_approx var
+   $sin_real $sin_approx - :sin_error var
+   $cos_real $cos_approx - :cos_error var
+
+   :sin:~ print $sin_real top pop
+   :approx:~ print $sin_approx top pop
+   :error:~ print $sin_error top pop
+   :~ println
+
+   :cos:~ print $cos_real top pop
+   :approx:~ print $cos_approx top pop
+   :error:~ print $cos_error top pop
+   :--- println
 
    $angle 15 + :angle set
-
-   :~ println
 end-times
