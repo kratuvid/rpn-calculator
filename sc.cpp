@@ -177,7 +177,7 @@ namespace sc
 
 		if (variables_local.size() > 0)
 		{
-			std::list<std::deque<element_t>::iterator> it_names;
+			std::list<stack_t::iterator> it_names;
 			for (auto it = secondary_stack.begin(); it != secondary_stack.end(); it++)
 			{
 				if ((*it).type() == typeid(operations_iter_t))
@@ -212,7 +212,7 @@ namespace sc
 		{
 			while (secondary_stack.size() > 0)
 			{
-				static std::deque<element_t>* last_stack = nullptr;
+				static stack_t* last_stack = nullptr;
 
 				auto elem = std::move(secondary_stack.front());
 				secondary_stack.pop_front();
@@ -658,9 +658,9 @@ namespace sc
 		}
 	}
 
-	void simple_calculator::display_stack(const std::deque<element_t>& that_stack)
+	void simple_calculator::display_stack(const stack_t& what_stack)
 	{
-		for (const auto& elem : that_stack)
+		for (const auto& elem : what_stack)
 		{
 			if (elem.type() == typeid(variable_ref_t))
 			{
@@ -694,7 +694,7 @@ namespace sc
 			}
 			std::cout << ' ';
 		}
-		if (!that_stack.empty())
+		if (!what_stack.empty())
 			std::cout << std::endl;
 	}
 }; // namespace sc

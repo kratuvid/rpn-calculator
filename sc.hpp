@@ -32,10 +32,13 @@ namespace sc
 		enum class operand_type { number, string };
 		enum class scope_type { function, loop };
 
+		template<typename T> using stack_base_t = std::deque<T>;
+
 		using element_t = std::any;
+		using stack_t = stack_base_t<element_t>;
 
 		using operation_t = std::tuple<std::vector<operand_type>, void(*)(simple_calculator*)>;
-		using function_t = std::tuple<unsigned, std::deque<element_t>>;
+		using function_t = std::tuple<unsigned, stack_t>;
 
 		using number_t = long double;
 		struct variable_ref_t {
@@ -104,16 +107,16 @@ namespace sc
 				{"println", {{operand_type::string}, op_println}},
 		}};
 
-		std::deque<element_t> stack;
-		std::deque<element_t> secondary_stack;
-		std::deque<std::tuple<unsigned, std::deque<element_t>>> times;
+		stack_t stack;
+		stack_t secondary_stack;
+		std::deque<std::tuple<unsigned, stack_t>> times;
 		std::unordered_map<std::string, function_t> functions;
 		std::unordered_map<std::string, number_t> variables {{
 				{"pi", 3.141592653589793238L},
 				{"e", 2.718281828459045235L}
 			}
 		};
-		std::list<std::tuple<scope_type, std::unordered_map<std::string, number_t>>> variables_local;
+		std::list<std::tuple<scope_type, decltype(variables)>> variables_local;
 
 		unsigned current_times_ref_index = 0;
 		int current_eval_times = -1;
@@ -188,7 +191,7 @@ namespace sc
 		void file(std::istream& is);
 		void repl();
 
-		static void display_stack(const std::deque<element_t>& that_stack);
+		static void display_stack(const stack_t& what_stack);
 
 	public:
 		simple_calculator(int argc, char** argv);
