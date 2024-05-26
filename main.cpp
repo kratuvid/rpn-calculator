@@ -2,9 +2,10 @@
 
 int main(int argc, char** argv)
 {
+	wc::wtf_calculator app;
 	try
 	{
-		wc::wtf_calculator app(argc, argv);
+		app.start(argc, argv);
 	}
 	catch (const wc::exception& e)
 	{

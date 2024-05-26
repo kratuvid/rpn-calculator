@@ -2,9 +2,13 @@
 
 namespace wc
 {
-	wtf_calculator::wtf_calculator(int argc, char** argv)
+	wtf_calculator::wtf_calculator()
 	{
 		tp_begin = std::chrono::high_resolution_clock::now();
+	}
+
+	void wtf_calculator::start(int argc, char** argv)
+	{
 		parse_arguments(argc, argv);
 	}
 
@@ -31,7 +35,7 @@ namespace wc
 
 	void wtf_calculator::show_help(char* name)
 	{
-		std::cerr << name << "Wtf Calculator: RPN calculator" << std::endl
+		std::cerr << name << ": Wtf Calculator: Another RPN calculator" << std::endl
 				  << "\t-h, --help: Show this" << std::endl
 				  << "\t-e, --expr=[EXPRESSION]: Calculates EXPRESSION" << std::endl
 				  << "\t-r, --repl: Start the REPL" << std::endl
@@ -44,8 +48,9 @@ namespace wc
 
 	void wtf_calculator::parse_arguments(int argc, char** argv)
 	{
-		std::list<std::pair<std::string_view, bool>> list_work; // true if an expression
-		bool is_repl = argc == 1, is_stdin = false;
+		enum class work_type { expression, file, stdin };
+		std::list<std::pair<work_type, std::string_view>> list_work;
+		bool is_repl = argc == 1;
 
 		for (int i=1; i < argc; i++)
 		{
@@ -54,45 +59,38 @@ namespace wc
 				show_help(argv[0]);
 				WC_EXCEPTION(init_help, "");
 			}
-
 			else if (strcmp(argv[i], "--expr") == 0 || strcmp(argv[i], "-e") == 0)
 			{
 				if (i+1 >= argc)
 					WC_EXCEPTION(init, "Please supply an expression to calculate");
 
-				list_work.push_back({std::string_view(argv[i+1]), true});
+				list_work.push_back({work_type::expression, std::string_view(argv[i+1])});
 				i++;
 			}
-
 			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
 			{
 				is_repl = true;
 			}
-
 			else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
 			{
 				if (i+1 >= argc)
 					WC_EXCEPTION(init, "Please supply a file to read");
 
-				list_work.push_back({std::string_view(argv[i+1]), false});
+				list_work.push_back({work_type::file, std::string_view(argv[i+1])});
 				i++;
 			}
-
 			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)
 			{
-				is_stdin = true;
+				list_work.push_back({work_type::stdin, std::string_view("")});
 			}
-
 			else if (strcmp(argv[i], "--time") == 0 || strcmp(argv[i], "-t") == 0)
 			{
 				is_time = true;
 			}
-
 			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
 			{
 				verbose = true;
 			}
-
 			else
 			{
 				show_help(argv[0]);
@@ -102,14 +100,18 @@ namespace wc
 
 		for (const auto& what : list_work)
 		{
-			if (what.second)
-				parse(what.first);
-			else
-				file(what.first);
+			switch(what.first)
+			{
+			case work_type::expression:
+				parse(what.second);
+				break;
+			case work_type::file:
+				file(what.second);
+				break;
+			case work_type::stdin:
+				file(std::cin);
+			}
 		}
-
-		if (is_stdin)
-			file(std::cin);
 
 		if (is_repl)
 			repl();

@@ -193,7 +193,8 @@ namespace wc
 		static void display_stack(const stack_t& what_stack);
 
 	public:
-		wtf_calculator(int argc, char** argv);
+		wtf_calculator();
+		void start(int argc, char** argv);
 		~wtf_calculator();
 	};
 };
