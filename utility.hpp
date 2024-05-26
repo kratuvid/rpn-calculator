@@ -6,10 +6,10 @@
 #include <sstream>
 #include <source_location>
 
-#define WC_EXCEPTION(type, ...) {							\
-	std::ostringstream oss;									\
-	oss << __VA_ARGS__;										\
-	throw wc::exception(oss.str(), wc::error_type::type);	\
+#define WC_EXCEPTION(type, ...) {								\
+		std::ostringstream oss;									\
+		oss << __VA_ARGS__;										\
+		throw wc::exception(oss.str(), wc::error_type::type);	\
 	}
 
 #define WC_STD_EXCEPTION(...) {					\

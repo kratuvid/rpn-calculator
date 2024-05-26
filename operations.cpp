@@ -548,7 +548,7 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_times(wtf_calculator* ins)
 	{
-	    ins->current_eval_times = ins->times.size();
+	    ins->current_eval_times.push_back(ins->times.size());
 		ins->times.push_back({});
 	}
 
@@ -578,11 +578,11 @@ help: show this screen)" << std::endl;
 
 	void wtf_calculator::op_end_times(wtf_calculator* ins)
 	{
-		if (ins->current_eval_times == -1)
+		if (ins->current_eval_times.empty())
 		{
 			WC_STD_EXCEPTION("Unexpected operation 'end-times'");
 		}
-		ins->current_eval_times = -1;
+		ins->current_eval_times.pop_back();
 	}
 
 	void wtf_calculator::op__use_times(wtf_calculator* ins)

@@ -217,7 +217,7 @@ namespace wc
 				auto elem = std::move(secondary_stack.front());
 				secondary_stack.pop_front();
 
-				if (current_eval_function.empty() && current_eval_times == -1)
+				if (current_eval_function.empty() && current_eval_times.empty())
 				{
 					if (elem.type() == typeid(variable_ref_t))
 					{
@@ -294,9 +294,9 @@ namespace wc
 						}
 				}
 
-				if (current_eval_times != -1 && !is_only_stack)
+				if (!current_eval_times.empty() && !is_only_stack)
 				{
-					auto& times_stack = times.back();
+					auto& times_stack = times[current_eval_times.back()];
 					times_stack.push_back(std::move(elem));
 				}
 				else if (!current_eval_function.empty() && !is_only_stack)
@@ -412,10 +412,19 @@ namespace wc
 
 		for (auto it = subs.begin(); it != subs.end(); it++)
 		{
-			if (*it == "end-times")
+			static std::list<unsigned> parse_times;
+			static unsigned parse_times_index = 0;
+			if (*it == "times")
 			{
+				parse_times.push_back(parse_times_index++);
+			}
+			else if (*it == "end-times")
+			{
+				if (parse_times.empty())
+					WC_EXCEPTION(parse, "Unexpected operation 'end-times'");
 				subs.insert(std::next(it), "_use_times");
-				subs.insert(std::next(it), std::to_string(number_t(current_times_index++)));
+				subs.insert(std::next(it), std::to_string(number_t(parse_times.back())));
+				parse_times.pop_back();
 			}
 		}
 

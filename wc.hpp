@@ -113,8 +113,7 @@ namespace wc
 		};
 		std::list<std::tuple<scope_type, decltype(variables)>> variables_local;
 
-		unsigned current_times_index = 0;
-		int current_eval_times = -1;
+		std::list<unsigned> current_eval_times;
 		std::string current_eval_function;
 		bool verbose = false, suppress_verbose = false;
 
