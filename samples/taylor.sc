@@ -1,4 +1,4 @@
-1 :e_x defun
+1 :e-x defun
   :x var
 
   1 :numerator var
@@ -51,12 +51,12 @@ end
   $x 30 1 1 1 0 @_base_sin_cos
 end
 
-2 :sin_flex defun
+2 :sin-flex defun
   :many var :x var
   $x $many $x 1 $x 1 @_base_sin_cos
 end
 
-2 :cos_flex defun
+2 :cos-flex defun
   :many var :x var
   $x $many 1 1 1 0 @_base_sin_cos
 end
