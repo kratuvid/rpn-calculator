@@ -22,10 +22,10 @@ namespace wc
 			auto diff_nsecs = (ld)std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
 			auto diff_usecs = (ld)std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
 			auto diff_msecs = (ld)std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
-			auto diff_secs = (ld)std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
+			auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
 			auto diff_mins = diff_secs / 60;
 			std::println(stderr, "Runtime (truncated): {}ns, {}us, {}ms, {}s, {}m",
-						 diff_nsecs, diff_usecs, diff_msecs, diff_secs, (ld)diff_mins);
+						 diff_nsecs, diff_usecs, diff_msecs, (ld)diff_secs, (ld)diff_mins);
 		}
 	}
 
