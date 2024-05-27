@@ -594,7 +594,6 @@ namespace wc
 		{
 			try
 			{
-
 #ifdef WC_USE_TRADITIONAL_GETLINE
 				std::string what_alt;
 
@@ -610,8 +609,7 @@ namespace wc
 				char* what = nullptr;
 				try
 				{
-					std::string prompt {std::to_string(stack.size())};
-					prompt += ">> ";
+					auto prompt = std::format("{}>> ", stack.size());
 
 					what = readline(prompt.c_str());
 					if (!what)
