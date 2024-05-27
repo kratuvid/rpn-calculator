@@ -14,6 +14,10 @@ namespace wc
 
 	wtf_calculator::~wtf_calculator()
 	{
+#ifndef WC_USE_TRADITIONAL_GETLINE
+		rl_clear_history();
+#endif
+
 		if (is_time)
 		{
 			auto tp_end = std::chrono::high_resolution_clock::now();
@@ -582,57 +586,49 @@ namespace wc
 				what = nullptr;
 			}
 		};
-		auto cleanup_global = []() {
-			rl_clear_history();
-		};
 
 		using_history();
 
-	  begin:
-		try
+		bool quit = false;
+		while (!quit)
 		{
-			while (true)
+			try
 			{
 
-#ifdef SC_USE_TRADITIONAL_GETLINE
-				{
-					std::string what;
+#ifdef WC_USE_TRADITIONAL_GETLINE
+				std::string what_alt;
 
-					std::print("{}>> ", stack.size());
-					if (!std::getline(std::cin, what))
+				std::print("{}>> ", stack.size());
+				if (!std::getline(std::cin, what_alt))
+					WC_EXCEPTION(repl_quit, "");
+
+				if (what_alt.size() > 0)
+				{
+					parse(what_alt);
+				}
+#else
+				char* what = nullptr;
+				try
+				{
+					std::string prompt {std::to_string(stack.size())};
+					prompt += ">> ";
+
+					what = readline(prompt.c_str());
+					if (!what)
 						WC_EXCEPTION(repl_quit, "");
 
-					if (what.size() > 0)
+					if (*what)
 					{
+						add_history(what);
 						parse(what);
 					}
 				}
-#else
+				catch (...)
 				{
-					char* what = nullptr;
-
-					try
-					{
-						std::string prompt {std::to_string(stack.size())};
-						prompt += ">> ";
-
-						what = readline(prompt.c_str());
-						if (!what) WC_EXCEPTION(repl_quit, "");
-
-						if (*what)
-						{
-							add_history(what);
-							parse(what);
-						}
-					}
-					catch (...)
-					{
-						cleanup_local(what);
-						throw;
-					}
-
 					cleanup_local(what);
+					throw;
 				}
+				cleanup_local(what);
 #endif
 
 				if (stack.size() > 0)
@@ -641,28 +637,23 @@ namespace wc
 					op_top(this);
 				}
 			}
-		}
-		catch (const wc::exception& e)
-		{
-			switch (e.type)
+			catch (const wc::exception& e)
 			{
-			case wc::error_type::parse:
-			case wc::error_type::eval:
-			case wc::error_type::exec:
-			case wc::error_type::file:
-				break;
-			case wc::error_type::repl_quit:
-				cleanup_global();
-				return;
-			default:
-				cleanup_global();
-				throw;
+				switch (e.type)
+				{
+				case wc::error_type::parse:
+				case wc::error_type::eval:
+				case wc::error_type::exec:
+				case wc::error_type::file:
+					break;
+				case wc::error_type::repl_quit:
+					quit = true;
+					continue;
+				default:
+					throw;
+				}
+				std::println(stderr, "Error: {}: {}", wc::error_type_str[static_cast<int>(e.type)], e.what());
 			}
-
-			std::println(stderr, "Error: {}: {}",
-						 wc::error_type_str[static_cast<int>(e.type)], e.what());
-
-			goto begin;
 		}
 	}
 
