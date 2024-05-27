@@ -16,16 +16,15 @@ namespace wc
 	{
 		if (is_time)
 		{
-			using ld = long double;
 			auto tp_end = std::chrono::high_resolution_clock::now();
 			auto tp_diff = tp_end - tp_begin;
-			auto diff_nsecs = (ld)std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
-			auto diff_usecs = (ld)std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
-			auto diff_msecs = (ld)std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
-			auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
-			auto diff_mins = diff_secs / 60;
-			std::println(stderr, "Runtime (truncated): {}ns, {}us, {}ms, {}s, {}m",
-						 diff_nsecs, diff_usecs, diff_msecs, (ld)diff_secs, (ld)diff_mins);
+			auto diff_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff);
+			auto diff_usecs = std::chrono::duration_cast<std::chrono::microseconds>(tp_diff);
+			auto diff_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff);
+			auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff);
+			auto diff_mins = std::chrono::duration_cast<std::chrono::minutes>(tp_diff);
+			std::println(stderr, "Runtime (truncated): {}, {}, {}, {}, {}",
+						 diff_nsecs, diff_usecs, diff_msecs, diff_secs, diff_mins);
 		}
 	}
 

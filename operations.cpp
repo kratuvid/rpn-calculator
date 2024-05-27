@@ -161,9 +161,8 @@ namespace wc
 
 	void wtf_calculator::op_topb(wtf_calculator* ins)
 	{
-		const auto back = ins->stack.back();
+		auto a = std::any_cast<number_t>(ins->stack.back());
 
-		auto a = std::any_cast<number_t>(back);
 		std::print("{}", a);
 	}
 
