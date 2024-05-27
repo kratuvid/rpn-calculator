@@ -1,7 +1,7 @@
 # Wtf Calculator
 Another RPN calculator
 
-# Options
+# Arguments
 ```
 Wtf Calculator: Another RPN calculator
 	-h, --help: Show this

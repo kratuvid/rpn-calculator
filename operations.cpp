@@ -89,7 +89,8 @@ namespace wc
 				std::print("{}: {}", i, std::any_cast<number_t>(e));
 			}
 			else
-				WC_STD_EXCEPTION("There shouldn't be non-number on the stack. This is a program error");
+				WC_STD_EXCEPTION("There shouldn't be non-number_t '{}' on the stack. "
+								 "This is a program error", e.type().name());
 			std::println("");
 		}
 	}

@@ -15,19 +15,3 @@ end
 0 :vsqrt defun
   $v 0.5 ^
 end
-
-2 @sqrt
-top
-
-10 @sqrt
-top
-
-38 @ctof
-top
-
-@ftoc
-top
-
-25 :v var
-@vsqrt
-top

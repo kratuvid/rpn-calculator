@@ -150,9 +150,9 @@ namespace wc
 				WC_EXCEPTION(init, "Unknown argument: '{}'", argv[i]);
 			}
 		}
-		for (auto [arg_index, i] : todo)
+		for (auto [k, i] : todo)
 		{
-			std::get<2>(arguments[arg_index])(parsed, i);
+			std::get<2>(arguments[k])(parsed, i);
 		}
 
 		for (const auto& [type, what] : parsed.work)
