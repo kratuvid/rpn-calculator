@@ -3,19 +3,16 @@
 #include <exception>
 #include <string_view>
 #include <array>
-#include <sstream>
-#include <source_location>
+#include <format>
 
-#define WC_EXCEPTION(type, ...) {								\
-		std::ostringstream oss;									\
-		oss << __VA_ARGS__;										\
-		throw wc::exception(oss.str(), wc::error_type::type);	\
+#define WC_EXCEPTION(type, ...) {						\
+		auto msg = std::format(__VA_ARGS__);			\
+		throw wc::exception(msg, wc::error_type::type);	\
 	}
 
 #define WC_STD_EXCEPTION(...) {					\
-		std::ostringstream oss;					\
-		oss << __VA_ARGS__;						\
-		throw std::runtime_error(oss.str());	\
+		auto msg = std::format(__VA_ARGS__);	\
+		throw std::runtime_error(msg);			\
 	}
 
 namespace wc

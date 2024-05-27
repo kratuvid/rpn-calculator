@@ -12,17 +12,13 @@ int main(int argc, char** argv)
 		if (e.type == wc::error_type::init_help)
 			return 0;
 
-		std::cerr << "Fatal exception: "
-				  << wc::error_type_str[static_cast<int>(e.type)] << ": "
-				  << e.what() << std::endl;
+		std::println(stderr, "Fatal exception: {}: {}",
+					 wc::error_type_str[static_cast<int>(e.type)], e.what());
 		return 2;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Fatal standard exception";
-		if (e.what()[0] != '\0')
-			std::cerr << ": " << e.what();
-		std::cerr << std::endl;
+		std::println(stderr, "Fatal standard exception: {}", e.what());
 		return 1;
 	}
 }

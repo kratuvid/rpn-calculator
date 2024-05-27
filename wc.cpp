@@ -16,35 +16,30 @@ namespace wc
 	{
 		if (is_time)
 		{
+			using ld = long double;
 			auto tp_end = std::chrono::high_resolution_clock::now();
 			auto tp_diff = tp_end - tp_begin;
-			auto diff_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
-			auto diff_usecs = std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
-			auto diff_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
-			auto diff_secs = std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
+			auto diff_nsecs = (ld)std::chrono::duration_cast<std::chrono::nanoseconds>(tp_diff).count();
+			auto diff_usecs = (ld)std::chrono::duration_cast<std::chrono::microseconds>(tp_diff).count();
+			auto diff_msecs = (ld)std::chrono::duration_cast<std::chrono::milliseconds>(tp_diff).count();
+			auto diff_secs = (ld)std::chrono::duration_cast<std::chrono::seconds>(tp_diff).count();
 			auto diff_mins = diff_secs / 60;
-			std::cerr << std::setprecision(5) << "Runtime (truncated): "
-					  << (long double)diff_nsecs << "ns, "
-					  << (long double)diff_usecs << "us, "
-					  << (long double)diff_msecs << "ms, "
-					  << (long double)diff_secs << "s, "
-					  << (long double)diff_mins << "m"
-					  << std::endl;
+			std::println(stderr, "Runtime (truncated): {}ns, {}us, {}ms, {}s, {}m",
+						 diff_nsecs, diff_usecs, diff_msecs, diff_secs, (ld)diff_mins);
 		}
 	}
 
 	void wtf_calculator::show_help(char* name)
 	{
-		std::cerr << name << ": Wtf Calculator: Another RPN calculator" << std::endl
-				  << "\t-h, --help: Show this" << std::endl
-				  << "\t-e, --expr [EXPRESSION]: Calculates EXPRESSION" << std::endl
-				  << "\t-r, --repl: Start the REPL" << std::endl
-				  << "\t-f, --file [FILE]: Read expressions from FILE" << std::endl
-				  << "\t-s, --stdin: Read expression from standard input until EOF" << std::endl
-				  << "\t-p, --prefix: Use prefix notation" << std::endl
-				  << "\t-t, --time: Show runtime" << std::endl
-				  << "\t-v, --verbose: Be verbose"
-				  << std::endl;
+		std::println(stderr, "{}: Wtf Calculator: Another RPN calculator\n"
+					 "\t-h, --help: Show this\n"
+					 "\t-e, --expr [EXPRESSION]: Calculates EXPRESSION\n"
+					 "\t-r, --repl: Start the REPL\n"
+					 "\t-f, --file [FILE]: Read expressions from FILE\n"
+					 "\t-s, --stdin: Read expression from standard input until EOF\n"
+					 "\t-p, --prefix: Use prefix notation\n"
+					 "\t-t, --time: Show runtime\n"
+					 "\t-v, --verbose: Be verbose", name);
 	}
 
 	void wtf_calculator::parse_arguments(int argc, char** argv)
@@ -99,7 +94,7 @@ namespace wc
 			else
 			{
 				show_help(argv[0]);
-				WC_EXCEPTION(init, "Unknown argument: '" << argv[i] << "'");
+				WC_EXCEPTION(init, "Unknown argument: '{}'", argv[i]);
 			}
 		}
 
@@ -134,9 +129,8 @@ namespace wc
 
 			if (stack.size() < opr_list.size())
 			{
-				WC_EXCEPTION(exec, "Operation '" << op->first << "' requires "
-							 << opr_list.size() << " elements but only "
-							 << stack.size() << " are left");
+				WC_EXCEPTION(exec, "Operation '{}' requires {} elements but only {} are left",
+							 op->first, opr_list.size(), stack.size());
 			}
 			else
 			{
@@ -153,18 +147,17 @@ namespace wc
 						opr_type = operand_type::string;
 					else
 					{
-						WC_STD_EXCEPTION("Unknown operand type '" << opr.type().name() << "' "
-										 << "encountered while executing operation '" << op->first
-										 << "'. This is a program error");
+						WC_STD_EXCEPTION("Unknown operand type '{}' encountered while"
+										 "executing operation '{}'. This is a program error",
+										 opr.type().name(), op->first);
 					}
 
 					if (need_opr_type != opr_type)
 					{
-						WC_EXCEPTION(exec, "Expected an operand of type ";
-									 if (need_opr_type == operand_type::string) oss << "string";
-									 else if (need_opr_type == operand_type::number) oss << "number";
-									 else oss << "unknown";
-									 oss << " at index " << opr_index << " for operation '" << op->first << "'");
+						const char* type_name = need_opr_type == operand_type::string ?
+							"string" : (need_opr_type == operand_type::number ? "number" : "unknown");
+						WC_EXCEPTION(exec, "Expected an operand of type {} at index {} for operation '{}'",
+									 type_name, opr_index, op->first);
 					}
 				}
 
@@ -227,7 +220,8 @@ namespace wc
 
 						number_t out;
 						if (!dereference_variable(var, out))
-							WC_EXCEPTION(eval, "No such variable '" << var.name << "' exists in relevant scopes");
+							WC_EXCEPTION(eval, "No such variable '{}' exists in relevant scopes",
+										 var.name);
 
 						elem = out;
 					}
@@ -238,7 +232,7 @@ namespace wc
 						const auto it_func = functions.find(func.name);
 						if (it_func == functions.end())
 						{
-							WC_EXCEPTION(eval, "No such function '" << func.name << "' exists");
+							WC_EXCEPTION(eval, "No such function '{}' exists", func.name);
 						}
 						else
 						{
@@ -246,9 +240,8 @@ namespace wc
 
 							if (stack.size() < opr_count)
 							{
-								WC_EXCEPTION(eval, "Function '" << func.name << "' requires "
-											 << opr_count << " elements but only "
-											 << stack.size() << " are left");
+								WC_EXCEPTION(eval, "Function '{}' requires {} elements but only {} are left",
+											 func.name, opr_count, stack.size());
 							}
 							else
 							{
@@ -260,9 +253,9 @@ namespace wc
 									if (opr.type() != typeid(number_t) &&
 										opr.type() != typeid(variable_ref_t))
 									{
-										WC_EXCEPTION(eval, "Expected operand of type number or variable"
-													 << " at index " << opr_index << " for function '"
-													 << func.name << "'");
+										WC_EXCEPTION(eval, "Expected operand of type number or"
+													 "variable at index {} for function '{}'",
+													 opr_index, func.name);
 									}
 								}
 							}
@@ -496,7 +489,7 @@ namespace wc
 			}
 			else
 			{
-				WC_EXCEPTION(parse, "Garbage sub-parseession: '" << sub << "'");
+				WC_EXCEPTION(parse, "Garbage sub-parseession: '{}'", sub);
 			}
 		}
 
@@ -512,7 +505,7 @@ namespace wc
 		}
 		else
 		{
-			WC_EXCEPTION(file, "Cannot open file '" << what << "'");
+			WC_EXCEPTION(file, "Cannot open file '{}'", what);
 		}
 	}
 
@@ -549,7 +542,7 @@ namespace wc
 				{
 					std::string what;
 
-					std::cerr << stack.size() << ">> ";
+					std::print("{}>> ", stack.size());
 					if (!std::getline(std::cin, what))
 						WC_EXCEPTION(repl_quit, "");
 
@@ -588,7 +581,7 @@ namespace wc
 
 				if (stack.size() > 0)
 				{
-					std::cout << "^";
+					std::print("^");
 					op_top(this);
 				}
 			}
@@ -610,8 +603,8 @@ namespace wc
 				throw;
 			}
 
-			std::cerr << "Error: " << wc::error_type_str[static_cast<int>(e.type)]
-					  << ": " << e.what() << std::endl;
+			std::println(stderr, "Error: {}: {}",
+						 wc::error_type_str[static_cast<int>(e.type)], e.what());
 
 			goto begin;
 		}
@@ -624,31 +617,31 @@ namespace wc
 			if (elem.type() == typeid(variable_ref_t))
 			{
 				auto var = std::any_cast<variable_ref_t const&>(elem);
-				std::cout << '$' << var.name;
+				std::print("${}", var.name);
 			}
 			else if (elem.type() == typeid(function_ref_t))
 			{
 				auto func = std::any_cast<function_ref_t const&>(elem);
-				std::cout << '@' << func.name;
+				std::print("@{}", func.name);
 			}
 			else if (elem.type() == typeid(std::string))
 			{
 				auto str = std::any_cast<std::string const&>(elem);
-				std::cout << ':' << str;
+				std::print(":{}", str);
 			}
 			else if (elem.type() == typeid(operations_iter_t))
 			{
 				auto op_it = std::any_cast<operations_iter_t>(elem);
-				std::cout << op_it->first;
+				std::print("{}", op_it->first);
 			}
 			else
 			{
 				auto num = std::any_cast<number_t const&>(elem);
-				std::cout << num;
+				std::print("{}", num);
 			}
-			std::cout << ' ';
+			std::print(" ");
 		}
 		if (!what_stack.empty())
-			std::cout << std::endl;
+			std::println("");
 	}
 }; // namespace wc

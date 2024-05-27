@@ -12,7 +12,7 @@ namespace wc
 		auto r = b + a;
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " + " << a << std::endl;
+			std::println(stderr, "{}> {} = {} + {}", ins->stack.size()+1, r, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -27,7 +27,7 @@ namespace wc
 		auto r = b - a;
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " - " << a << std::endl;
+			std::println(stderr, "{}> {} = {} - {}", ins->stack.size()+1, r, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -42,7 +42,7 @@ namespace wc
 		auto r = b * a;
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " * " << a << std::endl;
+			std::println(stderr, "{}> {} = {} * {}", ins->stack.size()+1, r, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -59,7 +59,7 @@ namespace wc
 		auto r = b / a;
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " / " << a << std::endl;
+			std::println(stderr, "{}> {} = {} / {}", ins->stack.size()+1, r, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -74,7 +74,7 @@ namespace wc
 		auto r = std::pow(b, a);
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = " << b << " ^ " << a << std::endl;
+			std::println(stderr, "{}> {} = {} ^ {}", ins->stack.size()+1, r, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -86,11 +86,11 @@ namespace wc
 			const auto& e = ins->stack[i];
 			if (e.type() == typeid(number_t))
 			{
-				std::cout << i << ": " << std::any_cast<number_t>(e);
+				std::print("{}: {}", i, std::any_cast<number_t>(e));
 			}
 			else
 				WC_STD_EXCEPTION("There shouldn't be non-number on the stack. This is a program error");
-			std::cout << std::endl;
+			std::println("");
 		}
 	}
 
@@ -107,7 +107,7 @@ namespace wc
 		ins->stack.pop_back();
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << "replace " << b << " > " << a << std::endl;
+			std::println(stderr, "{}> replace {} > {}", ins->stack.size()+1, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(a));
 	}
@@ -120,7 +120,7 @@ namespace wc
 		ins->stack.pop_back();
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+2 << "> " << "swap " << b << " <> " << a << std::endl;
+			std::println(stderr, "{}> swap {} <> {}", ins->stack.size()+2, b, a);
 
 		ins->stack.push_back(std::make_any<number_t>(a));
 		ins->stack.push_back(std::make_any<number_t>(b));
@@ -132,7 +132,7 @@ namespace wc
 		ins->stack.pop_back();
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size() << "> " << "pop " << a << std::endl;
+			std::println(stderr, "{}> pop {}", ins->stack.size(), a);
 	}
 
 	void wtf_calculator::op_clear(wtf_calculator* ins)
@@ -155,7 +155,7 @@ namespace wc
 	void wtf_calculator::op_top(wtf_calculator* ins)
 	{
 		wtf_calculator::op_topb(ins);
-		std::cout << std::endl;
+		std::println("");
 	}
 
 	void wtf_calculator::op_topb(wtf_calculator* ins)
@@ -163,7 +163,7 @@ namespace wc
 		const auto back = ins->stack.back();
 
 		auto a = std::any_cast<number_t>(back);
-		std::cout << a;
+		std::print("{}", a);
 	}
 
 	void wtf_calculator::op_neg(wtf_calculator* ins)
@@ -174,14 +174,14 @@ namespace wc
 		auto r = -a;
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = -(" << a << ")" << std::endl;
+			std::println(stderr, "{}> {} = -({})", ins->stack.size()+1, r, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
 
 	void wtf_calculator::op_help(wtf_calculator* ins)
 	{
-		std::cerr << R"(operation: operand size: description:
+		std::println(stderr, R"(operation: operand size: description:
 -------------------------------------
 +: n, n: addition
 -: n, n: subtraction
@@ -228,7 +228,7 @@ println: s: print s and a newline to the standard output. Same with '`'
 file: s: read commands from file
 quit: quit the REPL
 ---
-help: show this screen)" << std::endl;
+help: show this screen)");
 	}
 
 	void wtf_calculator::op_sin(wtf_calculator* ins)
@@ -239,7 +239,7 @@ help: show this screen)" << std::endl;
 		auto r = std::sin(a);
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = sin(" << a << ")" << std::endl;
+			std::println(stderr, "{}> {} = sin({})", ins->stack.size()+1, r, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -252,7 +252,7 @@ help: show this screen)" << std::endl;
 		auto r = std::cos(a);
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = cos(" << a << ")" << std::endl;
+			std::println(stderr, "{}> {} = cos({})", ins->stack.size()+1, r, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -265,7 +265,7 @@ help: show this screen)" << std::endl;
 		auto r = std::floor(a);
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = floor(" << a << ")" << std::endl;
+			std::println(stderr, "{}> {} = floor({})", ins->stack.size()+1, r, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -278,7 +278,7 @@ help: show this screen)" << std::endl;
 		auto r = std::ceil(a);
 
 		if (ins->verbose && !ins->suppress_verbose)
-			std::cerr << ins->stack.size()+1 << "> " << r << " = ceil(" << a << ")" << std::endl;
+			std::println(stderr, "{}> {} = ceil({})", ins->stack.size()+1, r, a);
 
 		ins->stack.push_back(std::make_any<number_t>(r));
 	}
@@ -316,20 +316,16 @@ help: show this screen)" << std::endl;
 
 		if (exists)
 		{
-			WC_EXCEPTION(exec, "Variable '" << name << "' already exists at scope ";
-						 if (is_local) oss << "local";
-						 else oss << "global";
-						 oss << ". You probably meant to use operation 'set'");
+			WC_EXCEPTION(exec, "Variable '{}' already exists at scope {}. You probably meant to use 'set'",
+						 name, is_local ? "local" : "global");
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> new ";
+			std::print(stderr, "{}> new ", ins->stack.size());
 			if (is_local)
-			{
-				std::cerr << "local:" << ins->variables_local.size()-1 << ' ';
-			}
-			std::cerr << '$' << name << " = " << value << std::endl;
+				std::print(stderr, "local:{} ", ins->variables_local.size()-1);
+			std::println(stderr, "${} = {}", name, value);
 		}
 	}
 
@@ -371,17 +367,15 @@ help: show this screen)" << std::endl;
 
 		if (!found)
 		{
-			WC_EXCEPTION(exec, "No such variables '" << name << "' exists in relevant scopes");
+			WC_EXCEPTION(exec, "No such variables '{}' exists in relevant scopes", name);
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> ";
+			std::print(stderr, "{}> ", ins->stack.size());
 			if (is_local)
-			{
-				std::cerr << "local:" << local_index << ' ';
-			}
-			std::cerr << '$' << name << " = " << value << std::endl;
+				std::print(stderr, "local:{} ", ins->variables_local.size()-1);
+			std::println(stderr, "${} = {}", name, value);
 		}
 	}
 
@@ -399,13 +393,13 @@ help: show this screen)" << std::endl;
 		}
 		else
 		{
-			WC_EXCEPTION(exec, "Variable '" << name << "' already exists at scope global."
-						 "You probably meant to use operation 'set'");
+			WC_EXCEPTION(exec, "Variable '{}' already exists at scope global."
+						 "You probably meant to use operation 'set'", name);
 		}
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> new $" << name << " = " << value << std::endl;
+			std::println(stderr, "{}> new ${} = {}", ins->stack.size(), name, value);
 		}
 	}
 
@@ -413,7 +407,7 @@ help: show this screen)" << std::endl;
 	{
 		for (const auto& [name, value] : ins->variables)
 		{
-			std::cout << '$' << name << ": " << value << std::endl;
+			std::println("${}: {}", name, value);
 		}
 
 		unsigned i = 0;
@@ -421,8 +415,7 @@ help: show this screen)" << std::endl;
 		{
 			for (const auto& [name, value] : locals)
 			{
-				std::cout << "local:" << static_cast<int>(scope) << ',' << i << " $" << name << ": "
-						  << value << std::endl;
+				std::println("local:{},{} ${}: {}", static_cast<int>(scope), i, name, value);
 			}
 			i++;
 		}
@@ -436,7 +429,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->variables.find(name);
 		if (it == ins->variables.end())
 		{
-			WC_EXCEPTION(exec, "No such variable '" << name << "' exists");
+			WC_EXCEPTION(exec, "No such variable '{}' exists", name);
 		}
 		else
 		{
@@ -444,7 +437,7 @@ help: show this screen)" << std::endl;
 
 			if (ins->verbose && !ins->suppress_verbose)
 			{
-				std::cerr << ins->stack.size() << "> del $" << name << std::endl;
+				std::println(stderr, "{}> del ${}", ins->stack.size(), name);
 			}
 		}
 	}
@@ -463,8 +456,7 @@ help: show this screen)" << std::endl;
 
 		if (!ins->current_eval_function.empty())
 		{
-			WC_EXCEPTION(exec, "Cannot begin parsing '" << name
-						 << "' as another function is currently being");
+			WC_EXCEPTION(exec, "Cannot begin parsing '{}' as another function is currently being", name);
 		}
 
 		ins->functions[name] = function_t(num, {});
@@ -489,7 +481,7 @@ help: show this screen)" << std::endl;
 		const auto it = ins->functions.find(name);
 		if (it == ins->functions.end())
 		{
-			WC_EXCEPTION(exec, "No such function '" << name << "' exists");
+			WC_EXCEPTION(exec, "No such function '{}' exists", name);
 		}
 		else
 		{
@@ -502,8 +494,8 @@ help: show this screen)" << std::endl;
 	{
 		for (const auto& [name, stuff] : ins->functions)
 		{
-			std::cout << '@' << name << ": " << std::get<0>(stuff) << " arguments, "
-					  << std::get<1>(stuff).size() << " elements" << std::endl;
+			std::println("@{}: {} arguments, {} elements",
+						 name, std::get<0>(stuff), std::get<1>(stuff).size());
 		}
 	}
 
@@ -516,9 +508,8 @@ help: show this screen)" << std::endl;
 
 		if (ins->verbose && !ins->suppress_verbose)
 		{
-			std::cerr << ins->stack.size() << "> begin "
-					  << name << " - " << scope << ',' << ins->variables_local.size()
-					  << std::endl;
+			std::println(stderr, "{}> begin {} - {},{}",
+						 ins->stack.size(), name, scope, ins->variables_local.size());
 		}
 
 		ins->variables_local.push_back({static_cast<scope_type>(scope), {}});
@@ -538,11 +529,11 @@ help: show this screen)" << std::endl;
 		{
 			auto scope = static_cast<int>(std::get<0>(ins->variables_local.back()));
 			auto freed = std::get<1>(ins->variables_local.back()).size();
-			std::cerr << ins->stack.size() << "> end "
-					  << name << " - " << scope << ',' << ins->variables_local.size()-1;
+			std::print(stderr, "{}> end {} - {},{}",
+					   ins->stack.size(), name, scope, ins->variables_local.size()-1);
 			if (freed > 0)
-				std::cerr << " - freed " << freed << " variables";
-			std::cerr << std::endl;
+				std::print(stderr, " - freed {} variables", freed);
+			std::println(stderr, "");
 		}
 
 		ins->variables_local.pop_back();
@@ -557,9 +548,9 @@ help: show this screen)" << std::endl;
 	void wtf_calculator::op_loops(wtf_calculator* ins)
 	{
 		unsigned i=0;
-		for (const auto& l : ins->times)
+		for (const auto& s : ins->times)
 		{
-			std::cout << "times:" << i << ": " << l.size() << " elements" << std::endl;
+			std::println("times:{}: {} elements", i, s.size());
 			i++;
 		}
 	}
@@ -571,7 +562,7 @@ help: show this screen)" << std::endl;
 
 		if (index >= ins->times.size())
 		{
-			WC_EXCEPTION(exec, "No times at index " << index << " exists");
+			WC_EXCEPTION(exec, "No times at index {} exists", index);
 		}
 
 		const auto& times_stack = ins->times[index];
@@ -629,12 +620,12 @@ help: show this screen)" << std::endl;
 			if (what[i] == '`')
 				what[i] = ' ';
 
-		std::cout << what;
+		std::print("{}", what);
 	}
 
 	void wtf_calculator::op_println(wtf_calculator* ins)
 	{
 		op_print(ins);
-		std::cout << std::endl;
+		std::println("");
 	}
 }; // namespace wc

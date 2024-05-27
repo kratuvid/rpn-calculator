@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -19,6 +18,8 @@
 #include <iomanip>
 #include <chrono>
 #include <algorithm>
+#include <print>
+#include <iostream>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -102,8 +103,9 @@ namespace wc
 				{"verbose", {{}, op_verbose}},
 
 				{"print", {{operand_type::string}, op_print}},
-				{"println", {{operand_type::string}, op_println}},
-		}};
+				{"println", {{operand_type::string}, op_println}}
+			}
+		};
 
 		stack_t stack, secondary_stack;
 		std::deque<stack_t> times;

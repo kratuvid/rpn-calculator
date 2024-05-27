@@ -1,5 +1,5 @@
 # Wtf Calculator
-Arbitrary length calculator or something
+Another RPN calculator
 
 # Todo
 - [ ] arbitrary precision numbers
