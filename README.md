@@ -1,22 +1,20 @@
 # Wtf Calculator
 Another RPN calculator
 
+# Options
+```
+Wtf Calculator: Another RPN calculator
+	-h, --help: Show this
+	-e, --expr [EXPRESSION]: Calculates EXPRESSION
+	-f, --file [FILE]: Read expressions from FILE
+	-s, --stdin: Read expression from standard input until EOF
+	-r, --repl: Start the REPL
+	-p, --prefix: Use prefix notation
+	-t, --time: Show runtime
+	-v, --verbose: Be verbose
+```
+
 # Todo
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
-- [ ] optimized loops ) proper scoped loops, still "unoptimized"
-- [x] optimize elements when calling a function from another function
-- [x] separate variable declration and setting
-- [x] 'var' set variables in the previous scope if not present in the current - new oper "set"
-- [x] unoptimized loops
-- [x] function local variables ) pop locals on error
-- [x] comments
-- [x] move operations member variable to map
-- [x] optimize variable deletion by deleting from the last? - removed
-- [x] separate parsing, syntax checking and execution
-- [x] enter number of items returned on an operation/function - not needed
-- [x] check if the required no of function arguments are in the stack
-- [x] functions can't have the same name as operations - not needed, they can
-- [x] check for the existence of the variable after parsing - removed
-- [x] check the type of exceptions throw is correct with their type
-- [x] should we substitue variables when put into stack - yes
+- [ ] optimized larger loops

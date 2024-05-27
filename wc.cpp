@@ -77,6 +77,7 @@ namespace wc
 					p.is_repl = true;
 				}},
 				{"prefix", 0, [](_parsed_t& p, int i) {
+					WC_STD_EXCEPTION("--prefix is currently broken");
 					*p.is_prefix_ptr = true;
 				}},
 				{"time", 0, [](_parsed_t& p, int i) {
@@ -460,7 +461,6 @@ namespace wc
 
 		if (is_prefix)
 		{
-			WC_STD_EXCEPTION("--prefix is currently broken");
 			std::reverse(subs.begin(), subs.end());
 		}
 
