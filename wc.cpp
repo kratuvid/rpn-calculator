@@ -34,9 +34,9 @@ namespace wc
 		std::println(stderr, "{}: Wtf Calculator: Another RPN calculator\n"
 					 "\t-h, --help: Show this\n"
 					 "\t-e, --expr [EXPRESSION]: Calculates EXPRESSION\n"
-					 "\t-r, --repl: Start the REPL\n"
 					 "\t-f, --file [FILE]: Read expressions from FILE\n"
 					 "\t-s, --stdin: Read expression from standard input until EOF\n"
+					 "\t-r, --repl: Start the REPL\n"
 					 "\t-p, --prefix: Use prefix notation\n"
 					 "\t-t, --time: Show runtime\n"
 					 "\t-v, --verbose: Be verbose", name);
@@ -45,60 +45,116 @@ namespace wc
 	void wtf_calculator::parse_arguments(int argc, char** argv)
 	{
 		enum class work_type { expression, file, stdin };
-		std::list<std::pair<work_type, std::string_view>> list_work;
-		bool is_repl = argc == 1;
+		struct _parsed_t {
+			std::list<std::pair<work_type, std::string_view>> work;
+			bool is_repl;
 
+			bool *const is_time_ptr, *const is_prefix_ptr, *const is_verbose_ptr;
+			char **argv;
+
+			_parsed_t(wtf_calculator* ins, int argc, char** argv)
+				:is_repl(argc == 1),
+				 is_time_ptr(&ins->is_time), is_prefix_ptr(&ins->is_prefix),
+				 is_verbose_ptr(&ins->verbose), argv(argv)
+			{}
+		} parsed(this, argc, argv);
+
+		const std::array<std::tuple<std::string_view, int, void(*)(_parsed_t&, int)>, 8> arguments {{
+				{"help", 0, [](_parsed_t& p, int i) {
+					wtf_calculator::show_help(p.argv[0]);
+					WC_EXCEPTION(init_help, "");
+				}},
+				{"expr", 1, [](_parsed_t& p, int i) {
+					p.work.push_back({work_type::expression, std::string_view(p.argv[i+1])});
+				}},
+				{"file", 1, [](_parsed_t& p, int i) {
+					p.work.push_back({work_type::file, std::string_view(p.argv[i+1])});
+				}},
+				{"stdin", 0, [](_parsed_t& p, int i) {
+					p.work.push_back({work_type::stdin, ""});
+				}},
+				{"repl", 0, [](_parsed_t& p, int i) {
+					p.is_repl = true;
+				}},
+				{"prefix", 0, [](_parsed_t& p, int i) {
+					*p.is_prefix_ptr = true;
+				}},
+				{"time", 0, [](_parsed_t& p, int i) {
+					*p.is_time_ptr = true;
+				}},
+				{"verbose", 0, [](_parsed_t& p, int i) {
+					*p.is_verbose_ptr = true;
+				}}
+			}
+		};
+
+		std::list<std::pair<int, int>> todo;
 		for (int i=1; i < argc; i++)
 		{
-			if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
-			{
-				show_help(argv[0]);
-				WC_EXCEPTION(init_help, "");
-			}
-			else if (strcmp(argv[i], "--expr") == 0 || strcmp(argv[i], "-e") == 0)
-			{
-				if (i+1 >= argc)
-					WC_EXCEPTION(init, "Please supply an expression to calculate");
+			const auto length = (int)std::strlen(argv[i]);
 
-				list_work.push_back({work_type::expression, std::string_view(argv[i+1])});
-				i++;
-			}
-			else if (strcmp(argv[i], "--repl") == 0 || strcmp(argv[i], "-r") == 0)
+			if (length > 2 && argv[i][0] == '-' && argv[i][1] == '-')
 			{
-				is_repl = true;
-			}
-			else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
-			{
-				if (i+1 >= argc)
-					WC_EXCEPTION(init, "Please supply a file to read");
+				bool none = true;
+				const char* arg = &argv[i][2];
 
-				list_work.push_back({work_type::file, std::string_view(argv[i+1])});
-				i++;
+				for (int k=0; k < (int)arguments.size(); k++)
+				{
+					const auto& [name, ops, _func] = arguments[k];
+					if (name == arg)
+					{
+						if (i+ops >= argc)
+							WC_EXCEPTION(init, "Argument '{}' requires {} operands but only {} "
+										 "are left", name, ops, argc-i-1);
+						todo.push_back({k, i});
+						i += ops;
+						none = false;
+						break;
+					}
+				}
+
+				if (none)
+					WC_EXCEPTION(init, "Unknown argument: '{}'", argv[i]);
 			}
-			else if (strcmp(argv[i], "--stdin") == 0 || strcmp(argv[i], "-s") == 0)
+			else if (length > 1 && argv[i][0] == '-')
 			{
-				list_work.push_back({work_type::stdin, std::string_view("")});
-			}
-			else if (strcmp(argv[i], "--prefix") == 0 || strcmp(argv[i], "-p") == 0)
-			{
-				is_prefix = true;
-			}
-			else if (strcmp(argv[i], "--time") == 0 || strcmp(argv[i], "-t") == 0)
-			{
-				is_time = true;
-			}
-			else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0)
-			{
-				verbose = true;
+				for (int j=1; j < length; j++)
+				{
+					bool none = true;
+					const char arg = argv[i][j];
+
+					for (int k=0; k < (int)arguments.size(); k++)
+					{
+						const auto& [name, ops, _func] = arguments[k];
+						if (name[0] == arg)
+						{
+							if (ops > 0 && j != length-1)
+								WC_EXCEPTION(init, "Argument '{}' requiring non-zero operands should "
+											 "be at the end", name[0]);
+							if (i+ops >= argc)
+								WC_EXCEPTION(init, "Argument '{}' requires {} operands but only {} "
+											 "are left", name[0], ops, argc-i-1);
+							todo.push_back({k, i});
+							i += ops;
+							none = false;
+						}
+					}
+
+					if (none)
+						WC_EXCEPTION(init, "Unknown argument: '{}'", argv[i][j]);
+				}
 			}
 			else
 			{
-				show_help(argv[0]);
 				WC_EXCEPTION(init, "Unknown argument: '{}'", argv[i]);
 			}
 		}
+		for (auto [arg_index, i] : todo)
+		{
+			std::get<2>(arguments[arg_index])(parsed, i);
+		}
 
-		for (const auto& [type, what] : list_work)
+		for (const auto& [type, what] : parsed.work)
 		{
 			switch(type)
 			{
@@ -113,8 +169,7 @@ namespace wc
 				break;
 			}
 		}
-
-		if (is_repl || list_work.empty())
+		if (parsed.is_repl || parsed.work.empty())
 			repl();
 	}
 
@@ -405,6 +460,7 @@ namespace wc
 
 		if (is_prefix)
 		{
+			WC_STD_EXCEPTION("--prefix is currently broken");
 			std::reverse(subs.begin(), subs.end());
 		}
 
@@ -538,6 +594,7 @@ namespace wc
 		{
 			while (true)
 			{
+
 #ifdef SC_USE_TRADITIONAL_GETLINE
 				{
 					std::string what;

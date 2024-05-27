@@ -178,7 +178,7 @@ namespace wc
 		static void op_println(wtf_calculator* ins);
 
 	private:
-		void show_help(char* name);
+		static void show_help(char* name);
 		void parse_arguments(int argc, char** argv);
 
 		void execute();
