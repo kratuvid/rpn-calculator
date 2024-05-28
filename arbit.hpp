@@ -34,7 +34,6 @@ namespace wc
 		static const base_t default_precision = 50, base_max = ~base_t(0);
 
 		base_t precision = default_precision;
-		bool neg = false;
 		base_t *fixed_ptr=nullptr, *decimal_ptr=nullptr;
 		size_t fixed_len=0, decimal_len=0;
 		size_t actual_fixed_len=0, actual_decimal_len=0;
@@ -43,7 +42,6 @@ namespace wc
 		template<typename T> void is_valid_integer()
 		{
 			static_assert(std::numeric_limits<T>::is_integer);
-			static_assert(!std::numeric_limits<T>::is_signed);
 		}
 
 		void parse(std::string_view both);
@@ -61,6 +59,8 @@ namespace wc
 
 		base_t get_precision();
 		base_t set_precision(base_t precision);
+
+		bool negative();
 
 		template<typename T> arbit& operator-=(T rhs);
 		arbit& operator-=(const arbit& rhs);

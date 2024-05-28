@@ -16,7 +16,6 @@ namespace wc
 		other.fixed_ptr = other.decimal_ptr = nullptr;
 		other.fixed_len = other.decimal_len = 0;
 		other.actual_fixed_len = other.actual_decimal_len = 0;
-		other.neg = false;
 		other.precision = default_precision;
 	}
 
@@ -27,7 +26,7 @@ namespace wc
 	}
 
 	arbit::arbit(base_t fixed, base_t decimal, bool neg, base_t precision)
-		:precision(precision), neg(neg)
+		:precision(precision)
 	{
 		if (decimal != 0)
 		{
@@ -49,6 +48,16 @@ namespace wc
 	{
 		if (fixed_ptr) free(fixed_ptr);
 		if (decimal_ptr) free(decimal_ptr);
+	}
+
+	bool arbit::negative()
+	{
+		if (fixed_len > 0)
+		{
+			if (fixed_ptr[fixed_len-1] >> ((sizeof(base_t) * 8) - 1))
+				return true;
+		}
+		return false;
 	}
 
 	arbit& arbit::operator+=(const arbit& rhs)
@@ -122,9 +131,12 @@ namespace wc
 
 	void arbit::grow(size_t by)
 	{
+		const bool neg = negative();
+
 		const auto has_len = actual_fixed_len - fixed_len;
 		if (by <= has_len)
 		{
+			memset(&fixed_ptr[fixed_len], neg ? 0xff : 0x00, sizeof(base_t) * by);
 			fixed_len += by;
 		}
 		else
@@ -141,7 +153,8 @@ namespace wc
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_fixed_len, new_actual_fixed_len);
 
-			memset(&fixed_ptr[actual_fixed_len], 0, sizeof(base_t) * (by + grow_const));
+			memset(&fixed_ptr[actual_fixed_len], neg ? 0xff : 0x00, sizeof(base_t) * by);
+
 			actual_fixed_len = new_actual_fixed_len;
 			fixed_len = new_fixed_len;
 		}
