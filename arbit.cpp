@@ -3,7 +3,7 @@
 namespace wc
 {
 	arbit::arbit(arbit&& other)
-		:precision(other.precision),
+		:precision(other.precision), neg(other.neg),
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
@@ -16,6 +16,7 @@ namespace wc
 		other.fixed_ptr = other.decimal_ptr = nullptr;
 		other.fixed_len = other.decimal_len = 0;
 		other.actual_fixed_len = other.actual_decimal_len = 0;
+		other.neg = false;
 		other.precision = default_precision;
 	}
 
@@ -25,8 +26,8 @@ namespace wc
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
-		:precision(precision)
+	arbit::arbit(base_t fixed, base_t decimal, bool neg, base_t precision)
+		:precision(precision), neg(neg)
 	{
 		if (decimal != 0)
 		{
@@ -57,7 +58,8 @@ namespace wc
 
 	void arbit::raw_print()
 	{
-		std::print("Fixed: {}", fixed_len);
+		std::print("Neg: {} , ", neg);
+		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
 		{
 			std::print("> ");
@@ -66,7 +68,7 @@ namespace wc
 		}
 		if (decimal_len > 0)
 		{
-			std::print(", Decimal: {}> ", decimal_len);
+			std::print(", Decimal: {},{}> ", actual_decimal_len, decimal_len);
 			for (unsigned i=0; i < decimal_len; i++)
 				std::print("{} ", decimal_ptr[i]);
 		}
@@ -82,7 +84,15 @@ namespace wc
 
 		bool is_decimal = false;
 		std::string_view::iterator fixed_end = both.end();
-		for (auto it = both.begin(); it != both.end(); it++)
+
+		auto it = both.begin();
+		if (both[0] == '-')
+		{
+			neg = true;
+			it = both.begin()+1;
+		}
+
+		for (; it != both.end(); it++)
 		{
 			char c = *it;
 			if (c == '.')

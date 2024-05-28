@@ -6,9 +6,13 @@ int main(int argc, char** argv)
 	try
 	{
 		wc::arbit n100("109.8442");
-		wc::arbit n0(~wc::arbit::base_t(0) - 450, 10), n1;
+		wc::arbit n0(0, 10), n1;
 		wc::arbit n2;
-		n0 += 500u;
+		for (uint64_t i=0; i < ~uint64_t(0); i++)
+		{
+			n0 += 1000u;
+			n0.raw_print();
+		}
 		n1 += n2;
 		n0.raw_print();
 		n1.raw_print();

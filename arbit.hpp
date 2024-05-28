@@ -34,6 +34,7 @@ namespace wc
 		static const base_t default_precision = 50, base_max = ~base_t(0);
 
 		base_t precision = default_precision;
+		bool neg = false;
 		base_t *fixed_ptr=nullptr, *decimal_ptr=nullptr;
 		size_t fixed_len=0, decimal_len=0;
 		size_t actual_fixed_len=0, actual_decimal_len=0;
@@ -55,11 +56,14 @@ namespace wc
 		arbit(const arbit& other);
 		arbit(arbit&& other);
 		arbit(std::string_view both, base_t precision=default_precision);
-		arbit(base_t fixed=0, base_t decimal=0, base_t precision=default_precision);
+		arbit(base_t fixed=0, base_t decimal=0, bool neg=false, base_t precision=default_precision);
 		~arbit();
 
 		base_t get_precision();
 		base_t set_precision(base_t precision);
+
+		template<typename T> arbit& operator-=(T rhs);
+		arbit& operator-=(const arbit& rhs);
 
 		template<typename T> arbit& operator+=(T rhs);
 		arbit& operator+=(const arbit& rhs);
