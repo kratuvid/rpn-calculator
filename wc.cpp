@@ -213,10 +213,10 @@ namespace wc
 
 					if (need_opr_type != opr_type)
 					{
-						const char* type_name = need_opr_type == operand_type::string ?
-							"string" : (need_opr_type == operand_type::number ? "number" : "unknown");
 						WC_EXCEPTION(exec, "Expected an operand of type {} at index {} for operation '{}'",
-									 type_name, opr_index, op->first);
+									 need_opr_type == operand_type::string ? "string" :
+									 (need_opr_type == operand_type::number ? "number" : "unknown"),
+									 opr_index, op->first);
 					}
 				}
 
@@ -225,7 +225,7 @@ namespace wc
 		}
 	}
 
-	void wtf_calculator::ensure_pop_locals()
+	void wtf_calculator::ensure_clean_stack()
 	{
 		const auto it_pop_locals = operations.find("_pop_locals"),
 			it_push_locals = operations.find("_push_locals");
@@ -366,7 +366,7 @@ namespace wc
 		}
 		catch(...)
 		{
-			ensure_pop_locals();
+			ensure_clean_stack();
 			throw;
 		}
 	}
@@ -548,7 +548,7 @@ namespace wc
 			}
 			else
 			{
-				WC_EXCEPTION(parse, "Garbage sub-parseession: '{}'", sub);
+				WC_EXCEPTION(parse, "Garbage sub-expression: '{}'", sub);
 			}
 		}
 

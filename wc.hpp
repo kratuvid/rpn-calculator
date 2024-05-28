@@ -184,7 +184,7 @@ namespace wc
 		void execute();
 		void evaluate();
 		bool dereference_variable(const variable_ref_t& what, number_t& out);
-		void ensure_pop_locals();
+		void ensure_clean_stack();
 		number_t resolve_variable_if(const element_t& e);
 
 		void parse(std::string_view what);
