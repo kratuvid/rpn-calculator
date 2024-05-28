@@ -1,7 +1,16 @@
 #include "wc.hpp"
+#include "arbit.hpp"
 
 int main(int argc, char** argv)
 {
+	wc::arbit n0(13, 10), n1;
+	wc::arbit n2;
+	n1 += n2;
+	n0.raw_print();
+	n1.raw_print();
+	n2.raw_print();
+	return 10;
+
 	wc::wtf_calculator app;
 	try
 	{
