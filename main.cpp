@@ -20,10 +20,11 @@ int main(int argc, char** argv)
 		std::println("Begin: {}", begin);
 
 		wc::arbit n0({begin, begin - 10000}, {});
+		n0.negate();
 		for (int i=0; i < 10; i++)
 		{
 			auto by = dist(engine);
-			wc::arbit n1({by, begin / 4}, {});
+			wc::arbit n1({by}, {});
 			n0 += n1;
 			std::print("+= {}: ", by); n0.print();
 			std::print(" <> ");

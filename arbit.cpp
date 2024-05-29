@@ -12,8 +12,14 @@ namespace wc
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
-		if (fixed_ptr) free(fixed_ptr);
-		if (decimal_ptr) free(decimal_ptr);
+		if (fixed_ptr) {
+			free(fixed_ptr);
+			fixed_ptr = nullptr;
+		}
+		if (decimal_ptr) {
+			free(decimal_ptr);
+			decimal_ptr = nullptr;
+		}
 
 		fixed_ptr = other.fixed_ptr;
 		decimal_ptr = other.decimal_ptr;
@@ -142,8 +148,14 @@ namespace wc
 
 	arbit& arbit::operator=(const arbit& rhs)
 	{
-		if (fixed_ptr) free(fixed_ptr);
-		if (decimal_ptr) free(decimal_ptr);
+		if (fixed_ptr) {
+			free(fixed_ptr);
+			fixed_ptr = nullptr;
+		}
+		if (decimal_ptr) {
+			free(decimal_ptr);
+			decimal_ptr = nullptr;
+		}
 
 		precision = rhs.precision;
 		fixed_len = decimal_len = 0;
