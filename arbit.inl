@@ -1,11 +1,5 @@
 namespace wc
 {
-	template<typename T> arbit& arbit::operator-=(T rhs)
-	{
-		*this += -rhs;
-		return *this;
-	}
-
 	template<typename T> arbit& arbit::operator+=(T rhs)
 	{
 		// sizes greater than base_t are expected to be multiples of sizeof(base_t)

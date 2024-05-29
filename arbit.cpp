@@ -3,18 +3,8 @@
 namespace wc
 {
 	arbit::arbit(const arbit& other)
-		:precision(other.precision),
-		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
-		 actual_fixed_len(other.fixed_len), actual_decimal_len(other.decimal_len)
 	{
-		if (fixed_ptr) free(fixed_ptr);
-		if (decimal_ptr) free(decimal_ptr);
-
-		fixed_ptr = (base_t*)malloc(actual_fixed_len);
-		decimal_ptr = (base_t*)malloc(actual_decimal_len);
-
-		memcpy(fixed_ptr, other.fixed_ptr, sizeof(base_t) * fixed_len);
-		memcpy(decimal_ptr, other.decimal_ptr, sizeof(base_t) * decimal_len);
+		*this = other;
 	}
 
 	arbit::arbit(arbit&& other)
@@ -105,6 +95,70 @@ namespace wc
 		return copy;
 	}
 
+	arbit& arbit::operator+=(const arbit& rhs)
+	{
+		if (rhs.fixed_len == 0)
+			return *this;
+
+		const bool neg = is_negative(), neg_rhs = rhs.is_negative();
+
+		if (fixed_len < rhs.fixed_len)
+		{
+			const size_t by = rhs.fixed_len - fixed_len;
+			grow(by);
+		}
+
+		base_double_t carry = 0;
+		bool rhs_done = false;
+
+		for (size_t where=0; where < fixed_len; where++)
+		{
+			base_t unit_rhs = neg_rhs ? base_max : 0;
+			if (!rhs_done)
+			{
+				unit_rhs = rhs.fixed_ptr[where];
+				if (where == rhs.fixed_len-1)
+					rhs_done = true;
+			}
+
+			base_t* unit_ptr = &fixed_ptr[where];
+			base_double_t sum = base_double_t(*unit_ptr) + base_double_t(unit_rhs) + carry;
+
+			carry = (sum >> base_bits) > 0 ? 1 : 0;
+			*unit_ptr = sum & base_max;
+
+			if (where == fixed_len-1)
+			{
+				if (neg && neg_rhs && !is_base_t_negative(*unit_ptr))
+					grow(1, true);
+				else if(!neg && !neg_rhs && is_base_t_negative(*unit_ptr))
+					grow(1, false);
+				break;
+			}
+		}
+
+		return *this;
+	}
+
+	arbit& arbit::operator=(const arbit& rhs)
+	{
+		if (fixed_ptr) free(fixed_ptr);
+		if (decimal_ptr) free(decimal_ptr);
+
+		precision = rhs.precision;
+		fixed_len = decimal_len = 0;
+		actual_fixed_len = actual_decimal_len = 0;
+
+		grow(rhs.fixed_len, false);
+
+		if (fixed_len > 0)
+			memcpy(fixed_ptr, rhs.fixed_ptr, sizeof(base_t) * fixed_len);
+		if (decimal_len > 0)
+			memcpy(decimal_ptr, rhs.decimal_ptr, sizeof(base_t) * decimal_len);
+
+		return *this;
+	}
+
 	void arbit::raw_print(bool hex) const
 	{
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
@@ -137,27 +191,35 @@ namespace wc
 		std::println("");
 	}
 
-	void arbit::print()
+	void arbit::print() const
 	{
 		std::string digits;
 
 		const bool neg = is_negative();
 
-		if (neg) negate();
-
-		for (size_t i=0; i < fixed_len; i++)
 		{
-			base_t n = fixed_ptr[i];
-			while (n != 0)
+			arbit copy;
+			const arbit* source = this;
+			if (neg)
 			{
-				digits += std::to_string(n % 10);
-				n /= 10;
+				source = &copy;
+				copy = *this;
+				copy.negate();
+			}
+
+			for (size_t i=0; i < source->fixed_len; i++)
+			{
+				base_t n = source->fixed_ptr[i];
+				while (n != 0)
+				{
+					digits += std::to_string(n % 10);
+					n /= 10;
+				}
 			}
 		}
+
 		if (digits.empty()) digits += "0";
 		std::reverse(digits.begin(), digits.end());
-
-		if (neg) negate();
 
 		if (neg) std::print("-");
 		std::print("{}", digits);
