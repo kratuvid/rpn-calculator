@@ -170,34 +170,41 @@ namespace wc
 		if (fixed_len > 0)
 		{
 			std::print("> ");
+			if (is_negative()) std::print("!");
 			for (unsigned i=0; i < fixed_len; i++)
 			{
 				auto unit = fixed_ptr[i];
 				if (hex)
-					std::print("{:#x} ", fixed_ptr[i]);
+					std::print("{:#x}", fixed_ptr[i]);
 				else
 				{
 					std::print("{}", fixed_ptr[i]);
 					if (is_base_t_negative(unit))
 						std::print("|{}", sbase_t(unit));
-					std::print(" ");
 				}
+				if (i != fixed_len-1)
+					std::print(" ");
 			}
 		}
 		if (decimal_len > 0)
 		{
 			std::print(", Decimal: {},{}> ", actual_decimal_len, decimal_len);
 			for (unsigned i=0; i < decimal_len; i++)
+			{
 				if (hex)
-					std::print("{:#x} ", decimal_ptr[i]);
+					std::print("{:#x}", decimal_ptr[i]);
 				else
-					std::print("{} ", decimal_ptr[i]);
+					std::print("{}", decimal_ptr[i]);
+				if (i != fixed_len-1)
+					std::print(" ");
+			}
 		}
-		std::println("");
 	}
 
 	void arbit::print() const
 	{
+		WC_STD_EXCEPTION("{}:{}: print is broken", __FILE__, __LINE__);
+
 		std::string digits;
 
 		const bool neg = is_negative();

@@ -13,23 +13,24 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(0, 1000);
+		std::uniform_int_distribution<int> dist(-1e4, 1e4);
 
 		// wc::arbit n100("109.8442");
-		const auto begin = max_i - 2000;
-		std::println("Begin: {}", begin);
-
-		wc::arbit n0({begin, begin - 10000}, {});
-		n0.negate();
+		const auto begin = 500;
+		wc::arbit n0({begin, begin}, {});
 		for (int i=0; i < 10; i++)
 		{
-			auto by = dist(engine);
-			wc::arbit n1({by}, {});
+			auto by = dist(engine), by2 = dist(engine);
+			wc::arbit n1({by, by2}, {});
+
+			std::print("["); n0.raw_print(true); std::print("]");
+			std::print(" + ");
+			std::print("["); n1.raw_print(true); std::print("]");
 			n0 += n1;
-			std::print("+= {}: ", by); n0.print();
-			std::print(" <> ");
-			n0.raw_print(true);
+			std::println("");
+			// std::print(" = "); n0.print(); std::print(" <> "); n0.raw_print(true);
 		}
+		std::print("["); n0.raw_print(true); std::println("]");
 	}
 	catch (wc::arbit::exception& e)
 	{
