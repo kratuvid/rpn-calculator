@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 #include <list>
 #include <print>
 #include <limits>
@@ -29,6 +30,8 @@ namespace wc
 		class exception;
 
 		using base_t = uint32_t;
+		using sbase_t = int32_t;
+		using base_double_t = uint64_t;
 
 	private:
 		static const base_t default_precision = 50, base_max = ~base_t(0);
@@ -42,12 +45,14 @@ namespace wc
 		template<typename T> void is_valid_integer()
 		{
 			static_assert(std::numeric_limits<T>::is_integer);
+			static_assert(std::numeric_limits<T>::is_signed);
 		}
 
 		void parse(std::string_view both);
 		void parse(std::string_view fixed, std::string_view decimal);
 
 		void grow(size_t by);
+		void grow(size_t by, bool neg);
 		void shrink(size_t by);
 
 	public:
@@ -57,10 +62,14 @@ namespace wc
 		arbit(base_t fixed=0, base_t decimal=0, bool neg=false, base_t precision=default_precision);
 		~arbit();
 
-		base_t get_precision();
+		base_t get_precision() const;
 		base_t set_precision(base_t precision);
 
-		bool negative();
+		bool is_negative() const;
+		size_t bytes() const { return sizeof(base_t) * fixed_len; }
+		static bool is_base_t_negative(base_t n) { return n >> ((sizeof(base_t) * 8) - 1); }
+
+		arbit& negate();
 
 		template<typename T> arbit& operator-=(T rhs);
 		arbit& operator-=(const arbit& rhs);
@@ -68,7 +77,7 @@ namespace wc
 		template<typename T> arbit& operator+=(T rhs);
 		arbit& operator+=(const arbit& rhs);
 
-		void raw_print();
+		void raw_print() const;
 	};
 
 	class arbit::exception : public std::runtime_error

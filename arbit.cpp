@@ -3,7 +3,7 @@
 namespace wc
 {
 	arbit::arbit(arbit&& other)
-		:precision(other.precision), neg(other.neg),
+		:precision(other.precision),
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
@@ -50,7 +50,7 @@ namespace wc
 		if (decimal_ptr) free(decimal_ptr);
 	}
 
-	bool arbit::negative()
+	bool arbit::is_negative() const
 	{
 		if (fixed_len > 0)
 		{
@@ -60,20 +60,28 @@ namespace wc
 		return false;
 	}
 
-	arbit& arbit::operator+=(const arbit& rhs)
+	arbit& arbit::negate()
 	{
+		for (size_t i=0; i < fixed_len; i++)
+			fixed_ptr[i] = ~fixed_ptr[i];
+		*this += 1;
 		return *this;
 	}
 
-	void arbit::raw_print()
+	void arbit::raw_print() const
 	{
-		std::print("Neg: {} , ", neg);
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
 		{
 			std::print("> ");
 			for (unsigned i=0; i < fixed_len; i++)
-				std::print("{} ", fixed_ptr[i]);
+			{
+				auto unit = fixed_ptr[i];
+				std::print("{}", fixed_ptr[i]);
+				if (is_base_t_negative(unit))
+					std::print("|{}", sbase_t(unit));
+				std::print(" ");
+			}
 		}
 		if (decimal_len > 0)
 		{
@@ -91,13 +99,14 @@ namespace wc
 		if (both.size() == 0)
 			WC_ARBIT_EXCEPTION(parse, "Empty string");
 
+		WC_STD_EXCEPTION("arbit::parse() is broken");
+
 		bool is_decimal = false;
 		std::string_view::iterator fixed_end = both.end();
 
 		auto it = both.begin();
 		if (both[0] == '-')
 		{
-			neg = true;
 			it = both.begin()+1;
 		}
 
@@ -131,8 +140,11 @@ namespace wc
 
 	void arbit::grow(size_t by)
 	{
-		const bool neg = negative();
+		grow(by, is_negative());
+	}
 
+	void arbit::grow(size_t by, bool neg)
+	{
 		const auto has_len = actual_fixed_len - fixed_len;
 		if (by <= has_len)
 		{
