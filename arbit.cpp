@@ -2,6 +2,21 @@
 
 namespace wc
 {
+	arbit::arbit(const arbit& other)
+		:precision(other.precision),
+		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
+		 actual_fixed_len(other.fixed_len), actual_decimal_len(other.decimal_len)
+	{
+		if (fixed_ptr) free(fixed_ptr);
+		if (decimal_ptr) free(decimal_ptr);
+
+		fixed_ptr = (base_t*)malloc(actual_fixed_len);
+		decimal_ptr = (base_t*)malloc(actual_decimal_len);
+
+		memcpy(fixed_ptr, other.fixed_ptr, sizeof(base_t) * fixed_len);
+		memcpy(decimal_ptr, other.decimal_ptr, sizeof(base_t) * decimal_len);
+	}
+
 	arbit::arbit(arbit&& other)
 		:precision(other.precision),
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
@@ -25,23 +40,38 @@ namespace wc
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, bool neg, base_t precision)
+	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
 		:precision(precision)
 	{
 		if (decimal != 0)
 		{
-			if (!(decimal_ptr = (base_t*)malloc(sizeof(base_t) * 2)))
-				WC_STD_EXCEPTION("Failed to allocate memory for the decimals");
-			decimal_len = 1;
-			actual_decimal_len = 2;
-			decimal_ptr[0] = decimal;
+			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
 		}
 
-		if (!(fixed_ptr = (base_t*)malloc(sizeof(base_t) * 2)))
-			WC_STD_EXCEPTION("Failed to allocate memory for the fixeds");
-		fixed_len = 1;
-		actual_fixed_len = 2;
+		grow(1, is_base_t_negative(fixed));
 		fixed_ptr[0] = fixed;
+	}
+
+	arbit::arbit(std::initializer_list<base_t> fixed, std::initializer_list<base_t> decimal, base_t precision)
+		:precision(precision)
+	{
+		if (fixed.size() > 0)
+		{
+			const bool neg = is_base_t_negative(*(fixed.begin() + fixed.size() - 1));
+			grow(fixed.size(), neg);
+
+			size_t i=0;
+			auto it = fixed.begin();
+			for (; it != fixed.end(); it++, i++)
+				fixed_ptr[i] = *it;
+		}
+		else
+			grow(1);
+
+		if (decimal.size() > 0)
+		{
+			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
+		}
 	}
 
 	arbit::~arbit()
@@ -68,7 +98,14 @@ namespace wc
 		return *this;
 	}
 
-	void arbit::raw_print() const
+	arbit arbit::operator-() const
+	{
+		arbit copy(*this);
+		copy.negate();
+		return copy;
+	}
+
+	void arbit::raw_print(bool hex) const
 	{
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
@@ -77,19 +114,56 @@ namespace wc
 			for (unsigned i=0; i < fixed_len; i++)
 			{
 				auto unit = fixed_ptr[i];
-				std::print("{}", fixed_ptr[i]);
-				if (is_base_t_negative(unit))
-					std::print("|{}", sbase_t(unit));
-				std::print(" ");
+				if (hex)
+					std::print("{:#x} ", fixed_ptr[i]);
+				else
+				{
+					std::print("{}", fixed_ptr[i]);
+					if (is_base_t_negative(unit))
+						std::print("|{}", sbase_t(unit));
+					std::print(" ");
+				}
 			}
 		}
 		if (decimal_len > 0)
 		{
 			std::print(", Decimal: {},{}> ", actual_decimal_len, decimal_len);
 			for (unsigned i=0; i < decimal_len; i++)
-				std::print("{} ", decimal_ptr[i]);
+				if (hex)
+					std::print("{:#x} ", decimal_ptr[i]);
+				else
+					std::print("{} ", decimal_ptr[i]);
 		}
 		std::println("");
+	}
+
+	void arbit::print()
+	{
+		std::string digits;
+
+		const bool neg = is_negative();
+
+		if (neg) negate();
+
+		for (size_t i=0; i < fixed_len; i++)
+		{
+			base_t n = fixed_ptr[i];
+			while (n != 0)
+			{
+				digits += std::to_string(n % 10);
+				n /= 10;
+			}
+		}
+		if (digits.empty()) digits += "0";
+		std::reverse(digits.begin(), digits.end());
+
+		if (neg) negate();
+
+		if (neg) std::print("-");
+		std::print("{}", digits);
+
+		if (decimal_len > 0)
+			std::print(".IMPL");
 	}
 
 	/* private members */
@@ -99,14 +173,14 @@ namespace wc
 		if (both.size() == 0)
 			WC_ARBIT_EXCEPTION(parse, "Empty string");
 
-		WC_STD_EXCEPTION("arbit::parse() is broken");
-
 		bool is_decimal = false;
 		std::string_view::iterator fixed_end = both.end();
 
+		bool neg = false;
 		auto it = both.begin();
 		if (both[0] == '-')
 		{
+			neg = true;
 			it = both.begin()+1;
 		}
 
@@ -131,11 +205,16 @@ namespace wc
 		std::string_view fixed(both.begin(), fixed_end), decimal;
 		if (is_decimal)
 			decimal = std::string_view(std::next(fixed_end), both.end());
-		parse(fixed, decimal);
+		parse(fixed, decimal, neg);
 	}
 
-	void arbit::parse(std::string_view fixed, std::string_view decimal)
+	void arbit::parse(std::string_view fixed, std::string_view decimal, bool neg)
 	{
+		WC_STD_EXCEPTION("{}:{}: parse is broken", __FILE__, __LINE__);
+
+		for (auto it = fixed.rbegin(); it != fixed.rend(); it++)
+		{
+		}
 	}
 
 	void arbit::grow(size_t by)
@@ -153,7 +232,7 @@ namespace wc
 		}
 		else
 		{
-			const size_t grow_const = 2, grow_upper_limit = 1000;
+			const size_t grow_const = 1, grow_upper_limit = 1000;
 			const auto new_actual_fixed_len = actual_fixed_len + by + grow_const;
 			const auto new_fixed_len = fixed_len + by;
 
@@ -180,8 +259,8 @@ namespace wc
 		const size_t new_fixed_len = fixed_len - by;
 
 		/*
-		if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_fixed_len)))
-			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}", fixed_len, new_fixed_len);
+		  if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_fixed_len)))
+		  WC_STD_EXCEPTION("Failed to reallocate from length {} to {}", fixed_len, new_fixed_len);
 		*/
 
 		fixed_len = new_fixed_len;

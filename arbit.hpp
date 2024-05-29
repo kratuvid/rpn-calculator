@@ -12,6 +12,9 @@
 #include <exception>
 #include <format>
 #include <array>
+#include <string>
+#include <algorithm>
+#include <initializer_list>
 
 #include "utility.hpp"
 
@@ -35,6 +38,7 @@ namespace wc
 
 	private:
 		static const base_t default_precision = 50, base_max = ~base_t(0);
+		static const size_t base_bits = sizeof(base_t) * 8;
 
 		base_t precision = default_precision;
 		base_t *fixed_ptr=nullptr, *decimal_ptr=nullptr;
@@ -49,7 +53,7 @@ namespace wc
 		}
 
 		void parse(std::string_view both);
-		void parse(std::string_view fixed, std::string_view decimal);
+		void parse(std::string_view fixed, std::string_view decimal, bool neg);
 
 		void grow(size_t by);
 		void grow(size_t by, bool neg);
@@ -59,7 +63,8 @@ namespace wc
 		arbit(const arbit& other);
 		arbit(arbit&& other);
 		arbit(std::string_view both, base_t precision=default_precision);
-		arbit(base_t fixed=0, base_t decimal=0, bool neg=false, base_t precision=default_precision);
+		arbit(base_t fixed=0, base_t decimal=0, base_t precision=default_precision);
+		arbit(std::initializer_list<base_t> fixed, std::initializer_list<base_t> decimal, base_t precision=default_precision);
 		~arbit();
 
 		base_t get_precision() const;
@@ -70,6 +75,7 @@ namespace wc
 		static bool is_base_t_negative(base_t n) { return n >> ((sizeof(base_t) * 8) - 1); }
 
 		arbit& negate();
+		arbit operator-() const;
 
 		template<typename T> arbit& operator-=(T rhs);
 		arbit& operator-=(const arbit& rhs);
@@ -77,7 +83,8 @@ namespace wc
 		template<typename T> arbit& operator+=(T rhs);
 		arbit& operator+=(const arbit& rhs);
 
-		void raw_print() const;
+		void raw_print(bool hex) const;
+		void print();
 	};
 
 	class arbit::exception : public std::runtime_error
