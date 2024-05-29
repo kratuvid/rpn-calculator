@@ -75,7 +75,7 @@ namespace wc
 		static bool is_base_t_negative(base_t n) { return n >> ((sizeof(base_t) * 8) - 1); }
 
 		arbit& negate();
-		arbit operator-() const;
+		arbit operator-() const { arbit copy(*this); copy.negate(); return copy; }
 
 		template<typename T> arbit& operator-=(T rhs) { *this += -rhs; return *this; }
 		arbit& operator-=(const arbit& rhs) { *this += -rhs; return *this; }

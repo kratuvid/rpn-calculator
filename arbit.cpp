@@ -94,13 +94,6 @@ namespace wc
 		return *this;
 	}
 
-	arbit arbit::operator-() const
-	{
-		arbit copy(*this);
-		copy.negate();
-		return copy;
-	}
-
 	arbit& arbit::operator+=(const arbit& rhs)
 	{
 		if (rhs.fixed_len == 0)
