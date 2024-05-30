@@ -72,6 +72,11 @@ namespace wc
 		base_t get_precision() const;
 		base_t set_precision(base_t precision);
 
+		base_t get_bit(size_t at) const;
+		void clear_bit(size_t at);
+		void set_bit(size_t at);
+		void clear_first_bits(size_t upto);
+
 		bool is_zero() const;
 		void shrink_if_can();
 
@@ -95,9 +100,11 @@ namespace wc
 		template<typename T> arbit operator*(T rhs);
 		arbit operator*(const arbit& rhs);
 
+		arbit& operator<<=(size_t by);
+
 		arbit& operator=(const arbit& rhs);
 
-		void raw_print(bool hex) const;
+		void raw_print(int way) const;
 		void print() const;
 	};
 

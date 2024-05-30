@@ -99,12 +99,48 @@ namespace wc
 		return true;
 	}
 
+	arbit::base_t arbit::get_bit(size_t at) const
+	{
+		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		if (unit <= fixed_len-1)
+			return fixed_ptr[unit] & (1 << unit_at);
+		return 0;
+	}
+
+	void arbit::clear_bit(size_t at)
+	{
+		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		if (unit <= fixed_len-1)
+			fixed_ptr[unit] &= ~(1 << unit_at);
+	}
+
+	void arbit::set_bit(size_t at)
+	{
+		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		if (unit <= fixed_len-1)
+			fixed_ptr[unit] |= (1 << unit_at);
+	}
+
+	void arbit::clear_first_bits(size_t upto)
+	{
+		const size_t unit = upto / base_bits, unit_at = upto % base_bits;
+		for (ssize_t i = unit; i >= 0; i--)
+		{
+			if ((size_t)i == unit)
+			{
+				fixed_ptr[i] >>= unit_at + 1;
+				fixed_ptr[i] <<= unit_at + 1;
+			}
+			else
+				fixed_ptr[i] = 0;
+		}
+	}
+
 	void arbit::shrink_if_can()
 	{
 		if (fixed_len > 1)
 		{
-			const bool neg = negative();
-			const base_t check = neg ? base_max : 0;
+			const base_t check = is_negative() ? base_max : 0;
 			size_t i = fixed_len - 1;
 			for (; i >= 1; i--)
 			{
@@ -182,6 +218,36 @@ namespace wc
 		return *this;
 	}
 
+	arbit& arbit::operator<<=(size_t by)
+	{
+		const auto bits = bytes() * 8;
+		if (by > bits)
+		{
+			memset(fixed_ptr, 0, bytes());
+		}
+		else if (by > 0)
+		{
+			for (ssize_t i = (ssize_t)bits-1; i >= 0; i--)
+			{
+				if ((size_t)i >= by)
+				{
+					const size_t at = (size_t)i - by;
+					const auto bit = get_bit(at);
+					if (bit)
+						set_bit(i);
+					else
+						clear_bit(i);
+				}
+				else break;
+			}
+
+			const auto upto = by - 1;
+			clear_first_bits(upto);
+		}
+
+		return *this;
+	}
+
 	arbit& arbit::operator=(const arbit& rhs)
 	{
 		if (fixed_ptr) {
@@ -207,7 +273,7 @@ namespace wc
 		return *this;
 	}
 
-	void arbit::raw_print(bool hex) const
+	void arbit::raw_print(int way) const
 	{
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
@@ -217,16 +283,16 @@ namespace wc
 			for (unsigned i=0; i < fixed_len; i++)
 			{
 				auto unit = fixed_ptr[i];
-				if (hex)
+				if (way == 0)
+					std::print("{:#b}", fixed_ptr[i]);
+				else if (way == 1)
 					std::print("{:#x}", fixed_ptr[i]);
 				else
 				{
 					std::print("{}", fixed_ptr[i]);
-					if (is_base_t_negative(unit))
-						std::print("|{}", sbase_t(unit));
+					if (is_base_t_negative(unit)) std::print("|{}", sbase_t(unit));
 				}
-				if (i != fixed_len-1)
-					std::print(" ");
+				if (i != fixed_len-1) std::print(" ");
 			}
 		}
 		if (decimal_len > 0)
@@ -234,7 +300,7 @@ namespace wc
 			std::print(", Decimal: {},{}> ", actual_decimal_len, decimal_len);
 			for (unsigned i=0; i < decimal_len; i++)
 			{
-				if (hex)
+				if (way)
 					std::print("{:#x}", decimal_ptr[i]);
 				else
 					std::print("{}", decimal_ptr[i]);

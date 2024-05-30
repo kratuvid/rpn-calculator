@@ -16,21 +16,19 @@ int main(int argc, char** argv)
 		std::uniform_int_distribution<int> dist(-1e4, 1e4);
 
 		// wc::arbit n100("109.8442");
-		const auto begin = 500;
-		wc::arbit n0({begin, begin}, {});
-		for (int i=0; i < 10; i++)
+		for (int i=0; i < 32; i++)
 		{
-			auto by = dist(engine), by2 = dist(engine);
-			wc::arbit n1({by, by2}, {});
+			const auto by = dist(engine), by2 = dist(engine);
 
-			std::print("["); n0.raw_print(true); std::print("]");
-			std::print(" + ");
-			std::print("["); n1.raw_print(true); std::print("]");
-			n0 += n1;
+			wc::arbit n0({by}, {});
+			n0.raw_print(2);
+
+			std::print(" * {} = ", by2);
+			auto np = n0 * by2;
+
+			np.raw_print(2);
 			std::println("");
-			// std::print(" = "); n0.print(); std::print(" <> "); n0.raw_print(true);
 		}
-		std::print("["); n0.raw_print(true); std::println("]");
 	}
 	catch (wc::arbit::exception& e)
 	{

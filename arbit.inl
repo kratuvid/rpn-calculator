@@ -64,19 +64,17 @@ namespace wc
 	{
 		is_valid_integer<T>();
 
-		arbit product;
+		arbit product, copy(*this);
 
-		size_t i = 0;
-		while (rhs != 0)
+		for (size_t i=0; i < sizeof(T)*8; i++)
 		{
-			base_t* rhs_indirect = (base_t*)&rhs;
-			base_t bit = *rhs_indirect & 0x1;
-			*rhs_indirect >>= 1;
-
-			
-
-			i++;
+			if (i != 0)
+				copy <<= 1;
+			if (rhs & (1 << i))
+				product += copy;
 		}
+
+		product.shrink_if_can();
 
 		return product;
 	}
