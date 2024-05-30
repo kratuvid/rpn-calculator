@@ -75,7 +75,6 @@ namespace wc
 		}
 
 		product.shrink_if_can();
-
 		return product;
 	}
 };

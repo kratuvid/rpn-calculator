@@ -7,13 +7,14 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		const auto max_i = std::numeric_limits<int>::max();
+		const auto max_i = std::numeric_limits<int>::max(),
+			min_i = std::numeric_limits<int>::min();
 		const auto max_ll = std::numeric_limits<long long>::max();
 		const auto max_u = std::numeric_limits<unsigned>::max();
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(-1e4, 1e4);
+		std::uniform_int_distribution<int> dist(min_i, max_i);
 
 		// wc::arbit n100("109.8442");
 		for (int i=0; i < 32; i++)
@@ -21,11 +22,14 @@ int main(int argc, char** argv)
 			const auto by = dist(engine), by2 = dist(engine);
 
 			wc::arbit n0({by}, {});
+			wc::arbit n1({by2}, {});
+
 			n0.raw_print(2);
+			std::print(" * ");
+			n1.raw_print(2);
 
-			std::print(" * {} = ", by2);
-			auto np = n0 * by2;
-
+			std::print(" = ");
+			auto np = n0 * n1;
 			np.raw_print(2);
 			std::println("");
 		}

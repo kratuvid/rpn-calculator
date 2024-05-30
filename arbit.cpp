@@ -150,8 +150,8 @@ namespace wc
 					break;
 			}
 
-			const auto by = fixed_len - i;
-			shrink(by);
+			const auto by = fixed_len - i - 1;
+			if (by > 0) shrink(by);
 		}
 	}
 
@@ -216,6 +216,22 @@ namespace wc
 		}
 
 		return *this;
+	}
+
+	arbit arbit::operator*(const arbit& rhs)
+	{
+		arbit product, copy(*this);
+
+		for (size_t i=0; i < rhs.bytes()*8; i++)
+		{
+			if (i != 0)
+				copy <<= 1;
+			if (rhs.get_bit(i))
+				product += copy;
+		}
+
+		product.shrink_if_can();
+		return product;
 	}
 
 	arbit& arbit::operator<<=(size_t by)
