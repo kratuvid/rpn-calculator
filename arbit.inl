@@ -59,5 +59,25 @@ namespace wc
 
 		return *this;
 	}
-};
 
+	template<typename T> arbit arbit::operator*(T rhs)
+	{
+		is_valid_integer<T>();
+
+		arbit product;
+
+		size_t i = 0;
+		while (rhs != 0)
+		{
+			base_t* rhs_indirect = (base_t*)&rhs;
+			base_t bit = *rhs_indirect & 0x1;
+			*rhs_indirect >>= 1;
+
+			
+
+			i++;
+		}
+
+		return product;
+	}
+};

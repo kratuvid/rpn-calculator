@@ -67,8 +67,13 @@ namespace wc
 		arbit(std::initializer_list<base_t> fixed, std::initializer_list<base_t> decimal, base_t precision=default_precision);
 		~arbit();
 
+		void reset();
+
 		base_t get_precision() const;
 		base_t set_precision(base_t precision);
+
+		bool is_zero() const;
+		void shrink_if_can();
 
 		bool is_negative() const;
 		size_t bytes() const { return sizeof(base_t) * fixed_len; }
@@ -79,9 +84,16 @@ namespace wc
 
 		template<typename T> arbit& operator-=(T rhs) { *this += -rhs; return *this; }
 		arbit& operator-=(const arbit& rhs) { *this += -rhs; return *this; }
+		template<typename T> arbit operator-(T rhs) const { arbit copy(*this); copy -= rhs; return *this; }
+		arbit operator-(const arbit& rhs) const { arbit copy(*this); copy -= rhs; return *this; }
 
 		template<typename T> arbit& operator+=(T rhs);
 		arbit& operator+=(const arbit& rhs);
+		template<typename T> arbit operator+(T rhs) const { arbit copy(*this); copy += rhs; return copy; }
+		arbit operator+(const arbit& rhs) const { arbit copy(*this); copy += rhs; return copy; }
+
+		template<typename T> arbit operator*(T rhs);
+		arbit operator*(const arbit& rhs);
 
 		arbit& operator=(const arbit& rhs);
 

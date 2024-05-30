@@ -76,6 +76,49 @@ namespace wc
 		if (decimal_ptr) free(decimal_ptr);
 	}
 
+	void arbit::reset()
+	{
+		if (fixed_ptr) {
+			free(fixed_ptr);
+			fixed_ptr = nullptr;
+		}
+		if (decimal_ptr) {
+			free(decimal_ptr);
+			decimal_ptr = nullptr;
+		}
+
+		precision = default_precision;
+		grow(1, false);
+	}
+
+	bool arbit::is_zero() const
+	{
+		for (size_t i=0; i < fixed_len; i++)
+			if (fixed_ptr[i] != 0)
+				return false;
+		return true;
+	}
+
+	void arbit::shrink_if_can()
+	{
+		if (fixed_len > 1)
+		{
+			const bool neg = negative();
+			const base_t check = neg ? base_max : 0;
+			size_t i = fixed_len - 1;
+			for (; i >= 1; i--)
+			{
+				if (fixed_ptr[i] == check && fixed_ptr[i-1] == check)
+					continue;
+				else
+					break;
+			}
+
+			const auto by = fixed_len - i;
+			shrink(by);
+		}
+	}
+
 	bool arbit::is_negative() const
 	{
 		if (fixed_len > 0)
@@ -327,16 +370,17 @@ namespace wc
 
 	void arbit::shrink(size_t by)
 	{
-		if (by > fixed_len)
+		if (by >= fixed_len)
 			WC_STD_EXCEPTION("Cannot shrink by {} when {} is all it has", by, fixed_len);
 
-		const size_t new_fixed_len = fixed_len - by;
+		const size_t new_actual_fixed_len = fixed_len - by;
+		const size_t new_fixed_len = new_actual_fixed_len;
 
-		/*
-		  if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_fixed_len)))
-		  WC_STD_EXCEPTION("Failed to reallocate from length {} to {}", fixed_len, new_fixed_len);
-		*/
+		if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
+			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
+							 actual_fixed_len, new_actual_fixed_len);
 
+		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
 	}
 };
