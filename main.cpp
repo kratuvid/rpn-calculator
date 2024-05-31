@@ -13,23 +13,27 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(min_i, 0), dist2(0, 1000);
+		std::uniform_int_distribution<int> dist(min_i, max_i), dist2(1, 3);
 
-		const char print_way = 'e';
+		const char print_way = 'x';
 
-		for (int i=0; i < 10; i++)
+		for (int i=0; i < 5; i++)
 		{
-			const auto s0 = 100, s1 = dist2(engine);
-			wc::arbit n0(s0);
-			wc::arbit n1(s1);
+			std::list<int> s0, s1;
+			for (int j=0; j < dist2(engine); j++)
+				s0.push_back(dist(engine));
+			for (int j=0; j < dist2(engine); j++)
+				s1.push_back(dist(engine));
+			wc::arbit n0(s0, {});
+			wc::arbit n1(s1, {});
 
 			n0.raw_print(print_way);
-			std::print(" * ");
+			std::print(" + ");
 			n1.raw_print(print_way);
 
-			auto ns = n0 * n1;
+			const auto nr = n0 + n1;
 			std::print(" = ");
-			ns.raw_print(print_way, 1);
+			nr.raw_print(print_way, 1);
 		}
 
 		/*
