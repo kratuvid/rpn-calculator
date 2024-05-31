@@ -36,6 +36,13 @@ namespace wc
 		parse(both);
 	}
 
+	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
+	{
+		const auto f = {fixed};
+		// const auto d = {decimal};
+		arbit(f, {}, precision);
+	}
+
 	arbit::~arbit()
 	{
 		if (fixed_ptr) free(fixed_ptr);
@@ -105,7 +112,7 @@ namespace wc
 	bool arbit::is_zero() const
 	{
 		for (size_t i=0; i < fixed_len; i++)
-			if (fixed_ptr[i] != 0 && fixed_ptr[i] != base_minus_zero)
+			if (fixed_ptr[i] != 0)
 				return false;
 		return true;
 	}
@@ -129,8 +136,9 @@ namespace wc
 
 	arbit& arbit::negate()
 	{
-		if (fixed_len > 0)
-			fixed_ptr[fixed_len-1] ^= 1 << (base_bits - 1);
+		for (size_t i=0; i < fixed_len; i++)
+			fixed_ptr[i] = ~fixed_ptr[i];
+		*this += 1;
 		return *this;
 	}
 
@@ -145,52 +153,17 @@ namespace wc
 			grow(by);
 		}
 
-		const bool neg = is_negative(), neg_rhs = rhs.is_negative();
-		const bool is_ltoreq = is_less_than_or_equal_raw(rhs);
-		const bool final_sign_neg = neg == neg_rhs ? neg : (is_ltoreq ? neg_rhs : neg);
-
-		if (neg == neg_rhs)
-		{
-			add_raw(*this, rhs);
-
-			auto& last_unit = fixed_ptr[fixed_len-1];
-			if (final_sign_neg)
-				last_unit = set_sign(last_unit);
-			else
-				last_unit = erase_sign(last_unit);
-		}
-		else
-		{
-			if (is_ltoreq)
-			{
-				arbit copy_rhs(rhs);
-				subtract_raw(copy_rhs, *this);
-				*this = copy_rhs;
-			}
-			else
-			{
-				subtract_raw(*this, rhs);
-			}
-
-			auto& last_unit = fixed_ptr[fixed_len-1];
-			if (final_sign_neg)
-				last_unit = set_sign(last_unit);
-			else
-				last_unit = erase_sign(last_unit);
-		}
-
 		return *this;
 	}
 
 	arbit arbit::operator*(const arbit& rhs)
 	{
-		const auto mone_s = {to_signmag(-1)}, zero_s = {0u};
-		arbit product(zero_s), copy_rhs(rhs), mone(mone_s);
+		arbit product(0), copy_rhs(rhs);
 
 		while (!copy_rhs.is_zero())
 		{
 			product += *this;
-			copy_rhs += mone;
+			copy_rhs += -1;
 		}
 
 		return product;
@@ -261,10 +234,10 @@ namespace wc
 					std::print("{:#b}", unit);
 				else if (way == 'x')
 					std::print("{:#x}", unit);
-				else if (way == 'd')
-					std::print("{}", unit);
+				else if (way == 's')
+					std::print("{}", sbase_t(unit));
 				else
-					std::print("{}", from_signmag(unit));
+					std::print("{}", unit);
 				if (i != fixed_len-1)
 					std::print(" ");
 			}
@@ -274,7 +247,7 @@ namespace wc
 
 		if (decimal_len > 0)
 		{
-			WC_STD_EXCEPTION("{}:{}: decimal printing unimplemented", __FILE__, __LINE__);
+			WC_STD_EXCEPTION("{}:{}: Decimal printing unimplemented", __FILE__, __LINE__);
 		}
 	}
 
@@ -315,13 +288,6 @@ namespace wc
 		if (decimal_len > 0)
 			WC_STD_EXCEPTION("{}:{}: Decimal printing is broken", __FILE__, __LINE__);
 		*/
-	}
-
-	arbit::sbase_t arbit::from_signmag(base_t n)
-	{
-		const auto neg = is_negative(n);
-		auto nc = (sbase_t)erase_sign(n);
-		return neg ? -nc : nc;
 	}
 
 	/* private members */
@@ -368,24 +334,24 @@ namespace wc
 
 	void arbit::parse(std::string_view fixed, std::string_view decimal, bool neg)
 	{
-		const auto one_src = {1u}, ten_src = {10u};
-		arbit multiplier(one_src), ten(ten_src);
+		arbit multiplier(1);
 
 		for (auto it = fixed.rbegin(); it != fixed.rend(); it++)
 		{
-			const auto cur_src = {unsigned((*it) - '0')};
-			arbit cur(cur_src);
-			cur = cur * multiplier;
-			multiplier = multiplier * ten;
+			arbit cur((*it) - '0');
+			cur *= multiplier;
+			multiplier *= 10;
 
 			*this += cur;
 		}
 
 		if (neg)
-			fixed_ptr[fixed_len-1] = set_sign(fixed_ptr[fixed_len-1]);
+			negate();
 
 		if (decimal.size() > 0)
+		{
 			WC_STD_EXCEPTION("{}:{}: Decimal parsing is broken", __FILE__, __LINE__);
+		}
 	}
 
 	void arbit::grow(size_t by)
@@ -398,17 +364,11 @@ namespace wc
 		const auto has_len = actual_fixed_len - fixed_len;
 		if (by <= has_len)
 		{
-			fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
-			memset(&fixed_ptr[fixed_len], 0, sizeof(base_t) * by);
-
+			memset(&fixed_ptr[fixed_len], neg ? 0xff : 0, sizeof(base_t) * by);
 			fixed_len += by;
-			fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
 		}
 		else
 		{
-			if (fixed_len > 0)
-				fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
-
 			const size_t grow_const = 1, grow_upper_limit = 1000;
 			const auto new_actual_fixed_len = actual_fixed_len + by + grow_const;
 			const auto new_fixed_len = fixed_len + by;
@@ -421,21 +381,17 @@ namespace wc
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_fixed_len, new_actual_fixed_len);
 
-			memset(&fixed_ptr[actual_fixed_len], 0, sizeof(base_t) * by);
+			memset(&fixed_ptr[actual_fixed_len], neg ? 0xff : 0, sizeof(base_t) * by);
 
 			actual_fixed_len = new_actual_fixed_len;
 			fixed_len = new_fixed_len;
-
-			fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
 		}
 	}
 
 	void arbit::shrink(size_t by)
 	{
-		if (by >= fixed_len)
+		if (by > fixed_len)
 			WC_STD_EXCEPTION("Cannot shrink by {} when {} is all it has", by, fixed_len);
-
-		const bool neg = fixed_ptr[fixed_len-1] >> (base_bits - 1);
 
 		const size_t new_actual_fixed_len = actual_fixed_len;
 		const size_t new_fixed_len = fixed_len - by;
@@ -448,113 +404,5 @@ namespace wc
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
-
-		fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
-	}
-
-	bool arbit::is_less_than_or_equal_raw(const arbit& rhs) const
-	{
-		const auto begin = find_first_real_unit(*this);
-		const auto begin_rhs = find_first_real_unit(rhs);
-
-		if (begin < begin_rhs)
-			return true;
-		else if (begin > begin_rhs)
-			return false;
-
-		if (fixed_len != 0 && rhs.fixed_len != 0)
-		{
-			auto unit = fixed_ptr[begin];
-			unit = begin == fixed_len-1 ? erase_sign(unit) : unit;
-
-			auto unit_rhs = rhs.fixed_ptr[begin_rhs];
-			unit_rhs = begin_rhs == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
-
-			if (unit <= unit_rhs)
-				return true;
-		}
-
-		return false;
-	}
-
-	void arbit::add_raw(arbit& lhs, const arbit& rhs)
-	{
-		if (rhs.fixed_len == 0)
-			return;
-
-		if (lhs.fixed_len < rhs.fixed_len)
-			lhs.grow(rhs.fixed_len - lhs.fixed_len);
-
-		base_t carry = 0;
-		for (size_t i=0; i < lhs.fixed_len && i < rhs.fixed_len; i++)
-		{
-			auto unit_lhs = lhs.fixed_ptr[i];
-			unit_lhs = i == lhs.fixed_len-1 ? erase_sign(unit_lhs) : unit_lhs;
-			auto unit_rhs = rhs.fixed_ptr[i];
-			unit_rhs = i == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
-
-			const auto sum = unit_lhs + unit_rhs + carry;
-			carry = sum >> (base_bits - 1);
-
-			lhs.fixed_ptr[i] = sum;
-
-			if ((i == lhs.fixed_len-1) && carry) // overflow
-			{
-				lhs.grow(1);
-				lhs.fixed_ptr[lhs.fixed_len-1] |= 1 << 0;
-				break;
-			}
-		}
-	}
-
-	void arbit::subtract_raw(arbit& lhs, const arbit& rhs)
-	{
-		if (rhs.fixed_len == 0)
-			return;
-
-		if (lhs.fixed_len < rhs.fixed_len)
-			lhs.grow(rhs.fixed_len - lhs.fixed_len);
-
-		base_t borrow = 0;
-		for (size_t i=0; i < lhs.fixed_len && i < rhs.fixed_len; i++)
-		{
-			auto unit_lhs = lhs.fixed_ptr[i];
-			unit_lhs = i == lhs.fixed_len-1 ? erase_sign(unit_lhs) : unit_lhs;
-			auto unit_rhs = rhs.fixed_ptr[i];
-			unit_rhs = i == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
-
-			const auto difference = unit_lhs - unit_rhs - borrow;
-			borrow = difference >> (base_bits - 1);
-
-			lhs.fixed_ptr[i] = difference;
-		}
-	}
-
-	arbit::base_t arbit::set_sign(base_t n)
-	{
-		return n | (1 << (base_bits-1));
-	}
-
-	arbit::base_t arbit::erase_sign(base_t n)
-	{
-		return n & ~base_minus_zero;
-	}
-
-	size_t arbit::find_first_real_unit(const arbit& n)
-	{
-		if (n.fixed_len <= 1)
-			return 0;
-
-		for (size_t i=n.fixed_len-1; i >= 1; i--)
-		{
-			auto unit = n.fixed_ptr[i];
-			if (i == n.fixed_len-1)
-				unit = erase_sign(unit);
-
-			if (unit != 0)
-				return i;
-		}
-
-		return 0;
 	}
 };

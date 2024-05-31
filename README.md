@@ -22,3 +22,4 @@ Wtf Calculator: Another RPN calculator
 - [ ] implement decimal at all sorts of places
 - [ ] fix shrink_if_can
 - [ ] check if move cons is being called at relevant places
+- [ ] add support for operations directly with integers?
