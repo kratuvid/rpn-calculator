@@ -58,8 +58,8 @@ namespace wc
 	public:
 		arbit(const arbit& other);
 		arbit(arbit&& other);
-		arbit(std::string_view both, base_t precision = default_precision);
 		arbit(base_t fixed, base_t decimal = 0, base_t precision = default_precision);
+		arbit(std::string_view both, base_t precision = default_precision);
 		template<class C> arbit(const C& fixed, const C& decimal, base_t precision = default_precision);
 
 		~arbit();
@@ -85,11 +85,18 @@ namespace wc
 		arbit& negate();
 		arbit operator-() const { arbit copy(*this); copy.negate(); return copy; }
 		arbit& operator-=(const arbit& rhs) { *this += -rhs; return *this; }
-		arbit operator-(const arbit& rhs) const { arbit copy(*this); copy -= rhs; return *this; }
+		arbit operator-(const arbit& rhs) const { arbit copy(*this); copy += -rhs; return copy; }
 		arbit& operator+=(const arbit& rhs);
 		arbit operator+(const arbit& rhs) const { arbit copy(*this); copy += rhs; return copy; }
 		arbit& operator*=(const arbit& rhs);
-		arbit operator*(const arbit& rhs);
+		arbit operator*(const arbit& rhs) const;
+
+		arbit& operator-=(sbase_t rhs) { *this += -rhs; return *this; }
+		arbit operator-(sbase_t rhs) const { arbit copy(*this); copy += -rhs; return copy; }
+		arbit& operator+=(sbase_t rhs);
+		arbit operator+(sbase_t rhs) const { arbit copy(*this); copy += rhs; return copy; }
+		arbit& operator*=(sbase_t rhs);
+		arbit operator*(sbase_t rhs) const { arbit copy(*this); copy *= rhs; return copy; }
 
 		arbit& operator<<=(size_t by);
 		arbit& operator=(const arbit& rhs);

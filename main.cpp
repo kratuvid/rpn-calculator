@@ -7,10 +7,9 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		const auto max_i = std::numeric_limits<int>::max(),
-			min_i = std::numeric_limits<int>::min();
-		const auto max_ll = std::numeric_limits<long long>::max();
-		const auto max_u = std::numeric_limits<unsigned>::max();
+		[[maybe_unused]] const auto max_i = std::numeric_limits<int>::max(), min_i = std::numeric_limits<int>::min();
+		[[maybe_unused]] const auto max_ll = std::numeric_limits<long long>::max();
+		[[maybe_unused]] const auto max_u = std::numeric_limits<unsigned>::max();
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
@@ -20,8 +19,8 @@ int main(int argc, char** argv)
 
 		for (int i=0; i < 10; i++)
 		{
-			const auto s0 = {100}, s1 = {dist2(engine)};
-			wc::arbit n0(std::string_view("-100"));
+			const auto s0 = 100, s1 = dist2(engine);
+			wc::arbit n0(s0);
 			wc::arbit n1(s1);
 
 			n0.raw_print(print_way);

@@ -37,10 +37,8 @@ namespace wc
 	}
 
 	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
+		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
 	{
-		const auto f = {fixed};
-		// const auto d = {decimal};
-		arbit(f, {}, precision);
 	}
 
 	arbit::~arbit()
@@ -153,20 +151,135 @@ namespace wc
 			grow(by);
 		}
 
+		const auto neg = is_negative(), neg_rhs = rhs.is_negative();
+
+		base_double_t carry = 0;
+		for (size_t i=0; i < fixed_len; i++)
+		{
+			const base_t unit = fixed_ptr[i];
+			const base_t unit_rhs = i < rhs.fixed_len ? rhs.fixed_ptr[i] : (neg_rhs ? 0xff : 0);
+			
+			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
+			carry = sum >> base_bits;
+
+			fixed_ptr[i] = sum;
+
+			if (i == fixed_len-1)
+			{
+				if (neg && neg_rhs && !is_negative(sum))
+					grow(1, true);
+				else if (!neg && !neg_rhs && is_negative(sum))
+					grow(1, false);
+				break;
+			}
+		}
+
 		return *this;
 	}
 
-	arbit arbit::operator*(const arbit& rhs)
+	arbit& arbit::operator*=(const arbit& rhs)
+	{
+		if (rhs.is_zero())
+		{
+			if (fixed_len > 1)
+				shrink(fixed_len - 1);
+			fixed_ptr[0] = 0;
+			return *this;
+		}
+
+		arbit copy(*this), copy_rhs(rhs);
+
+		const sbase_t change = rhs.is_negative() ? 1 : -1;
+		copy_rhs += change;
+
+		while (!copy_rhs.is_zero())
+		{
+			*this += copy;
+			copy_rhs += change;
+		}
+
+		if (rhs.is_negative())
+			negate();
+
+		return *this;
+	}
+
+	arbit arbit::operator*(const arbit& rhs) const
 	{
 		arbit product(0), copy_rhs(rhs);
+
+		const sbase_t change = rhs.is_negative() ? 1 : -1;
 
 		while (!copy_rhs.is_zero())
 		{
 			product += *this;
-			copy_rhs += -1;
+			copy_rhs += change;
 		}
 
+		if (rhs.is_negative())
+			product.negate();
+
 		return product;
+	}
+
+	arbit& arbit::operator+=(arbit::sbase_t rhs)
+	{
+		if (fixed_len == 0)
+			grow(1);
+
+		const auto neg = is_negative(), neg_rhs = rhs < 0;
+
+		base_double_t carry = 0;
+		for (size_t i=0; i < fixed_len; i++)
+		{
+			const base_t unit = fixed_ptr[i];
+			const base_t unit_rhs = i == 0 ? rhs : (neg_rhs ? 0xff : 0);
+			
+			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
+			carry = sum >> base_bits;
+
+			fixed_ptr[i] = sum;
+
+			if (i == fixed_len-1)
+			{
+				if (neg && neg_rhs && !is_negative(sum))
+					grow(1, true);
+				else if (!neg && !neg_rhs && is_negative(sum))
+					grow(1, false);
+				break;
+			}
+		}
+
+		return *this;
+	}
+
+	arbit& arbit::operator*=(arbit::sbase_t rhs)
+	{
+		if (rhs == 0)
+		{
+			if (fixed_len > 1)
+				shrink(fixed_len - 1);
+			fixed_ptr[0] = 0;
+			return *this;
+		}
+
+		arbit copy(*this);
+
+		const auto neg_rhs = rhs < 0;
+
+		const sbase_t change = neg_rhs ? 1 : -1;
+		rhs += change;
+
+		while (rhs != 0)
+		{
+			*this += copy;
+			rhs += change;
+		}
+
+		if (neg_rhs)
+			negate();
+
+		return *this;
 	}
 
 	arbit& arbit::operator<<=(size_t by)
