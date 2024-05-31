@@ -36,40 +36,6 @@ namespace wc
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
-		:precision(precision)
-	{
-		if (decimal != 0)
-		{
-			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
-		}
-
-		grow(1, is_base_t_negative(fixed));
-		fixed_ptr[0] = fixed;
-	}
-
-	arbit::arbit(std::initializer_list<base_t> fixed, std::initializer_list<base_t> decimal, base_t precision)
-		:precision(precision)
-	{
-		if (fixed.size() > 0)
-		{
-			const bool neg = is_base_t_negative(*(fixed.begin() + fixed.size() - 1));
-			grow(fixed.size(), neg);
-
-			size_t i=0;
-			auto it = fixed.begin();
-			for (; it != fixed.end(); it++, i++)
-				fixed_ptr[i] = *it;
-		}
-		else
-			grow(1);
-
-		if (decimal.size() > 0)
-		{
-			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
-		}
-	}
-
 	arbit::~arbit()
 	{
 		if (fixed_ptr) free(fixed_ptr);
@@ -88,23 +54,14 @@ namespace wc
 		}
 
 		precision = default_precision;
-		grow(1, false);
 	}
 
-	bool arbit::is_zero() const
-	{
-		for (size_t i=0; i < fixed_len; i++)
-			if (fixed_ptr[i] != 0)
-				return false;
-		return true;
-	}
-
-	arbit::base_t arbit::get_bit(size_t at) const
+	bool arbit::bit(size_t at) const
 	{
 		const size_t unit = at / base_bits, unit_at = at % base_bits;
 		if (unit <= fixed_len-1)
 			return fixed_ptr[unit] & (1 << unit_at);
-		return 0;
+		return false;
 	}
 
 	void arbit::clear_bit(size_t at)
@@ -121,55 +78,57 @@ namespace wc
 			fixed_ptr[unit] |= (1 << unit_at);
 	}
 
-	void arbit::clear_first_bits(size_t upto)
+	void arbit::flip_bit(size_t at)
 	{
-		const size_t unit = upto / base_bits, unit_at = upto % base_bits;
+		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		if (unit <= fixed_len-1)
+			fixed_ptr[unit] ^= (1 << unit_at);
+	}
+
+	void arbit::clear_first_bits(size_t before)
+	{
+		const size_t unit = before / base_bits, unit_at = before % base_bits;
 		for (ssize_t i = unit; i >= 0; i--)
 		{
 			if ((size_t)i == unit)
 			{
-				fixed_ptr[i] >>= unit_at + 1;
-				fixed_ptr[i] <<= unit_at + 1;
+				fixed_ptr[i] >>= unit_at;
+				fixed_ptr[i] <<= unit_at;
 			}
 			else
 				fixed_ptr[i] = 0;
 		}
 	}
 
-	void arbit::shrink_if_can()
+	bool arbit::is_zero() const
 	{
-		if (fixed_len > 1)
-		{
-			const base_t check = is_negative() ? base_max : 0;
-			size_t i = fixed_len - 1;
-			for (; i >= 1; i--)
-			{
-				if (fixed_ptr[i] == check && fixed_ptr[i-1] == check)
-					continue;
-				else
-					break;
-			}
-
-			const auto by = fixed_len - i - 1;
-			if (by > 0) shrink(by);
-		}
+		for (size_t i=0; i < fixed_len; i++)
+			if (fixed_ptr[i] != 0)
+				return false;
+		return true;
 	}
 
 	bool arbit::is_negative() const
 	{
 		if (fixed_len > 0)
-		{
-			if (fixed_ptr[fixed_len-1] >> ((sizeof(base_t) * 8) - 1))
-				return true;
-		}
+			return fixed_ptr[fixed_len-1] >> (base_bits - 1);
 		return false;
+	}
+
+	bool arbit::is_negative(base_t n)
+	{
+		return n >> (base_bits - 1);
+	}
+
+	size_t arbit::bytes() const
+	{
+		return fixed_len * sizeof(base_t);
 	}
 
 	arbit& arbit::negate()
 	{
-		for (size_t i=0; i < fixed_len; i++)
-			fixed_ptr[i] = ~fixed_ptr[i];
-		*this += 1;
+		if (fixed_len > 0)
+			fixed_ptr[fixed_len-1] ^= 1 << (base_bits - 1);
 		return *this;
 	}
 
@@ -254,13 +213,12 @@ namespace wc
 				if ((size_t)i >= by)
 				{
 					const size_t at = (size_t)i - by;
-					if (get_bit(at)) set_bit(i);
+					if (bit(at)) set_bit(i);
 					else clear_bit(i);
 				}
 				else break;
 			}
-
-			const auto upto = by - 1;
+			const auto upto = by;
 			clear_first_bits(upto);
 		}
 
@@ -282,7 +240,7 @@ namespace wc
 		fixed_len = decimal_len = 0;
 		actual_fixed_len = actual_decimal_len = 0;
 
-		grow(rhs.fixed_len, false);
+		grow(rhs.fixed_len);
 
 		if (fixed_len > 0)
 			memcpy(fixed_ptr, rhs.fixed_ptr, sizeof(base_t) * fixed_len);
@@ -292,7 +250,7 @@ namespace wc
 		return *this;
 	}
 
-	void arbit::raw_print(int way, bool newline) const
+	void arbit::raw_print(char way, bool newline) const
 	{
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
@@ -302,31 +260,21 @@ namespace wc
 			for (unsigned i=0; i < fixed_len; i++)
 			{
 				auto unit = fixed_ptr[i];
-				if (way == 0)
-					std::print("{:#b}", fixed_ptr[i]);
-				else if (way == 1)
-					std::print("{:#x}", fixed_ptr[i]);
+				if (way == 'b')
+					std::print("{:#b}", unit);
+				else if (way == 'x')
+					std::print("{:#x}", unit);
 				else
-				{
-					std::print("{}", fixed_ptr[i]);
-					if (is_base_t_negative(unit)) std::print("|{}", sbase_t(unit));
-				}
-				if (i != fixed_len-1) std::print(" ");
-			}
-			if (newline) std::println("");
-		}
-		if (decimal_len > 0)
-		{
-			std::print(", Decimal: {},{}> ", actual_decimal_len, decimal_len);
-			for (unsigned i=0; i < decimal_len; i++)
-			{
-				if (way)
-					std::print("{:#x}", decimal_ptr[i]);
-				else
-					std::print("{}", decimal_ptr[i]);
+					std::print("{}", unit);
 				if (i != fixed_len-1)
 					std::print(" ");
 			}
+			if (newline)
+				std::println("");
+		}
+		if (decimal_len > 0)
+		{
+			WC_STD_EXCEPTION("{}:{}: decimal printing unimplemented", __FILE__, __LINE__);
 		}
 	}
 
@@ -430,11 +378,16 @@ namespace wc
 		const auto has_len = actual_fixed_len - fixed_len;
 		if (by <= has_len)
 		{
-			memset(&fixed_ptr[fixed_len], neg ? 0xff : 0x00, sizeof(base_t) * by);
+			fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
+			memset(&fixed_ptr[fixed_len], 0, sizeof(base_t) * by);
+
 			fixed_len += by;
+			fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
 		}
 		else
 		{
+			fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
+
 			const size_t grow_const = 1, grow_upper_limit = 1000;
 			const auto new_actual_fixed_len = actual_fixed_len + by + grow_const;
 			const auto new_fixed_len = fixed_len + by;
@@ -447,10 +400,12 @@ namespace wc
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_fixed_len, new_actual_fixed_len);
 
-			memset(&fixed_ptr[actual_fixed_len], neg ? 0xff : 0x00, sizeof(base_t) * by);
+			memset(&fixed_ptr[actual_fixed_len], 0, sizeof(base_t) * by);
 
 			actual_fixed_len = new_actual_fixed_len;
 			fixed_len = new_fixed_len;
+
+			fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
 		}
 	}
 
@@ -458,6 +413,8 @@ namespace wc
 	{
 		if (by >= fixed_len)
 			WC_STD_EXCEPTION("Cannot shrink by {} when {} is all it has", by, fixed_len);
+
+		const bool neg = fixed_ptr[fixed_len-1] >> (base_bits - 1);
 
 		const size_t new_actual_fixed_len = actual_fixed_len;
 		const size_t new_fixed_len = fixed_len - by;
@@ -470,5 +427,7 @@ namespace wc
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
+
+		fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
 	}
 };

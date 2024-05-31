@@ -28,8 +28,8 @@ namespace wc
 	class arbit
 	{
 	public:
-		enum class error_type { parse, calc };
-		static constexpr std::array<std::string_view, 2> error_type_str { "parse", "calc" };
+		enum class error_type { parse };
+		static constexpr std::array<std::string_view, 1> error_type_str { "parse" };
 		class exception;
 
 		using base_t = uint32_t;
@@ -41,17 +41,11 @@ namespace wc
 		static const size_t base_bits = sizeof(base_t) * 8;
 
 		base_t precision = default_precision;
-		base_t *fixed_ptr=nullptr, *decimal_ptr=nullptr;
-		size_t fixed_len=0, decimal_len=0;
-		size_t actual_fixed_len=0, actual_decimal_len=0;
+		base_t *fixed_ptr = nullptr, *decimal_ptr = nullptr;
+		size_t fixed_len = 0, decimal_len = 0;
+		size_t actual_fixed_len = 0, actual_decimal_len = 0;
 
 	private:
-		template<typename T> void is_valid_integer()
-		{
-			static_assert(std::numeric_limits<T>::is_integer);
-			static_assert(std::numeric_limits<T>::is_signed);
-		}
-
 		void parse(std::string_view both);
 		void parse(std::string_view fixed, std::string_view decimal, bool neg);
 
@@ -59,53 +53,47 @@ namespace wc
 		void grow(size_t by, bool neg);
 		void shrink(size_t by);
 
+		template<class T> void is_valid_integer();
+
 	public:
 		arbit(const arbit& other);
 		arbit(arbit&& other);
-		arbit(std::string_view both, base_t precision=default_precision);
-		arbit(base_t fixed=0, base_t decimal=0, base_t precision=default_precision);
-		arbit(std::initializer_list<base_t> fixed, std::initializer_list<base_t> decimal, base_t precision=default_precision);
+		arbit(std::string_view both, base_t precision = default_precision);
+		template<class C> arbit(const C& fixed, const C& decimal = {}, base_t precision = default_precision);
+
 		~arbit();
 
 		void reset();
 
-		base_t get_precision() const;
-		base_t set_precision(base_t precision);
-
-		base_t get_bit(size_t at) const;
+		bool bit(size_t at) const;
 		void clear_bit(size_t at);
+		void clear_first_bits(size_t before);
 		void set_bit(size_t at);
-		void clear_first_bits(size_t upto);
+		void flip_bit(size_t at);
 
 		bool is_zero() const;
-		void shrink_if_can();
-
 		bool is_negative() const;
-		size_t bytes() const { return sizeof(base_t) * fixed_len; }
-		static bool is_base_t_negative(base_t n) { return n >> ((sizeof(base_t) * 8) - 1); }
+		static bool is_negative(base_t n);
+
+		void shrink_if_can();
+		size_t bytes() const;
+
+		void raw_print(char way, bool newline = false) const;
+		void print() const;
 
 		arbit& negate();
 		arbit operator-() const { arbit copy(*this); copy.negate(); return copy; }
-
-		template<typename T> arbit& operator-=(T rhs) { *this += -rhs; return *this; }
 		arbit& operator-=(const arbit& rhs) { *this += -rhs; return *this; }
-		template<typename T> arbit operator-(T rhs) const { arbit copy(*this); copy -= rhs; return *this; }
 		arbit operator-(const arbit& rhs) const { arbit copy(*this); copy -= rhs; return *this; }
-
-		template<typename T> arbit& operator+=(T rhs);
 		arbit& operator+=(const arbit& rhs);
-		template<typename T> arbit operator+(T rhs) const { arbit copy(*this); copy += rhs; return copy; }
 		arbit operator+(const arbit& rhs) const { arbit copy(*this); copy += rhs; return copy; }
-
-		template<typename T> arbit operator*(T rhs);
 		arbit operator*(const arbit& rhs);
 
 		arbit& operator<<=(size_t by);
-
 		arbit& operator=(const arbit& rhs);
 
-		void raw_print(int way, bool newline=false) const;
-		void print() const;
+		template<class T> static T to_signmag(T n);
+		template<class It> static void to_signmag(It first, It last);
 	};
 
 	class arbit::exception : public std::runtime_error

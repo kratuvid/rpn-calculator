@@ -1,85 +1,52 @@
 namespace wc
 {
-	template<typename T> arbit& arbit::operator+=(T rhs)
+	template<class C>
+	arbit::arbit(const C& fixed, const C& decimal, base_t precision)
+		:precision(precision)
 	{
-		// sizes greater than base_t are expected to be multiples of sizeof(base_t)
-
-		is_valid_integer<T>();
-
-		if (fixed_len == 0)
-			grow(1);
-
-		const bool neg = is_negative(), neg_rhs = rhs < 0;
-
-		if (bytes() < sizeof(T))
+		if (fixed.size() > 0)
 		{
-			const size_t by = std::ceil((sizeof(T) - bytes()) / double(sizeof(base_t)));
-			grow(by);
+			const bool neg = is_negative(*(fixed.end() - 1));
+			grow(fixed.size(), neg);
+
+			size_t i=0;
+			for (auto it = fixed.begin(); it != fixed.end(); it++, i++)
+				fixed_ptr[i] = *it;
 		}
+		else grow(1);
 
-		base_double_t carry = 0;
-		bool rhs_done = false;
-
-		for (size_t where=0; where < fixed_len; where++)
+		if (decimal.size() > 0)
 		{
-			base_t unit_rhs = neg_rhs ? base_max : 0;
-			if (!rhs_done)
-			{
-				unit_rhs = rhs & base_max;
-				base_t* rhs_indirect = (base_t*)&rhs;
-				*rhs_indirect >>= base_bits;
-				if (rhs == 0)
-				{
-					rhs_done = true;
-					if (sizeof(T) < sizeof(base_t))
-					{
-						const auto diff_bits = (sizeof(base_t) - sizeof(T)) * 8;
-						const auto ddiff_bits = base_bits - diff_bits;
-						const base_t set_mask = ((neg_rhs ? base_max: 0) >> ddiff_bits) << ddiff_bits;
-						unit_rhs |= set_mask;
-					}
-				}
-			}
-
-			base_t* unit_ptr = &fixed_ptr[where];
-			base_double_t sum = base_double_t(*unit_ptr) + base_double_t(unit_rhs) + carry;
-
-			carry = (sum >> base_bits) > 0 ? 1 : 0;
-			*unit_ptr = sum & base_max;
-
-			if (where == fixed_len-1)
-			{
-				if (neg && neg_rhs && !is_base_t_negative(*unit_ptr))
-					grow(1, true);
-				else if(!neg && !neg_rhs && is_base_t_negative(*unit_ptr))
-					grow(1, false);
-				break;
-			}
+			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
 		}
-
-		return *this;
 	}
 
-	template<typename T> arbit arbit::operator*(T rhs)
+	template<class T>
+	void arbit::is_valid_integer()
+	{
+		static_assert(std::numeric_limits<T>::is_integer);
+	}
+
+	template<class T>
+	T arbit::to_signmag(T n)
 	{
 		is_valid_integer<T>();
-
-		arbit product, copy(*this);
-		copy.grow(copy.fixed_len);
-
-		const auto prev_len = copy.fixed_len;
-
-		for (size_t i=0; i < sizeof(T)*8; i++)
+		if (std::numeric_limits<T>::is_signed)
 		{
-			if (i != 0)
-				copy <<= 1;
-			if (rhs & (1 << i))
-				product += copy;
+			if (n < 0)
+			{
+				n = -n;
+				n |= 1 << (sizeof(T) * 8 - 1);
+			}
+			if (n < 0) n = 0;
 		}
+		return n;
+	}
 
-		if (product.fixed_len > 1)
-			product.shrink(1);
-
-		return product;
+	template<class It>
+	void arbit::to_signmag(It first, It last)
+	{
+		for (auto it = first; it != last; it++)
+			*it = to_signmag(*it);
 	}
 };
