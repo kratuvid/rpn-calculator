@@ -54,6 +54,8 @@ namespace wc
 		}
 
 		precision = default_precision;
+		fixed_len = decimal_len = 0;
+		actual_fixed_len = actual_decimal_len = 0;
 	}
 
 	bool arbit::bit(size_t at) const
@@ -137,41 +139,44 @@ namespace wc
 		if (rhs.fixed_len == 0)
 			return *this;
 
-		const bool neg = is_negative(), neg_rhs = rhs.is_negative();
-
 		if (fixed_len < rhs.fixed_len)
 		{
 			const size_t by = rhs.fixed_len - fixed_len;
 			grow(by);
 		}
 
-		base_double_t carry = 0;
-		bool rhs_done = false;
+		const bool neg = is_negative(), neg_rhs = rhs.is_negative();
+		const bool is_ltoreq = is_less_than_or_equal_raw(rhs);
+		const bool final_sign_neg = neg == neg_rhs ? neg : (is_ltoreq ? neg_rhs : neg);
 
-		for (size_t where=0; where < fixed_len; where++)
+		if (neg == neg_rhs)
 		{
-			base_t unit_rhs = neg_rhs ? base_max : 0;
-			if (!rhs_done)
+			add_raw(*this, rhs);
+
+			auto& last_unit = fixed_ptr[fixed_len-1];
+			if (final_sign_neg)
+				last_unit = set_sign(last_unit);
+			else
+				last_unit = erase_sign(last_unit);
+		}
+		else
+		{
+			if (is_ltoreq)
 			{
-				unit_rhs = rhs.fixed_ptr[where];
-				if (where == rhs.fixed_len-1)
-					rhs_done = true;
+				arbit copy_rhs(rhs);
+				subtract_raw(copy_rhs, *this);
+				*this = copy_rhs;
+			}
+			else
+			{
+				subtract_raw(*this, rhs);
 			}
 
-			base_t* unit_ptr = &fixed_ptr[where];
-			base_double_t sum = base_double_t(*unit_ptr) + base_double_t(unit_rhs) + carry;
-
-			carry = (sum >> base_bits) > 0 ? 1 : 0;
-			*unit_ptr = sum & base_max;
-
-			if (where == fixed_len-1)
-			{
-				if (neg && neg_rhs && !is_base_t_negative(*unit_ptr))
-					grow(1, true);
-				else if(!neg && !neg_rhs && is_base_t_negative(*unit_ptr))
-					grow(1, false);
-				break;
-			}
+			auto& last_unit = fixed_ptr[fixed_len-1];
+			if (final_sign_neg)
+				last_unit = set_sign(last_unit);
+			else
+				last_unit = erase_sign(last_unit);
 		}
 
 		return *this;
@@ -179,22 +184,9 @@ namespace wc
 
 	arbit arbit::operator*(const arbit& rhs)
 	{
-		arbit product, copy(*this), copy_rhs(rhs);
+		arbit product({});
 
-		const auto total_len = copy.fixed_len + copy_rhs.fixed_len;
-		copy.grow(rhs.fixed_len);
-		copy_rhs.grow(this->fixed_len);
-
-		for (size_t i=0; i < copy_rhs.bytes() * 8; i++)
-		{
-			if (i != 0)
-				copy <<= 1;
-			if (copy_rhs.get_bit(i))
-				product += copy;
-		}
-
-		if (product.fixed_len > total_len)
-			product.shrink(product.fixed_len - total_len);
+		WC_STD_EXCEPTION("{}:{}: Product unimplemented", __FILE__, __LINE__);
 
 		return product;
 	}
@@ -252,10 +244,10 @@ namespace wc
 
 	void arbit::raw_print(char way, bool newline) const
 	{
-		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
+		std::print("({},{})", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
 		{
-			std::print("> ");
+			std::print(" ");
 			if (is_negative()) std::print("!");
 			for (unsigned i=0; i < fixed_len; i++)
 			{
@@ -264,14 +256,17 @@ namespace wc
 					std::print("{:#b}", unit);
 				else if (way == 'x')
 					std::print("{:#x}", unit);
-				else
+				else if (way == 'd')
 					std::print("{}", unit);
+				else
+					std::print("{}", from_signmag(unit));
 				if (i != fixed_len-1)
 					std::print(" ");
 			}
 			if (newline)
 				std::println("");
 		}
+
 		if (decimal_len > 0)
 		{
 			WC_STD_EXCEPTION("{}:{}: decimal printing unimplemented", __FILE__, __LINE__);
@@ -282,6 +277,7 @@ namespace wc
 	{
 		WC_STD_EXCEPTION("{}:{}: print is broken", __FILE__, __LINE__);
 
+		/*
 		std::string digits;
 
 		const bool neg = is_negative();
@@ -315,6 +311,15 @@ namespace wc
 
 		if (decimal_len > 0)
 			std::print(".IMPL");
+
+		*/
+	}
+
+	arbit::sbase_t arbit::from_signmag(base_t n)
+	{
+		const auto neg = is_negative(n);
+		auto nc = (sbase_t)erase_sign(n);
+		return neg ? -nc : nc;
 	}
 
 	/* private members */
@@ -386,7 +391,8 @@ namespace wc
 		}
 		else
 		{
-			fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
+			if (fixed_len > 0)
+				fixed_ptr[fixed_len-1] &= ~(1 << (base_bits - 1));
 
 			const size_t grow_const = 1, grow_upper_limit = 1000;
 			const auto new_actual_fixed_len = actual_fixed_len + by + grow_const;
@@ -429,5 +435,111 @@ namespace wc
 		fixed_len = new_fixed_len;
 
 		fixed_ptr[fixed_len-1] |= base_t(neg) << (base_bits - 1);
+	}
+
+	bool arbit::is_less_than_or_equal_raw(const arbit& rhs) const
+	{
+		const auto begin = find_first_real_unit(*this);
+		const auto begin_rhs = find_first_real_unit(rhs);
+
+		if (begin < begin_rhs)
+			return true;
+		else if (begin > begin_rhs)
+			return false;
+
+		if (fixed_len != 0 && rhs.fixed_len != 0)
+		{
+			auto unit = fixed_ptr[begin];
+			unit = begin == fixed_len-1 ? erase_sign(unit) : unit;
+
+			auto unit_rhs = rhs.fixed_ptr[begin_rhs];
+			unit_rhs = begin_rhs == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
+
+			if (unit <= unit_rhs)
+				return true;
+		}
+
+		return false;
+	}
+
+	void arbit::add_raw(arbit& lhs, const arbit& rhs)
+	{
+		if (rhs.fixed_len == 0)
+			return;
+
+		if (lhs.fixed_len < rhs.fixed_len)
+			lhs.grow(rhs.fixed_len - lhs.fixed_len);
+
+		base_t carry = 0;
+		for (size_t i=0; i < lhs.fixed_len && i < rhs.fixed_len; i++)
+		{
+			auto unit_lhs = lhs.fixed_ptr[i];
+			unit_lhs = i == lhs.fixed_len-1 ? erase_sign(unit_lhs) : unit_lhs;
+			auto unit_rhs = rhs.fixed_ptr[i];
+			unit_rhs = i == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
+
+			const auto sum = unit_lhs + unit_rhs + carry;
+			carry = sum >> (base_bits - 1);
+
+			lhs.fixed_ptr[i] = sum;
+
+			if ((i == lhs.fixed_len-1) && carry) // overflow
+			{
+				lhs.grow(1);
+				lhs.fixed_ptr[lhs.fixed_len-1] |= 1 << 0;
+				break;
+			}
+		}
+	}
+
+	void arbit::subtract_raw(arbit& lhs, const arbit& rhs)
+	{
+		if (rhs.fixed_len == 0)
+			return;
+
+		if (lhs.fixed_len < rhs.fixed_len)
+			lhs.grow(rhs.fixed_len - lhs.fixed_len);
+
+		base_t borrow = 0;
+		for (size_t i=0; i < lhs.fixed_len && i < rhs.fixed_len; i++)
+		{
+			auto unit_lhs = lhs.fixed_ptr[i];
+			unit_lhs = i == lhs.fixed_len-1 ? erase_sign(unit_lhs) : unit_lhs;
+			auto unit_rhs = rhs.fixed_ptr[i];
+			unit_rhs = i == rhs.fixed_len-1 ? erase_sign(unit_rhs) : unit_rhs;
+
+			const auto difference = unit_lhs - unit_rhs - borrow;
+			borrow = difference >> (base_bits - 1);
+
+			lhs.fixed_ptr[i] = difference;
+		}
+	}
+
+	arbit::base_t arbit::set_sign(base_t n)
+	{
+		return n | (1 << (base_bits-1));
+	}
+
+	arbit::base_t arbit::erase_sign(base_t n)
+	{
+		return n & ~base_minus_zero;
+	}
+
+	size_t arbit::find_first_real_unit(const arbit& n)
+	{
+		if (n.fixed_len <= 1)
+			return 0;
+
+		for (size_t i=n.fixed_len-1; i >= 1; i--)
+		{
+			auto unit = n.fixed_ptr[i];
+			if (i == n.fixed_len-1)
+				unit = erase_sign(unit);
+
+			if (unit != 0)
+				return i;
+		}
+
+		return 0;
 	}
 };

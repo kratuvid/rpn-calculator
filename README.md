@@ -21,3 +21,4 @@ Wtf Calculator: Another RPN calculator
 - [ ] find out a way to prevent copy in operator-= and other cases
 - [ ] implement decimal at all sorts of places
 - [ ] fix shrink_if_can
+- [ ] check if move cons is being called at relevant places

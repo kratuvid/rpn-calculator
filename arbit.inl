@@ -6,7 +6,7 @@ namespace wc
 	{
 		if (fixed.size() > 0)
 		{
-			const bool neg = is_negative(*(fixed.end() - 1));
+			const bool neg = is_negative(*std::next(fixed.end(), -1));
 			grow(fixed.size(), neg);
 
 			size_t i=0;
@@ -36,9 +36,10 @@ namespace wc
 			if (n < 0)
 			{
 				n = -n;
-				n |= 1 << (sizeof(T) * 8 - 1);
+				if (n < 0)
+					n = 0;
+				n |= 1 << (base_bits - 1);
 			}
-			if (n < 0) n = 0;
 		}
 		return n;
 	}

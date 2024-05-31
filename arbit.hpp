@@ -37,8 +37,9 @@ namespace wc
 		using base_double_t = uint64_t;
 
 	private:
-		static const base_t default_precision = 50, base_max = ~base_t(0);
 		static const size_t base_bits = sizeof(base_t) * 8;
+		static const base_t default_precision = 50,
+			base_max = ~base_t(0), base_zero = 0, base_minus_zero = 1 << (base_bits - 1);
 
 		base_t precision = default_precision;
 		base_t *fixed_ptr = nullptr, *decimal_ptr = nullptr;
@@ -53,7 +54,16 @@ namespace wc
 		void grow(size_t by, bool neg);
 		void shrink(size_t by);
 
-		template<class T> void is_valid_integer();
+		template<class T> static void is_valid_integer();
+
+		// Ignores the sign of its operands
+		bool is_less_than_or_equal_raw(const arbit& rhs) const;
+		static void add_raw(arbit& lhs, const arbit& rhs);
+		static void subtract_raw(arbit& lhs, const arbit& rhs); // lhs >= rhs assumed
+
+		static base_t set_sign(base_t n);
+		static base_t erase_sign(base_t n);
+		static size_t find_first_real_unit(const arbit& n);
 
 	public:
 		arbit(const arbit& other);
@@ -92,6 +102,7 @@ namespace wc
 		arbit& operator<<=(size_t by);
 		arbit& operator=(const arbit& rhs);
 
+		static sbase_t from_signmag(base_t n);
 		template<class T> static T to_signmag(T n);
 		template<class It> static void to_signmag(It first, It last);
 	};
