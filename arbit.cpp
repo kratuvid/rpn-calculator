@@ -105,7 +105,7 @@ namespace wc
 	bool arbit::is_zero() const
 	{
 		for (size_t i=0; i < fixed_len; i++)
-			if (fixed_ptr[i] != 0)
+			if (fixed_ptr[i] != 0 && fixed_ptr[i] != base_minus_zero)
 				return false;
 		return true;
 	}
@@ -184,9 +184,14 @@ namespace wc
 
 	arbit arbit::operator*(const arbit& rhs)
 	{
-		arbit product({});
+		const auto mone_s = {to_signmag(-1)}, zero_s = {0u};
+		arbit product(zero_s), copy_rhs(rhs), mone(mone_s);
 
-		WC_STD_EXCEPTION("{}:{}: Product unimplemented", __FILE__, __LINE__);
+		while (!copy_rhs.is_zero())
+		{
+			product += *this;
+			copy_rhs += mone;
+		}
 
 		return product;
 	}
@@ -275,8 +280,6 @@ namespace wc
 
 	void arbit::print() const
 	{
-		WC_STD_EXCEPTION("{}:{}: print is broken", __FILE__, __LINE__);
-
 		/*
 		std::string digits;
 
@@ -310,8 +313,7 @@ namespace wc
 		std::print("{}", digits);
 
 		if (decimal_len > 0)
-			std::print(".IMPL");
-
+			WC_STD_EXCEPTION("{}:{}: Decimal printing is broken", __FILE__, __LINE__);
 		*/
 	}
 
@@ -366,11 +368,24 @@ namespace wc
 
 	void arbit::parse(std::string_view fixed, std::string_view decimal, bool neg)
 	{
-		WC_STD_EXCEPTION("{}:{}: parse is broken", __FILE__, __LINE__);
+		const auto one_src = {1u}, ten_src = {10u};
+		arbit multiplier(one_src), ten(ten_src);
 
 		for (auto it = fixed.rbegin(); it != fixed.rend(); it++)
 		{
+			const auto cur_src = {unsigned((*it) - '0')};
+			arbit cur(cur_src);
+			cur = cur * multiplier;
+			multiplier = multiplier * ten;
+
+			*this += cur;
 		}
+
+		if (neg)
+			fixed_ptr[fixed_len-1] = set_sign(fixed_ptr[fixed_len-1]);
+
+		if (decimal.size() > 0)
+			WC_STD_EXCEPTION("{}:{}: Decimal parsing is broken", __FILE__, __LINE__);
 	}
 
 	void arbit::grow(size_t by)

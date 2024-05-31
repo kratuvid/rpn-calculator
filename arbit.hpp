@@ -97,13 +97,14 @@ namespace wc
 		arbit operator-(const arbit& rhs) const { arbit copy(*this); copy -= rhs; return *this; }
 		arbit& operator+=(const arbit& rhs);
 		arbit operator+(const arbit& rhs) const { arbit copy(*this); copy += rhs; return copy; }
+		arbit& operator*=(const arbit& rhs) { *this = *this * rhs; }
 		arbit operator*(const arbit& rhs);
 
 		arbit& operator<<=(size_t by);
 		arbit& operator=(const arbit& rhs);
 
 		static sbase_t from_signmag(base_t n);
-		template<class T> static T to_signmag(T n);
+		template<class T> static base_t to_signmag(T n);
 		template<class It> static void to_signmag(It first, It last);
 	};
 

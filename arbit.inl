@@ -28,7 +28,7 @@ namespace wc
 	}
 
 	template<class T>
-	T arbit::to_signmag(T n)
+	arbit::base_t arbit::to_signmag(T n)
 	{
 		is_valid_integer<T>();
 		if (std::numeric_limits<T>::is_signed)

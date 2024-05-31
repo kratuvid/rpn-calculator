@@ -14,21 +14,21 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(min_i, 0), dist2(-1000, 0);
+		std::uniform_int_distribution<int> dist(min_i, 0), dist2(0, 1000);
 
-		const char print_way = 'x';
+		const char print_way = 'e';
 
 		for (int i=0; i < 10; i++)
 		{
-			const auto s0 = {max_i - 100}, s1 = {dist2(engine)};
-			wc::arbit n0(s0);
+			const auto s0 = {100}, s1 = {dist2(engine)};
+			wc::arbit n0(std::string_view("-100"));
 			wc::arbit n1(s1);
 
 			n0.raw_print(print_way);
-			std::print(" + ");
+			std::print(" * ");
 			n1.raw_print(print_way);
 
-			auto ns = n0 + n1;
+			auto ns = n0 * n1;
 			std::print(" = ");
 			ns.raw_print(print_way, 1);
 		}
