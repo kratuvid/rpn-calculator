@@ -35,25 +35,6 @@ int main(int argc, char** argv)
 			std::print(" = ");
 			nr.raw_print(print_way, 1);
 		}
-
-		/*
-		for (int i=0; i < 0; i++)
-		{
-			const auto by = dist2(engine), by2 = dist(engine);
-
-			wc::arbit n0({1073741824}, {});
-			wc::arbit n1({unsigned(3)}, {});
-
-			n0.raw_print(print_way);
-			std::print(" * ");
-			n1.raw_print(print_way);
-
-			std::print(" = ");
-			auto np = n0 * n1;
-			np.raw_print(print_way);
-			std::println("");
-		}
-		*/
 	}
 	catch (wc::arbit::exception& e)
 	{
