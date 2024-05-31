@@ -104,7 +104,7 @@ namespace wc
 
 		arbit& operator=(const arbit& rhs);
 
-		void raw_print(int way) const;
+		void raw_print(int way, bool newline=false) const;
 		void print() const;
 	};
 

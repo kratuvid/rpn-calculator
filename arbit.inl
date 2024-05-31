@@ -65,6 +65,9 @@ namespace wc
 		is_valid_integer<T>();
 
 		arbit product, copy(*this);
+		copy.grow(copy.fixed_len);
+
+		const auto prev_len = copy.fixed_len;
 
 		for (size_t i=0; i < sizeof(T)*8; i++)
 		{
@@ -74,7 +77,9 @@ namespace wc
 				product += copy;
 		}
 
-		product.shrink_if_can();
+		if (product.fixed_len > 1)
+			product.shrink(1);
+
 		return product;
 	}
 };

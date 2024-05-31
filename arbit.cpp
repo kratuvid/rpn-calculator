@@ -220,17 +220,23 @@ namespace wc
 
 	arbit arbit::operator*(const arbit& rhs)
 	{
-		arbit product, copy(*this);
+		arbit product, copy(*this), copy_rhs(rhs);
 
-		for (size_t i=0; i < rhs.bytes()*8; i++)
+		const auto total_len = copy.fixed_len + copy_rhs.fixed_len;
+		copy.grow(rhs.fixed_len);
+		copy_rhs.grow(this->fixed_len);
+
+		for (size_t i=0; i < copy_rhs.bytes() * 8; i++)
 		{
 			if (i != 0)
 				copy <<= 1;
-			if (rhs.get_bit(i))
+			if (copy_rhs.get_bit(i))
 				product += copy;
 		}
 
-		product.shrink_if_can();
+		if (product.fixed_len > total_len)
+			product.shrink(product.fixed_len - total_len);
+
 		return product;
 	}
 
@@ -248,11 +254,8 @@ namespace wc
 				if ((size_t)i >= by)
 				{
 					const size_t at = (size_t)i - by;
-					const auto bit = get_bit(at);
-					if (bit)
-						set_bit(i);
-					else
-						clear_bit(i);
+					if (get_bit(at)) set_bit(i);
+					else clear_bit(i);
 				}
 				else break;
 			}
@@ -289,7 +292,7 @@ namespace wc
 		return *this;
 	}
 
-	void arbit::raw_print(int way) const
+	void arbit::raw_print(int way, bool newline) const
 	{
 		std::print("Fixed: {},{}", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
@@ -310,6 +313,7 @@ namespace wc
 				}
 				if (i != fixed_len-1) std::print(" ");
 			}
+			if (newline) std::println("");
 		}
 		if (decimal_len > 0)
 		{
@@ -455,12 +459,14 @@ namespace wc
 		if (by >= fixed_len)
 			WC_STD_EXCEPTION("Cannot shrink by {} when {} is all it has", by, fixed_len);
 
-		const size_t new_actual_fixed_len = fixed_len - by;
-		const size_t new_fixed_len = new_actual_fixed_len;
+		const size_t new_actual_fixed_len = actual_fixed_len;
+		const size_t new_fixed_len = fixed_len - by;
 
+		/*
 		if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
 			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 							 actual_fixed_len, new_actual_fixed_len);
+		*/
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;

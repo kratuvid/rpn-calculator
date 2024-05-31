@@ -14,23 +14,36 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(min_i, max_i);
+		std::uniform_int_distribution<int> dist(min_i, 0), dist2(0, 1000);
 
-		// wc::arbit n100("109.8442");
-		for (int i=0; i < 32; i++)
+		const int print_way = 0;
+
+		for (int i=0; i < 1; i++)
 		{
-			const auto by = dist(engine), by2 = dist(engine);
+			wc::arbit n0({unsigned(-2147483648)}, {});
+			wc::arbit n1({unsigned(-2)}, {});
 
-			wc::arbit n0({by}, {});
-			wc::arbit n1({by2}, {});
+			n0.raw_print(print_way, 1);
+			n1.raw_print(print_way, 1);
 
-			n0.raw_print(2);
+			auto ns = n0 + n1;
+			ns.raw_print(print_way, 1);
+		}
+
+		for (int i=0; i < 0; i++)
+		{
+			const auto by = dist2(engine), by2 = dist(engine);
+
+			wc::arbit n0({1073741824}, {});
+			wc::arbit n1({unsigned(3)}, {});
+
+			n0.raw_print(print_way);
 			std::print(" * ");
-			n1.raw_print(2);
+			n1.raw_print(print_way);
 
 			std::print(" = ");
 			auto np = n0 * n1;
-			np.raw_print(2);
+			np.raw_print(print_way);
 			std::println("");
 		}
 	}
