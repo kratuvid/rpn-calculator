@@ -532,6 +532,8 @@ namespace wc
 		heap_current += size;
 		if (heap_current > heap_max)
 			heap_max = heap_current;
+		if (heap_allocations.size() > heap_max_entries)
+			heap_max_entries = heap_allocations.size();
 
 		return ptr;
 	}
@@ -563,6 +565,8 @@ namespace wc
 
 		if (heap_current > heap_max)
 			heap_max = heap_current;
+		if (heap_allocations.size() > heap_max_entries)
+			heap_max_entries = heap_allocations.size();
 
 		return new_ptr;
 	}
@@ -582,14 +586,4 @@ namespace wc
 			heap_allocations.erase(it);
 		}
 	}
-
-	/*
-	size_t arbit::net_heap_used()
-	{
-		size_t net = 0;
-		for (auto it = heap_allocations.begin(); it != heap_allocations.end(); it++)
-			net += it->second;
-		return net;
-	}
-	*/
 };

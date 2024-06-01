@@ -58,8 +58,7 @@ namespace wc
 
 	private:
 		static inline std::unordered_map<void*, size_t> heap_allocations;
-		static inline size_t heap_max = 0;
-		static inline size_t heap_current = 0;
+		static inline size_t heap_max = 0, heap_current = 0, heap_max_entries = 0;
 
 		static void* internal_malloc(size_t size);
 		static void* internal_realloc(void* ptr, size_t new_size);
@@ -68,6 +67,7 @@ namespace wc
 	public:
 		static size_t net_heap_used() { return heap_current; }
 		static auto max_heap_used() { return heap_max; }
+		static auto max_entries_heap_used() { return heap_max_entries; }
 		static const auto& heap_used() { return heap_allocations; }
 
 	public:

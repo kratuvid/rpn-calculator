@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(min_i, max_i), dist2(3, 7);
+		std::uniform_int_distribution<int> dist(min_i, max_i), dist2(50, 150);
 
 		const char print_way = 'x';
 
@@ -50,8 +50,8 @@ int main(int argc, char** argv)
 		return 11;
 	}
 
-	const auto m = wc::arbit::max_heap_used(), n = wc::arbit::net_heap_used();
-	std::println("Arbit heap used net {}, and max {} bytes", n, m);
+	const auto m = wc::arbit::max_heap_used(), e = wc::arbit::max_entries_heap_used(), n = wc::arbit::net_heap_used();
+	std::println("Arbit heap used net {}, and max {} bytes on {} entries", n, m, e);
 
 	return 10;
 
