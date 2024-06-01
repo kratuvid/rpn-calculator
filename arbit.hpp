@@ -15,6 +15,7 @@
 #include <string>
 #include <algorithm>
 #include <initializer_list>
+#include <unordered_map>
 
 #include "utility.hpp"
 
@@ -54,6 +55,20 @@ namespace wc
 		void shrink(size_t by);
 
 		template<class T> static void is_valid_integer();
+
+	private:
+		static inline std::unordered_map<void*, size_t> heap_allocations;
+		static inline size_t heap_max = 0;
+		static inline size_t heap_current = 0;
+
+		static void* internal_malloc(size_t size);
+		static void* internal_realloc(void* ptr, size_t new_size);
+		static void internal_free(void* ptr);
+
+	public:
+		static size_t net_heap_used() { return heap_current; }
+		static auto max_heap_used() { return heap_max; }
+		static const auto& heap_used() { return heap_allocations; }
 
 	public:
 		arbit(const arbit& other);
@@ -115,6 +130,9 @@ namespace wc
 
 #include "arbit.inl"
 
+// size_t wc::arbit::heap_current = 0;
+// size_t wc::arbit::heap_max = 0;
+
 /* Test code
 
    	try
@@ -155,3 +173,4 @@ namespace wc
 		return 11;
 	}
 */
+

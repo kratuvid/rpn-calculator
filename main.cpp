@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(min_i, max_i), dist2(1, 3);
+		std::uniform_int_distribution<int> dist(min_i, max_i), dist2(3, 7);
 
 		const char print_way = 'x';
 
@@ -21,9 +21,10 @@ int main(int argc, char** argv)
 		{
 			std::list<int> s0, s1;
 			for (int j=0; j < dist2(engine); j++)
+			{
 				s0.push_back(dist(engine));
-			for (int j=0; j < dist2(engine); j++)
 				s1.push_back(dist(engine));
+			}
 			wc::arbit n0(s0, {});
 			wc::arbit n1(s1, {});
 
@@ -48,6 +49,10 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 		return 11;
 	}
+
+	const auto m = wc::arbit::max_heap_used(), n = wc::arbit::net_heap_used();
+	std::println("Arbit heap used net {}, and max {} bytes", n, m);
+
 	return 10;
 
 	wc::wtf_calculator app;

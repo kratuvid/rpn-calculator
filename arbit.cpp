@@ -13,11 +13,11 @@ namespace wc
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
 		if (fixed_ptr) {
-			free(fixed_ptr);
+			internal_free(fixed_ptr);
 			fixed_ptr = nullptr;
 		}
 		if (decimal_ptr) {
-			free(decimal_ptr);
+			internal_free(decimal_ptr);
 			decimal_ptr = nullptr;
 		}
 
@@ -43,18 +43,18 @@ namespace wc
 
 	arbit::~arbit()
 	{
-		if (fixed_ptr) free(fixed_ptr);
-		if (decimal_ptr) free(decimal_ptr);
+		if (fixed_ptr) internal_free(fixed_ptr);
+		if (decimal_ptr) internal_free(decimal_ptr);
 	}
 
 	void arbit::reset()
 	{
 		if (fixed_ptr) {
-			free(fixed_ptr);
+			internal_free(fixed_ptr);
 			fixed_ptr = nullptr;
 		}
 		if (decimal_ptr) {
-			free(decimal_ptr);
+			internal_free(decimal_ptr);
 			decimal_ptr = nullptr;
 		}
 
@@ -311,11 +311,11 @@ namespace wc
 	arbit& arbit::operator=(const arbit& rhs)
 	{
 		if (fixed_ptr) {
-			free(fixed_ptr);
+			internal_free(fixed_ptr);
 			fixed_ptr = nullptr;
 		}
 		if (decimal_ptr) {
-			free(decimal_ptr);
+			internal_free(decimal_ptr);
 			decimal_ptr = nullptr;
 		}
 
@@ -490,7 +490,7 @@ namespace wc
 				WC_STD_EXCEPTION("Cannot grow to {} as {} is the upper limit",
 								 new_actual_fixed_len, grow_upper_limit);
 
-			if (!(fixed_ptr = (base_t*)realloc(fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
+			if (!(fixed_ptr = (base_t*)internal_realloc(fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_fixed_len, new_actual_fixed_len);
 
@@ -510,7 +510,7 @@ namespace wc
 		const size_t new_fixed_len = fixed_len - by;
 
 		/*
-		if(!(fixed_ptr = (base_t*)realloc((void*)fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
+		if(!(fixed_ptr = (base_t*)internal_realloc(fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
 			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 							 actual_fixed_len, new_actual_fixed_len);
 		*/
@@ -518,4 +518,78 @@ namespace wc
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
 	}
+
+	// Heap stuff
+	
+	void* arbit::internal_malloc(size_t size)
+	{
+		auto ptr = malloc(size);
+		if (!ptr)
+			return nullptr;
+
+		heap_allocations[ptr] = size;
+
+		heap_current += size;
+		if (heap_current > heap_max)
+			heap_max = heap_current;
+
+		return ptr;
+	}
+
+	void* arbit::internal_realloc(void* ptr, size_t new_size)
+	{
+		auto new_ptr = realloc(ptr, new_size);
+		if (!new_ptr)
+			return nullptr;
+
+		heap_current += new_size;
+
+		if (ptr == nullptr)
+			heap_allocations[new_ptr] = new_size;
+		else
+		{
+			auto it = heap_allocations.find(ptr);
+			heap_current -= it->second;
+			if (ptr == new_ptr)
+			{
+				it->second = new_size;
+			}
+			else
+			{
+				heap_allocations.erase(it);
+				heap_allocations[new_ptr] = new_size;
+			}
+		}
+
+		if (heap_current > heap_max)
+			heap_max = heap_current;
+
+		return new_ptr;
+	}
+
+	void arbit::internal_free(void* ptr)
+	{
+		free(ptr);
+
+		auto it = heap_allocations.find(ptr);
+		if (it == heap_allocations.end())
+		{
+			WC_STD_EXCEPTION("Free called on a non-existent heap pointer {}", ptr);
+		}
+		else
+		{
+			heap_current -= it->second;
+			heap_allocations.erase(it);
+		}
+	}
+
+	/*
+	size_t arbit::net_heap_used()
+	{
+		size_t net = 0;
+		for (auto it = heap_allocations.begin(); it != heap_allocations.end(); it++)
+			net += it->second;
+		return net;
+	}
+	*/
 };
