@@ -560,6 +560,8 @@ namespace wc
 		if (lhs.fixed_len == 0 || rhs == 0)
 			return product;
 
+		const auto neg_rhs = rhs < 0;
+
 		arbit& copy = lhs;
 
 		const size_t total_len = std::max(lhs.fixed_len, (size_t)1) * 2;
@@ -568,10 +570,11 @@ namespace wc
 		if (copy.fixed_len < total_len)
 			copy.grow(total_len - copy.fixed_len);
 
-		const auto bits = sizeof(sbase_t) * 8;
+		const auto bits = total_len * sizeof(base_t) * 8;
 		for (size_t i=0; i < bits; i++)
 		{
-			if ((rhs >> i) & 0x1)
+			bool bit = i < sizeof(sbase_t) * 8 ? (rhs >> i) & 0x1 : neg_rhs;
+			if (bit)
 				product += copy;
 
 			copy <<= 1;

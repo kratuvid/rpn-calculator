@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 
 		const char print_way = 'x';
 
-		int loop_max = 5e5;
+		int loop_max = 1e5;
 		for (int i=0; i < loop_max; i++)
 		{
 			std::list<int> s0, s1;
@@ -32,23 +32,26 @@ int main(int argc, char** argv)
 			wc::arbit n0(s0, {});
 			wc::arbit n1(s1, {});
 
+			const auto first = *s1.begin();
+
 			// n0.raw_print(print_way);
 			// std::print(" * ");
 			// n1.raw_print(print_way);
 			// std::print(" = ");
 			// nr.raw_print(print_way, 1);
 			
-			bool expected = n0.is_negative() ^ n1.is_negative();
+			bool neg = n0.is_negative();
+			bool neg_rhs = first < 0;
+			bool expected = neg ^ neg_rhs;
 
-			n0 *= n1;
+			n0 *= first;
 
 			bool got = n0.is_negative();
 			if (got != expected)
 			{
+				std::println("{} * {} = {}", neg, neg_rhs, got);
 				n0.raw_print(print_way);
-				std::print(" * ");
-				n1.raw_print(print_way);
-				// std::print(" = ");
+				std::print(" <> {:#x}", (wc::arbit::base_t)first);
 				// nr.raw_print(print_way, 1);
 			
 				WC_STD_EXCEPTION("No!");
@@ -61,16 +64,14 @@ int main(int argc, char** argv)
 			{
 				tp_last = tp_now;
 				
-				std::print("\r");
+				std::cout << '\r';
 				n0.raw_print(print_way);
-				std::print(" * ");
-				n1.raw_print(print_way, 1);
-				// std::print(" = ");
+				std::println(" <> {:#x}", (wc::arbit::base_t)first);
 				// nr.raw_print(print_way, 1);
 
 				std::cout << '\r';
-				std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4) << " ~ ";
-				// std::cout << " = " << (nr.bytes() / 4) << " - ";
+				std::cout << (n0.bytes() / 4) << " <> 0x" << std::hex << (wc::arbit::base_t)first << std::dec << " ~ ";
+				// std::cout << " = " << (nr.bytes() / 4) << " ~ ";
 				std::cout << (i / double(loop_max)) * 100 << "%...";
 				std::cout.flush();
 			}
