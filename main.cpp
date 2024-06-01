@@ -14,11 +14,11 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(20, 30), dist1(min_i, max_i);
+		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(10, 20), dist1(min_i, max_i);
 
 		const char print_way = 'x';
 
-		int loop_max = 1e4;
+		int loop_max = 5e5;
 		for (int i=0; i < loop_max; i++)
 		{
 			std::list<int> s0, s1;
@@ -35,20 +35,21 @@ int main(int argc, char** argv)
 			// n0.raw_print(print_way);
 			// std::print(" * ");
 			// n1.raw_print(print_way);
-
-			const auto nr = n0 * n1;
 			// std::print(" = ");
 			// nr.raw_print(print_way, 1);
-
+			
 			bool expected = n0.is_negative() ^ n1.is_negative();
-			bool got = nr.is_negative();
+
+			n0 *= n1;
+
+			bool got = n0.is_negative();
 			if (got != expected)
 			{
 				n0.raw_print(print_way);
 				std::print(" * ");
 				n1.raw_print(print_way);
-				std::print(" = ");
-				nr.raw_print(print_way, 1);
+				// std::print(" = ");
+				// nr.raw_print(print_way, 1);
 			
 				WC_STD_EXCEPTION("No!");
 			}
@@ -56,12 +57,20 @@ int main(int argc, char** argv)
 			static auto tp_last = std::chrono::high_resolution_clock::now();
 			const auto tp_now = std::chrono::high_resolution_clock::now();
 			const auto tp_diff = std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_last).count();
-			if (tp_diff > 500)
+			if (tp_diff > 1000)
 			{
 				tp_last = tp_now;
+				
+				std::print("\r");
+				n0.raw_print(print_way);
+				std::print(" * ");
+				n1.raw_print(print_way, 1);
+				// std::print(" = ");
+				// nr.raw_print(print_way, 1);
+
 				std::cout << '\r';
-				std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4);
-				std::cout << " = " << (nr.bytes() / 4) << " - ";
+				std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4) << " ~ ";
+				// std::cout << " = " << (nr.bytes() / 4) << " - ";
 				std::cout << (i / double(loop_max)) * 100 << "%...";
 				std::cout.flush();
 			}

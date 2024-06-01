@@ -209,77 +209,14 @@ namespace wc
 
 	arbit& arbit::operator*=(const arbit& rhs)
 	{
-		if (rhs.is_zero())
-		{
-			zero();
-			return *this;
-		}
-
-		arbit copy(*this), copy_rhs(rhs);
-
-		const sbase_t change = rhs.is_negative() ? 1 : -1;
-		copy_rhs += change;
-
-		while (!copy_rhs.is_zero())
-		{
-			*this += copy;
-			copy_rhs += change;
-		}
-
-		if (rhs.is_negative())
-			negate();
-
+		auto product = multiply(rhs);
+		*this = std::move(product);
 		return *this;
 	}
 
 	arbit arbit::operator*(const arbit& rhs) const
 	{
-		arbit product(0);
-
-		if (fixed_len == 0 || rhs.fixed_len == 0)
-			return product;
-
-		arbit copy(*this), copy_rhs(rhs);
-
-		const size_t total_len = std::max(fixed_len, rhs.fixed_len) * 2;
-		if (product.fixed_len < total_len)
-			product.grow(total_len - product.fixed_len);
-		if (copy.fixed_len < total_len)
-			copy.grow(total_len - copy.fixed_len);
-		if (copy_rhs.fixed_len < total_len)
-			copy_rhs.grow(total_len - copy_rhs.fixed_len);
-
-		const auto bits = copy_rhs.bytes() * 8;
-		for (size_t i=0; i < bits; i++)
-		{
-			if (copy_rhs.bit(i))
-				product += copy;
-
-			copy <<= 1;
-		}
-
-		if (product.fixed_len > total_len)
-			product.shrink(product.fixed_len - total_len);
-
-		product.shrink_if_can();
-		return product;
-
-		/*
-		arbit product(0), copy_rhs(rhs);
-
-		const sbase_t change = rhs.is_negative() ? 1 : -1;
-
-		while (!copy_rhs.is_zero())
-		{
-			product += *this;
-			copy_rhs += change;
-		}
-
-		if (rhs.is_negative())
-			product.negate();
-
-		return product;
-		*/
+		return multiply(rhs);
 	}
 
 	arbit& arbit::operator+=(arbit::sbase_t rhs)
@@ -315,29 +252,14 @@ namespace wc
 
 	arbit& arbit::operator*=(arbit::sbase_t rhs)
 	{
-		if (rhs == 0)
-		{
-			zero();
-			return *this;
-		}
-
-		arbit copy(*this);
-
-		const auto neg_rhs = rhs < 0;
-
-		const sbase_t change = neg_rhs ? 1 : -1;
-		rhs += change;
-
-		while (rhs != 0)
-		{
-			*this += copy;
-			rhs += change;
-		}
-
-		if (neg_rhs)
-			negate();
-
+		auto product = multiply(rhs);
+		*this = std::move(product);
 		return *this;
+	}
+
+	arbit arbit::operator*(arbit::sbase_t rhs) const
+	{
+		return multiply(rhs);
 	}
 
 	arbit& arbit::operator<<=(size_t by)
@@ -573,6 +495,93 @@ namespace wc
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
+	}
+
+	arbit arbit::multiply(const arbit& rhs) const
+	{
+		auto copy(*this);
+		return multiply_raw(copy, rhs);
+	}
+
+	arbit arbit::multiply(const arbit& rhs)
+	{
+		return multiply_raw(*this, rhs);
+	}
+	
+	arbit arbit::multiply(sbase_t rhs) const
+	{
+		auto copy(*this);
+		return multiply_raw(copy, rhs);
+	}
+
+	arbit arbit::multiply(sbase_t rhs)
+	{
+		return multiply_raw(*this, rhs);
+	}
+
+	arbit arbit::multiply_raw(arbit& lhs, const arbit& rhs)
+	{
+		arbit product(0);
+
+		if (lhs.fixed_len == 0 || rhs.fixed_len == 0)
+			return product;
+
+		arbit& copy = lhs;
+		arbit copy_rhs(rhs);
+
+		const size_t total_len = std::max(lhs.fixed_len, rhs.fixed_len) * 2;
+		if (product.fixed_len < total_len)
+			product.grow(total_len - product.fixed_len);
+		if (copy.fixed_len < total_len)
+			copy.grow(total_len - copy.fixed_len);
+		if (copy_rhs.fixed_len < total_len)
+			copy_rhs.grow(total_len - copy_rhs.fixed_len);
+
+		const auto bits = copy_rhs.bytes() * 8;
+		for (size_t i=0; i < bits; i++)
+		{
+			if (copy_rhs.bit(i))
+				product += copy;
+
+			copy <<= 1;
+		}
+
+		if (product.fixed_len > total_len)
+			product.shrink(product.fixed_len - total_len);
+
+		product.shrink_if_can();
+		return product;
+	}
+
+	arbit arbit::multiply_raw(arbit& lhs, sbase_t rhs)
+	{
+		arbit product(0);
+
+		if (lhs.fixed_len == 0 || rhs == 0)
+			return product;
+
+		arbit& copy = lhs;
+
+		const size_t total_len = std::max(lhs.fixed_len, (size_t)1) * 2;
+		if (product.fixed_len < total_len)
+			product.grow(total_len - product.fixed_len);
+		if (copy.fixed_len < total_len)
+			copy.grow(total_len - copy.fixed_len);
+
+		const auto bits = sizeof(sbase_t) * 8;
+		for (size_t i=0; i < bits; i++)
+		{
+			if ((rhs >> i) & 0x1)
+				product += copy;
+
+			copy <<= 1;
+		}
+
+		if (product.fixed_len > total_len)
+			product.shrink(product.fixed_len - total_len);
+
+		product.shrink_if_can();
+		return product;
 	}
 
 	// Heap stuff

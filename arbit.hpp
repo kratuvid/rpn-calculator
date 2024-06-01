@@ -54,6 +54,13 @@ namespace wc
 		void grow(size_t by, bool neg);
 		void shrink(size_t by);
 
+		arbit multiply(const arbit& rhs) const;
+		arbit multiply(const arbit& rhs);
+		arbit multiply(sbase_t rhs) const;
+		arbit multiply(sbase_t rhs);
+		static arbit multiply_raw(arbit& lhs, const arbit& rhs);
+		static arbit multiply_raw(arbit& lhs, sbase_t rhs);
+
 		template<class T> static void is_valid_integer();
 
 	private:
@@ -117,7 +124,7 @@ namespace wc
 		arbit& operator+=(sbase_t rhs);
 		arbit operator+(sbase_t rhs) const { arbit copy(*this); copy += rhs; return copy; }
 		arbit& operator*=(sbase_t rhs);
-		arbit operator*(sbase_t rhs) const { arbit copy(*this); copy *= rhs; return copy; }
+		arbit operator*(sbase_t rhs) const;
 
 		arbit& operator<<=(size_t by);
 		arbit& operator=(const arbit& rhs);
