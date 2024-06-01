@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 		const char print_way = 'x';
 
-		for (int i=0; i < 1000; i++)
+		for (int i=0; i < 5; i++)
 		{
 			std::list<int> s0, s1;
 			s0.push_back(dist0(engine));
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 	}
 
-	std::println("Arbit heap stats: Max: {}B on {} entries, current: {}B. "
+	std::println("Arbit heap statistics: Max: {}B on {} entries, current: {}B. "
 				 "Mallocs: {}, reallocs: {}, frees: {}",
 				 wc::arbit::max_heap(), wc::arbit::max_entries_heap(), wc::arbit::net_heap(),
 				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap());
