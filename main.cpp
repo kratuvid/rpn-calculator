@@ -104,15 +104,15 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 	}
 
+	auto cons = wc::arbit::stats.get_cons();
+	auto heap = wc::arbit::stats.get_heap();
 	std::println("Arbit statistics:\n"
-				 "Heap: max: {}B sitting on {} entries, current: {}B."
+				 "Heap: max: {}B sitting on {} entries, current: {}B, "
 				 "mallocs: {}, reallocs: {}, frees: {}\n"
 				 "Constructors: copy: {}, move: {}, parse: {}, bare: {}, list: {}",
-				 wc::arbit::max_heap(), wc::arbit::max_entries_heap(), wc::arbit::net_heap(),
-				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap(),
-				 wc::arbit::copy_cons(), wc::arbit::move_cons(), wc::arbit::parse_cons(),
-				 wc::arbit::bare_cons(), wc::arbit::list_cons()
-				 );
+				 heap.max, heap.max_entries, heap.current,
+				 heap.mallocs, heap.reallocs, heap.frees,
+				 cons.copy, cons.move, cons.parse, cons.bare, cons.list);
 
 	return 10;
 

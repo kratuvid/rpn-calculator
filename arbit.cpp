@@ -4,7 +4,7 @@ namespace wc
 {
 	arbit::arbit(const arbit& other)
 	{
-		cons_copy++;
+		stats.cons.copy++;
 		*this = other;
 	}
 
@@ -13,7 +13,7 @@ namespace wc
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
-		cons_move++;
+		stats.cons.move++;
 
 		if (fixed_ptr) {
 			internal_free(fixed_ptr);
@@ -36,14 +36,14 @@ namespace wc
 	arbit::arbit(std::string_view both, base_t precision)
 		:precision(precision)
 	{
-		cons_parse++;
+		stats.cons.parse++;
 		parse(both);
 	}
 
 	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
 		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
 	{
-		cons_bare++;
+		stats.cons.bare++;
 	}
 
 	arbit::~arbit()
@@ -592,7 +592,7 @@ namespace wc
 		return product;
 	}
 
-	// Heap stuff
+	/* Heap */
 	
 	void* arbit::internal_malloc(size_t size)
 	{
@@ -600,14 +600,14 @@ namespace wc
 		if (!ptr)
 			return nullptr;
 
-		heap_allocations[ptr] = size;
+		stats.heap.allocs[ptr] = size;
 
-		heap_mallocs++;
-		heap_current += size;
-		if (heap_current > heap_max)
-			heap_max = heap_current;
-		if (heap_allocations.size() > heap_max_entries)
-			heap_max_entries = heap_allocations.size();
+		stats.heap.mallocs++;
+		stats.heap.current += size;
+		if (stats.heap.current > stats.heap.max)
+			stats.heap.max = stats.heap.current;
+		if (stats.heap.allocs.size() > stats.heap.max_entries)
+			stats.heap.max_entries = stats.heap.allocs.size();
 
 		return ptr;
 	}
@@ -618,19 +618,19 @@ namespace wc
 		if (!new_ptr)
 			return nullptr;
 
-		heap_current += new_size;
+		stats.heap.current += new_size;
 
 		if (ptr == nullptr)
 		{
-			heap_mallocs++;
-			heap_allocations[new_ptr] = new_size;
+			stats.heap.mallocs++;
+			stats.heap.allocs[new_ptr] = new_size;
 		}
 		else
 		{
-			auto it = heap_allocations.find(ptr);
+			auto it = stats.heap.allocs.find(ptr);
 
-			heap_reallocs++;
-			heap_current -= it->second;
+			stats.heap.reallocs++;
+			stats.heap.current -= it->second;
 
 			if (ptr == new_ptr)
 			{
@@ -638,15 +638,15 @@ namespace wc
 			}
 			else
 			{
-				heap_allocations.erase(it);
-				heap_allocations[new_ptr] = new_size;
+				stats.heap.allocs.erase(it);
+				stats.heap.allocs[new_ptr] = new_size;
 			}
 		}
 
-		if (heap_current > heap_max)
-			heap_max = heap_current;
-		if (heap_allocations.size() > heap_max_entries)
-			heap_max_entries = heap_allocations.size();
+		if (stats.heap.current > stats.heap.max)
+			stats.heap.max = stats.heap.current;
+		if (stats.heap.allocs.size() > stats.heap.max_entries)
+			stats.heap.max_entries = stats.heap.allocs.size();
 
 		return new_ptr;
 	}
@@ -655,16 +655,16 @@ namespace wc
 	{
 		free(ptr);
 
-		auto it = heap_allocations.find(ptr);
-		if (it == heap_allocations.end())
+		auto it = stats.heap.allocs.find(ptr);
+		if (it == stats.heap.allocs.end())
 		{
 			WC_STD_EXCEPTION("Free called on a non-existent heap pointer {}", (size_t)ptr);
 		}
 		else
 		{
-			heap_frees++;
-			heap_current -= it->second;
-			heap_allocations.erase(it);
+			stats.heap.frees++;
+			stats.heap.current -= it->second;
+			stats.heap.allocs.erase(it);
 		}
 	}
 };

@@ -9,7 +9,7 @@ namespace wc
 		static_assert(typeid(C) != typeid(const char*));
 		static_assert(typeid(C) != typeid(char*));
 
-		cons_list++;
+		stats.cons.list++;
 
 		if (fixed.size() > 0)
 		{

@@ -64,30 +64,30 @@ namespace wc
 		template<class T> static void is_valid_integer();
 
 	private:
-		static inline size_t cons_copy = 0, cons_move = 0, cons_parse = 0, cons_bare = 0, cons_list = 0;
-
-		static inline std::unordered_map<void*, size_t> heap_allocations;
-		static inline size_t heap_max = 0, heap_current = 0, heap_max_entries = 0;
-		static inline size_t heap_mallocs = 0, heap_reallocs = 0, heap_frees = 0;
-
 		static void* internal_malloc(size_t size);
 		static void* internal_realloc(void* ptr, size_t new_size);
 		static void internal_free(void* ptr);
 
 	public:
-		static auto copy_cons() { return cons_copy; }
-		static auto move_cons() { return cons_move; }
-		static auto parse_cons() { return cons_parse; }
-		static auto bare_cons() { return cons_bare; }
-		static auto list_cons() { return cons_list; }
+		class _stats {
+			friend class wc::arbit;
+			private:
+				struct {
+					size_t copy = 0, move = 0, parse = 0;
+					size_t bare = 0, list = 0;
+				} cons;
 
-		static size_t net_heap() { return heap_current; }
-		static auto max_heap() { return heap_max; }
-		static auto max_entries_heap() { return heap_max_entries; }
-		static auto mallocs_heap() { return heap_mallocs; }
-		static auto reallocs_heap() { return heap_reallocs; }
-		static auto frees_heap() { return heap_frees; }
-		static const auto& heap() { return heap_allocations; }
+				struct {
+					std::unordered_map<void*, size_t> allocs;
+					size_t max = 0, max_entries = 0, current = 0;
+					size_t mallocs = 0, reallocs = 0, frees = 0;
+				} heap;
+
+			public:
+				_stats() {}
+				const auto& get_cons() { return cons; }
+				const auto& get_heap() { return heap; }
+		} static inline stats;
 
 	public:
 		arbit(const arbit& other);
