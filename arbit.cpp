@@ -419,7 +419,7 @@ namespace wc
 			}
 		}
 
-		std::string_view fixed(both.begin(), fixed_end), decimal;
+		std::string_view fixed(both.begin() + (neg ? 1 : 0), fixed_end), decimal;
 		if (is_decimal)
 			decimal = std::string_view(std::next(fixed_end), both.end());
 		parse(fixed, decimal, neg);

@@ -4,6 +4,11 @@ namespace wc
 	arbit::arbit(const C& fixed, const C& decimal, base_t precision)
 		:precision(precision)
 	{
+		static_assert(typeid(C) != typeid(std::string));
+		static_assert(typeid(C) != typeid(std::string_view));
+		static_assert(typeid(C) != typeid(const char*));
+		static_assert(typeid(C) != typeid(char*));
+
 		if (fixed.size() > 0)
 		{
 			grow(fixed.size());
