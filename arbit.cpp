@@ -107,6 +107,15 @@ namespace wc
 		}
 	}
 
+	void arbit::zero()
+	{
+		if (fixed_len > 1)
+			shrink(fixed_len - 1);
+		else if (fixed_len == 0)
+			grow(1);
+		fixed_ptr[0] = 0;
+	}
+
 	bool arbit::is_zero() const
 	{
 		for (size_t i=0; i < fixed_len; i++)
@@ -181,9 +190,7 @@ namespace wc
 	{
 		if (rhs.is_zero())
 		{
-			if (fixed_len > 1)
-				shrink(fixed_len - 1);
-			fixed_ptr[0] = 0;
+			zero();
 			return *this;
 		}
 
@@ -206,6 +213,36 @@ namespace wc
 
 	arbit arbit::operator*(const arbit& rhs) const
 	{
+		arbit product(0);
+
+		if (fixed_len == 0 || rhs.fixed_len == 0)
+			return product;
+
+		arbit copy(*this), copy_rhs(rhs);
+
+		const size_t total_len = std::max(fixed_len, rhs.fixed_len) * 2;
+		// if (product.fixed_len < total_len)
+		//	product.grow(total_len - product.fixed_len);
+		if (copy.fixed_len < total_len)
+			copy.grow(total_len - copy.fixed_len);
+		if (copy_rhs.fixed_len < total_len)
+			copy_rhs.grow(total_len - copy_rhs.fixed_len);
+
+		const auto bits = copy_rhs.bytes() * 8;
+		for (size_t i=0; i < bits; i++)
+		{
+			if (copy_rhs.bit(i))
+				product += copy;
+
+			copy <<= 1;
+		}
+
+		if (product.fixed_len > total_len)
+			product.shrink(product.fixed_len - total_len);
+
+		return product;
+
+		/*
 		arbit product(0), copy_rhs(rhs);
 
 		const sbase_t change = rhs.is_negative() ? 1 : -1;
@@ -220,6 +257,7 @@ namespace wc
 			product.negate();
 
 		return product;
+		*/
 	}
 
 	arbit& arbit::operator+=(arbit::sbase_t rhs)
@@ -257,9 +295,7 @@ namespace wc
 	{
 		if (rhs == 0)
 		{
-			if (fixed_len > 1)
-				shrink(fixed_len - 1);
-			fixed_ptr[0] = 0;
+			zero();
 			return *this;
 		}
 
@@ -285,7 +321,7 @@ namespace wc
 	arbit& arbit::operator<<=(size_t by)
 	{
 		const auto bits = bytes() * 8;
-		if (by > bits)
+		if (by >= bits)
 		{
 			memset(fixed_ptr, 0, bytes());
 		}
@@ -494,7 +530,7 @@ namespace wc
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_fixed_len, new_actual_fixed_len);
 
-			memset(&fixed_ptr[actual_fixed_len], neg ? 0xff : 0, sizeof(base_t) * by);
+			memset(&fixed_ptr[fixed_len], neg ? 0xff : 0, sizeof(base_t) * by);
 
 			actual_fixed_len = new_actual_fixed_len;
 			fixed_len = new_fixed_len;

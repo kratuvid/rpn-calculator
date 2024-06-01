@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(1, 1), dist1(max_i/4, max_i/2);
+		std::uniform_int_distribution<int> dist0(-100, 100), dist_loop(1, 5), dist1(-100, 100);
 
 		const char print_way = 'x';
 
@@ -25,8 +25,9 @@ int main(int argc, char** argv)
 			{
 				s1.push_back(dist1(engine));
 			}
-			wc::arbit n0(s0, {});
-			wc::arbit n1(s1, {});
+			auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
+			wc::arbit n0(t0, {});
+			wc::arbit n1(t1, {});
 
 			n0.raw_print(print_way);
 			std::print(" * ");

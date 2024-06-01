@@ -91,6 +91,8 @@ namespace wc
 		void set_bit(size_t at);
 		void flip_bit(size_t at);
 
+
+		void zero();
 		bool is_zero() const;
 		bool is_negative() const;
 		static bool is_negative(base_t n);

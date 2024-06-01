@@ -24,3 +24,4 @@ Wtf Calculator: Another RPN calculator
 - [ ] check if move cons is being called at relevant places
 - [ ] add support for operations directly with integers?
 - [ ] stop burning CPU cycles in the operator** loops
+- [ ] shrink on product
