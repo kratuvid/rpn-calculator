@@ -53,6 +53,9 @@ namespace wc
 		void grow(size_t by);
 		void grow(size_t by, bool neg);
 		void shrink(size_t by);
+		void grow_decimal(size_t by);
+		void grow_decimal(size_t by, bool neg);
+		void shrink_decimal(size_t by);
 
 		arbit multiply(const arbit& rhs) const;
 		arbit multiply(const arbit& rhs);
@@ -92,7 +95,8 @@ namespace wc
 	public:
 		arbit(const arbit& other);
 		arbit(arbit&& other);
-		arbit(base_t fixed, base_t decimal = 0, base_t precision = default_precision);
+		arbit(base_t fixed, base_t precision = default_precision);
+		arbit(base_t fixed, base_t decimal, base_t precision = default_precision);
 		arbit(std::string_view both, base_t precision = default_precision);
 		template<class C> arbit(const C& fixed, const C& decimal, base_t precision = default_precision);
 
@@ -106,7 +110,6 @@ namespace wc
 		void set_bit(size_t at);
 		void flip_bit(size_t at);
 
-
 		void zero();
 		bool is_zero() const;
 		bool is_negative() const;
@@ -114,6 +117,8 @@ namespace wc
 
 		void shrink_if_can();
 		size_t bytes() const;
+		size_t bytes_decimal() const;
+		size_t bytes_total() const;
 
 		void raw_print(char way, bool newline = false) const;
 		void print() const;

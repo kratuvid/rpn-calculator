@@ -22,7 +22,11 @@ namespace wc
 
 		if (decimal.size() > 0)
 		{
-			WC_STD_EXCEPTION("{}:{}: Decimal unimplemented", __FILE__, __LINE__);
+			grow_decimal(decimal.size());
+
+			size_t i=0;
+			for (auto it = decimal.begin(); it != decimal.end(); it++, i++)
+				decimal_ptr[i] = *it;
 		}
 	}
 

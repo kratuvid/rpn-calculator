@@ -14,9 +14,8 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(5, 10), dist1(min_i, max_i);
 		
-		const char print_way = 'd';
+		const char print_way = 'x';
 
 		if (false)
 		{
@@ -37,16 +36,27 @@ int main(int argc, char** argv)
 		}
 		else if (true)
 		{
-			int loop_max = 1e4;
+			std::uniform_int_distribution<int> dist0(-1e3, 1e3), dist_loop(1, 2), dist1(-1e3, 1e3);
+
+			const int loop_max = 1e7;
 			for (int i=0; i < loop_max; i++)
 			{
+				const auto s0l = dist_loop(engine), s1l = dist_loop(engine);
 				std::list<int> s0, s1;
-				for (int j=0; j < dist_loop(engine); j++)
-					s0.push_back(dist0(engine));
-				for (int j=0; j < dist_loop(engine); j++)
-					s1.push_back(dist1(engine));
-
-				[[maybe_unused]] auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
+				while ((int)s0.size() < s0l)
+				{
+					auto n = dist0(engine);
+					if (n == 0)
+						continue;
+					s0.push_back(n);
+				}
+				while ((int)s1.size() < s1l)
+				{
+					auto n = dist1(engine);
+					if (n == 0)
+						continue;
+					s1.push_back(n);
+				}
 
 				wc::arbit n0(s0, {});
 				wc::arbit n1(s1, {});
@@ -106,7 +116,7 @@ int main(int argc, char** argv)
 
 	auto cons = wc::arbit::stats.get_cons();
 	auto heap = wc::arbit::stats.get_heap();
-	std::println("Arbit statistics:\n"
+	std::println("\nArbit statistics:\n"
 				 "Heap: max: {}B sitting on {} entries, current: {}B, "
 				 "mallocs: {}, reallocs: {}, frees: {}\n"
 				 "Constructors: copy: {}, move: {}, parse: {}, bare: {}, list: {}",

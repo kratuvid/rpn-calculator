@@ -40,8 +40,14 @@ namespace wc
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
+	arbit::arbit(base_t fixed, base_t precision)
 		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
+	{
+		stats.cons.bare++;
+	}
+
+	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
+		:arbit(std::initializer_list<base_t>({fixed}), std::initializer_list<base_t>({decimal}), precision)
 	{
 		stats.cons.bare++;
 	}
@@ -165,6 +171,16 @@ namespace wc
 	size_t arbit::bytes() const
 	{
 		return fixed_len * sizeof(base_t);
+	}
+
+	size_t arbit::bytes_decimal() const
+	{
+		return decimal_len * sizeof(base_t);
+	}
+
+	size_t arbit::bytes_total() const
+	{
+		return bytes() + bytes_decimal();
 	}
 
 	arbit& arbit::negate()
@@ -320,10 +336,9 @@ namespace wc
 
 	void arbit::raw_print(char way, bool newline) const
 	{
-		std::print("({},{})", actual_fixed_len, fixed_len);
 		if (fixed_len > 0)
 		{
-			std::print(" ");
+			std::print("F({},{}) ", actual_fixed_len, fixed_len);
 			if (is_negative()) std::print("!");
 			for (unsigned i=0; i < fixed_len; i++)
 			{
@@ -339,14 +354,29 @@ namespace wc
 				if (i != fixed_len-1)
 					std::print(" ");
 			}
-			if (newline)
-				std::println("");
 		}
 
 		if (decimal_len > 0)
 		{
-			WC_STD_EXCEPTION("{}:{}: Decimal printing unimplemented", __FILE__, __LINE__);
+			std::print(" D({},{}) ", actual_decimal_len, decimal_len);
+			for (unsigned i=0; i < decimal_len; i++)
+			{
+				auto unit = decimal_ptr[i];
+				if (way == 'b')
+					std::print("{:#b}", unit);
+				else if (way == 'x')
+					std::print("{:#x}", unit);
+				else if (way == 's')
+					std::print("{}", sbase_t(unit));
+				else
+					std::print("{}", unit);
+				if (i != decimal_len-1)
+					std::print(" ");
+			}
 		}
+
+		if (newline)
+			std::println("");
 	}
 
 	void arbit::print() const
@@ -500,6 +530,56 @@ namespace wc
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
+	}
+
+	void arbit::grow_decimal(size_t by)
+	{
+		grow_decimal(by, is_negative());
+	}
+
+	void arbit::grow_decimal(size_t by, bool neg)
+	{
+		const auto has_len = actual_decimal_len - decimal_len;
+		if (by <= has_len)
+		{
+			memset(&decimal_ptr[decimal_len], neg ? 0xff : 0, sizeof(base_t) * by);
+			decimal_len += by;
+		}
+		else
+		{
+			const size_t grow_const = 1, grow_upper_limit = 1000;
+			const auto new_actual_decimal_len = actual_decimal_len + by + grow_const;
+			const auto new_decimal_len = decimal_len + by;
+
+			if (new_actual_decimal_len > grow_upper_limit)
+				WC_STD_EXCEPTION("Cannot grow decimal to {} as {} is the upper limit",
+								 new_actual_decimal_len, grow_upper_limit);
+
+			if (!(decimal_ptr = (base_t*)internal_realloc(decimal_ptr, sizeof(base_t) * new_actual_decimal_len)))
+				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
+								 actual_decimal_len, new_actual_decimal_len);
+
+			memset(&decimal_ptr[decimal_len], neg ? 0xff : 0, sizeof(base_t) * by);
+
+			actual_decimal_len = new_actual_decimal_len;
+			decimal_len = new_decimal_len;
+		}
+	}
+
+	void arbit::shrink_decimal(size_t by)
+	{
+		if (by >= decimal_len)
+			WC_STD_EXCEPTION("Cannot shrink decimal by {} when {} is all it has", by, decimal_len);
+
+		const size_t new_actual_decimal_len = actual_decimal_len - by;
+		const size_t new_decimal_len = decimal_len - by;
+
+		if(!(decimal_ptr = (base_t*)internal_realloc(decimal_ptr, sizeof(base_t) * new_actual_decimal_len)))
+			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
+							 actual_decimal_len, new_actual_decimal_len);
+
+		actual_decimal_len = new_actual_decimal_len;
+		decimal_len = new_decimal_len;
 	}
 
 	arbit arbit::multiply(const arbit& rhs) const
