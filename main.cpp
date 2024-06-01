@@ -2,6 +2,7 @@
 #include "arbit.hpp"
 
 #include <random>
+#include <chrono>
 
 int main(int argc, char** argv)
 {
@@ -13,30 +14,59 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist0(-100, 100), dist_loop(1, 5), dist1(-100, 100);
+		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(20, 30), dist1(min_i, max_i);
 
 		const char print_way = 'x';
 
-		for (int i=0; i < 5; i++)
+		int loop_max = 1e4;
+		for (int i=0; i < loop_max; i++)
 		{
 			std::list<int> s0, s1;
-			s0.push_back(dist0(engine));
 			for (int j=0; j < dist_loop(engine); j++)
-			{
+				s0.push_back(dist0(engine));
+			for (int j=0; j < dist_loop(engine); j++)
 				s1.push_back(dist1(engine));
-			}
-			auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
-			wc::arbit n0(t0, {});
-			wc::arbit n1(t1, {});
 
-			n0.raw_print(print_way);
-			std::print(" * ");
-			n1.raw_print(print_way);
+			[[maybe_unused]] auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
+
+			wc::arbit n0(s0, {});
+			wc::arbit n1(s1, {});
+
+			// n0.raw_print(print_way);
+			// std::print(" * ");
+			// n1.raw_print(print_way);
 
 			const auto nr = n0 * n1;
-			std::print(" = ");
-			nr.raw_print(print_way, 1);
+			// std::print(" = ");
+			// nr.raw_print(print_way, 1);
+
+			bool expected = n0.is_negative() ^ n1.is_negative();
+			bool got = nr.is_negative();
+			if (got != expected)
+			{
+				n0.raw_print(print_way);
+				std::print(" * ");
+				n1.raw_print(print_way);
+				std::print(" = ");
+				nr.raw_print(print_way, 1);
+			
+				WC_STD_EXCEPTION("No!");
+			}
+
+			static auto tp_last = std::chrono::high_resolution_clock::now();
+			const auto tp_now = std::chrono::high_resolution_clock::now();
+			const auto tp_diff = std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_last).count();
+			if (tp_diff > 500)
+			{
+				tp_last = tp_now;
+				std::cout << '\r';
+				std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4);
+				std::cout << " = " << (nr.bytes() / 4) << " - ";
+				std::cout << (i / double(loop_max)) * 100 << "%...";
+				std::cout.flush();
+			}
 		}
+		std::cout << std::endl;
 	}
 	catch (wc::arbit::exception& e)
 	{
@@ -49,7 +79,7 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 	}
 
-	std::println("Arbit heap statistics: Max: {}B on {} entries, current: {}B. "
+	std::println("Arbit heap statistics: Max: {}B sitting on {} entries, current: {}B. "
 				 "Mallocs: {}, reallocs: {}, frees: {}",
 				 wc::arbit::max_heap(), wc::arbit::max_entries_heap(), wc::arbit::net_heap(),
 				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap());

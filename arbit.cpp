@@ -136,6 +136,27 @@ namespace wc
 		return n >> (base_bits - 1);
 	}
 
+	void arbit::shrink_if_can()
+	{
+		const auto neg = is_negative();
+		const auto check = neg ? base_max : 0;
+
+		ssize_t i = (ssize_t)fixed_len - 1;
+		for (; i >= 1; i--)
+		{
+			if (fixed_ptr[i] == check)
+			{
+				if (is_negative(fixed_ptr[i-1]) == neg)
+					continue;
+				else break;
+			} else break;
+		}
+
+		const ssize_t by = (ssize_t)fixed_len - 1 - i;
+		if (by > 0)
+			shrink(by);
+	}
+
 	size_t arbit::bytes() const
 	{
 		return fixed_len * sizeof(base_t);
@@ -221,8 +242,8 @@ namespace wc
 		arbit copy(*this), copy_rhs(rhs);
 
 		const size_t total_len = std::max(fixed_len, rhs.fixed_len) * 2;
-		// if (product.fixed_len < total_len)
-		//	product.grow(total_len - product.fixed_len);
+		if (product.fixed_len < total_len)
+			product.grow(total_len - product.fixed_len);
 		if (copy.fixed_len < total_len)
 			copy.grow(total_len - copy.fixed_len);
 		if (copy_rhs.fixed_len < total_len)
@@ -240,6 +261,7 @@ namespace wc
 		if (product.fixed_len > total_len)
 			product.shrink(product.fixed_len - total_len);
 
+		product.shrink_if_can();
 		return product;
 
 		/*
@@ -539,17 +561,15 @@ namespace wc
 
 	void arbit::shrink(size_t by)
 	{
-		if (by > fixed_len)
+		if (by >= fixed_len)
 			WC_STD_EXCEPTION("Cannot shrink by {} when {} is all it has", by, fixed_len);
 
-		const size_t new_actual_fixed_len = actual_fixed_len;
+		const size_t new_actual_fixed_len = actual_fixed_len - by;
 		const size_t new_fixed_len = fixed_len - by;
 
-		/*
 		if(!(fixed_ptr = (base_t*)internal_realloc(fixed_ptr, sizeof(base_t) * new_actual_fixed_len)))
 			WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 							 actual_fixed_len, new_actual_fixed_len);
-		*/
 
 		actual_fixed_len = new_actual_fixed_len;
 		fixed_len = new_fixed_len;
