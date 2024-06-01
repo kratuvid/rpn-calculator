@@ -157,7 +157,7 @@ namespace wc
 		for (size_t i=0; i < fixed_len; i++)
 		{
 			const base_t unit = fixed_ptr[i];
-			const base_t unit_rhs = i < rhs.fixed_len ? rhs.fixed_ptr[i] : (neg_rhs ? 0xff : 0);
+			const base_t unit_rhs = i < rhs.fixed_len ? rhs.fixed_ptr[i] : 0;
 			
 			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
 			carry = sum >> base_bits;
@@ -233,7 +233,7 @@ namespace wc
 		for (size_t i=0; i < fixed_len; i++)
 		{
 			const base_t unit = fixed_ptr[i];
-			const base_t unit_rhs = i == 0 ? rhs : (neg_rhs ? 0xff : 0);
+			const base_t unit_rhs = i == 0 ? rhs : 0;
 			
 			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
 			carry = sum >> base_bits;
@@ -529,6 +529,7 @@ namespace wc
 
 		heap_allocations[ptr] = size;
 
+		heap_mallocs++;
 		heap_current += size;
 		if (heap_current > heap_max)
 			heap_max = heap_current;
@@ -547,11 +548,17 @@ namespace wc
 		heap_current += new_size;
 
 		if (ptr == nullptr)
+		{
+			heap_mallocs++;
 			heap_allocations[new_ptr] = new_size;
+		}
 		else
 		{
 			auto it = heap_allocations.find(ptr);
+
+			heap_reallocs++;
 			heap_current -= it->second;
+
 			if (ptr == new_ptr)
 			{
 				it->second = new_size;
@@ -578,10 +585,11 @@ namespace wc
 		auto it = heap_allocations.find(ptr);
 		if (it == heap_allocations.end())
 		{
-			WC_STD_EXCEPTION("Free called on a non-existent heap pointer {}", ptr);
+			WC_STD_EXCEPTION("Free called on a non-existent heap pointer {}", (size_t)ptr);
 		}
 		else
 		{
+			heap_frees++;
 			heap_current -= it->second;
 			heap_allocations.erase(it);
 		}

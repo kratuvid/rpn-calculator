@@ -13,23 +13,23 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(-1e4, 1e4), dist2(1, 1);
+		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(1, 1), dist1(max_i/4, max_i/2);
 
 		const char print_way = 'x';
 
-		for (int i=0; i < 5; i++)
+		for (int i=0; i < 1000; i++)
 		{
 			std::list<int> s0, s1;
-			for (int j=0; j < dist2(engine); j++)
+			s0.push_back(dist0(engine));
+			for (int j=0; j < dist_loop(engine); j++)
 			{
-				s0.push_back(dist(engine));
-				s1.push_back(dist(engine));
+				s1.push_back(dist1(engine));
 			}
 			wc::arbit n0(s0, {});
 			wc::arbit n1(s1, {});
 
 			n0.raw_print(print_way);
-			std::print(" + ");
+			std::print(" * ");
 			n1.raw_print(print_way);
 
 			const auto nr = n0 * n1;
@@ -42,16 +42,16 @@ int main(int argc, char** argv)
 		std::println("Fatal arbit exception: {}: {}",
 					 wc::arbit::error_type_str[static_cast<int>(e.type)],
 					 e.what());
-		return 12;
 	}
 	catch (std::exception& e)
 	{
 		std::println("Fatal standard exception: {}", e.what());
-		return 11;
 	}
 
-	const auto m = wc::arbit::max_heap_used(), e = wc::arbit::max_entries_heap_used(), n = wc::arbit::net_heap_used();
-	std::println("Arbit heap stats: Max: {}B on {} entries, current: {}B", m, e, n);
+	std::println("Arbit heap stats: Max: {}B on {} entries, current: {}B. "
+				 "Mallocs: {}, reallocs: {}, frees: {}",
+				 wc::arbit::max_heap(), wc::arbit::max_entries_heap(), wc::arbit::net_heap(),
+				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap());
 
 	return 10;
 

@@ -59,16 +59,20 @@ namespace wc
 	private:
 		static inline std::unordered_map<void*, size_t> heap_allocations;
 		static inline size_t heap_max = 0, heap_current = 0, heap_max_entries = 0;
+		static inline size_t heap_mallocs = 0, heap_reallocs = 0, heap_frees = 0;
 
 		static void* internal_malloc(size_t size);
 		static void* internal_realloc(void* ptr, size_t new_size);
 		static void internal_free(void* ptr);
 
 	public:
-		static size_t net_heap_used() { return heap_current; }
-		static auto max_heap_used() { return heap_max; }
-		static auto max_entries_heap_used() { return heap_max_entries; }
-		static const auto& heap_used() { return heap_allocations; }
+		static size_t net_heap() { return heap_current; }
+		static auto max_heap() { return heap_max; }
+		static auto max_entries_heap() { return heap_max_entries; }
+		static auto mallocs_heap() { return heap_mallocs; }
+		static auto reallocs_heap() { return heap_reallocs; }
+		static auto frees_heap() { return heap_frees; }
+		static const auto& heap() { return heap_allocations; }
 
 	public:
 		arbit(const arbit& other);
