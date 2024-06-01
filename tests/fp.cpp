@@ -99,15 +99,19 @@ int main()
 	mt19937 re(rd());
 	uniform_int_distribution<base_half_t> dist(0, ~base_half_t(0)), dist2(0, 20), dist3(0, 1);
 
-	const auto n1 = make_fp<base_t>(dist2(re), dist(re), dist3(re));
-	const auto n2 = make_fp<base_t>(dist2(re), dist(re), dist3(re));
-	const auto s = n1 + n2;
-	const auto d = n1 - n2;
-	const auto p = mul(n1, n2);
+	for (int i=0; i < 100; i++)
+	{
+		const auto n1 = make_fp<base_t>(dist2(re), dist(re), dist3(re));
+		const auto n2 = make_fp<base_t>(dist2(re), dist(re), dist3(re));
+		const auto s = n1 + n2;
+		const auto d = n1 - n2;
+		const auto p = mul(n1, n2);
 
-	println("n1: {}", get_both_repr(n1));
-	println("n2: {}", get_both_repr(n2));
-	println("s: {}", get_both_repr(s));
-	println("d: {}", get_both_repr(d));
-	println("p: {}", get_both_repr(p));
+		println("n1: {}", get_both_repr(n1));
+		println("n2: {}", get_both_repr(n2));
+		println("s: {}", get_both_repr(s));
+		println("d: {}", get_both_repr(d));
+		println("p: {}", get_both_repr(p));
+		println("");
+	}
 }
