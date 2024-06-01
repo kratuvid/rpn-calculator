@@ -64,6 +64,8 @@ namespace wc
 		template<class T> static void is_valid_integer();
 
 	private:
+		static inline size_t cons_copy = 0, cons_move = 0, cons_parse = 0, cons_bare = 0, cons_list = 0;
+
 		static inline std::unordered_map<void*, size_t> heap_allocations;
 		static inline size_t heap_max = 0, heap_current = 0, heap_max_entries = 0;
 		static inline size_t heap_mallocs = 0, heap_reallocs = 0, heap_frees = 0;
@@ -73,6 +75,12 @@ namespace wc
 		static void internal_free(void* ptr);
 
 	public:
+		static auto copy_cons() { return cons_copy; }
+		static auto move_cons() { return cons_move; }
+		static auto parse_cons() { return cons_parse; }
+		static auto bare_cons() { return cons_bare; }
+		static auto list_cons() { return cons_list; }
+
 		static size_t net_heap() { return heap_current; }
 		static auto max_heap() { return heap_max; }
 		static auto max_entries_heap() { return heap_max_entries; }

@@ -14,64 +14,84 @@ int main(int argc, char** argv)
 
 		std::random_device rd;
 		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(10, 20), dist1(min_i, max_i);
+		std::uniform_int_distribution<int> dist0(min_i, max_i), dist_loop(5, 10), dist1(min_i, max_i);
+		
+		const char print_way = 'd';
 
-		const char print_way = 'x';
-
-		int loop_max = 1e6;
-		for (int i=0; i < loop_max; i++)
+		if (false)
 		{
-			std::list<int> s0, s1;
-			for (int j=0; j < dist_loop(engine); j++)
-				s0.push_back(dist0(engine));
-			for (int j=0; j < dist_loop(engine); j++)
-				s1.push_back(dist1(engine));
+			std::string a, b;
+			std::cout << "Provide two numbers to add, subtract and multiply: \n";
+			std::cin >> a >> b;
 
-			[[maybe_unused]] auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
+			wc::arbit na(a), nb(b);
 
-			wc::arbit n0("5685489299299");
-			wc::arbit n1(s1, {});
+			auto s = na + nb;
+			auto d = na - nb;
+			auto p = na * nb;
 
-			bool neg = n0.is_negative();
-			bool neg_rhs = n1.is_negative();
-			bool expected = neg ^ neg_rhs;
-
-			const auto nr = n0 * n1;
-
-			bool got = nr.is_negative();
-			if (got != expected)
-			{
-				n0.raw_print(print_way);
-				std::print(" * ");
-				n1.raw_print(print_way);
-				std::print(" = ");
-				nr.raw_print(print_way, 1);
-			
-				WC_STD_EXCEPTION("No!");
-			}
-
-			static auto tp_last = std::chrono::high_resolution_clock::now();
-			const auto tp_now = std::chrono::high_resolution_clock::now();
-			const auto tp_diff = std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_last).count();
-			if (tp_diff > 1000)
-			{
-				tp_last = tp_now;
-				
-				std::cout << '\r';
-				n0.raw_print(print_way);
-				std::print(" * ");
-				n1.raw_print(print_way);
-				std::print(" = ");
-				nr.raw_print(print_way, 1);
-
-				std::cout << '\r';
-				std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4);
-				std::cout << " = " << (nr.bytes() / 4) << " ~ ";
-				std::cout << (i / double(loop_max)) * 100 << "%...";
-				std::cout.flush();
-			}
+			na.raw_print(print_way); std::cout << " {+,-,*} "; nb.raw_print(print_way); std::cout << " = \n";
+			s.raw_print(print_way, 1);
+			d.raw_print(print_way, 1);
+			p.raw_print(print_way, 1);
 		}
-		std::cout << std::endl;
+		else if (true)
+		{
+			int loop_max = 1e4;
+			for (int i=0; i < loop_max; i++)
+			{
+				std::list<int> s0, s1;
+				for (int j=0; j < dist_loop(engine); j++)
+					s0.push_back(dist0(engine));
+				for (int j=0; j < dist_loop(engine); j++)
+					s1.push_back(dist1(engine));
+
+				[[maybe_unused]] auto t0 = {0x53u}, t1 = {0xffffffc9, 0xffffffdc};
+
+				wc::arbit n0(s0, {});
+				wc::arbit n1(s1, {});
+
+				bool neg = n0.is_negative();
+				bool neg_rhs = n1.is_negative();
+				bool expected = neg ^ neg_rhs;
+
+				const auto nr = n0 * n1;
+
+				bool got = nr.is_negative();
+				if (got != expected)
+				{
+					n0.raw_print(print_way);
+					std::print(" * ");
+					n1.raw_print(print_way);
+					std::print(" = ");
+					nr.raw_print(print_way, 1);
+				
+					WC_STD_EXCEPTION("No!");
+				}
+
+				static auto tp_last = std::chrono::high_resolution_clock::now();
+				const auto tp_now = std::chrono::high_resolution_clock::now();
+				const auto tp_diff = std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_last).count();
+				if (tp_diff > 1000)
+				{
+					tp_last = tp_now;
+					
+					std::cout << '\r';
+					n0.raw_print(print_way);
+					std::print(" * ");
+					n1.raw_print(print_way);
+					std::print(" = ");
+					nr.raw_print(print_way, 1);
+
+					std::cout << '\r';
+					std::cout << (n0.bytes() / 4) << " * " << (n1.bytes() / 4);
+					std::cout << " = " << (nr.bytes() / 4) << " ~ ";
+					std::cout << (i / double(loop_max)) * 100 << "%...";
+					std::cout.flush();
+				}
+			}
+			std::cout << std::endl;
+		}
 	}
 	catch (wc::arbit::exception& e)
 	{
@@ -84,10 +104,15 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 	}
 
-	std::println("Arbit heap statistics: Max: {}B sitting on {} entries, current: {}B. "
-				 "Mallocs: {}, reallocs: {}, frees: {}",
+	std::println("Arbit statistics:\n"
+				 "Heap: max: {}B sitting on {} entries, current: {}B."
+				 "mallocs: {}, reallocs: {}, frees: {}\n"
+				 "Constructors: copy: {}, move: {}, parse: {}, bare: {}, list: {}",
 				 wc::arbit::max_heap(), wc::arbit::max_entries_heap(), wc::arbit::net_heap(),
-				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap());
+				 wc::arbit::mallocs_heap(), wc::arbit::reallocs_heap(), wc::arbit::frees_heap(),
+				 wc::arbit::copy_cons(), wc::arbit::move_cons(), wc::arbit::parse_cons(),
+				 wc::arbit::bare_cons(), wc::arbit::list_cons()
+				 );
 
 	return 10;
 

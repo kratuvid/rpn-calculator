@@ -18,10 +18,9 @@ Wtf Calculator: Another RPN calculator
 - [ ] arbitrary precision numbers
 - [ ] fixed and decimal numbers
 - [ ] optimized larger loops
-- [ ] find out a way to prevent copy in operator-= and other cases
 - [ ] implement decimal at all sorts of places
-- [ ] fix shrink_if_can
 - [ ] check if move cons is being called at relevant places
-- [ ] add support for operations directly with integers?
-- [ ] stop burning CPU cycles in the operator** loops
-- [ ] shrink on product
+- [x] fix shrink_if_can
+- [x] find out a way to prevent copy in operator-= and other cases - not possible
+- [x] add support for operations directly with integers?
+- [x] shrink on product

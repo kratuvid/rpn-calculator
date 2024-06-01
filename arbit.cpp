@@ -4,6 +4,7 @@ namespace wc
 {
 	arbit::arbit(const arbit& other)
 	{
+		cons_copy++;
 		*this = other;
 	}
 
@@ -12,6 +13,8 @@ namespace wc
 		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
+		cons_move++;
+
 		if (fixed_ptr) {
 			internal_free(fixed_ptr);
 			fixed_ptr = nullptr;
@@ -33,12 +36,14 @@ namespace wc
 	arbit::arbit(std::string_view both, base_t precision)
 		:precision(precision)
 	{
+		cons_parse++;
 		parse(both);
 	}
 
 	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
 		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
 	{
+		cons_bare++;
 	}
 
 	arbit::~arbit()
