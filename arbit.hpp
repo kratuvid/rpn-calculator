@@ -39,7 +39,7 @@ namespace wc
 
 	private:
 		static const size_t base_bits = sizeof(base_t) * 8;
-		static const size_t default_precision = 1;
+		static const size_t default_precision = 16;
 		static const base_t base_max = ~base_t(0), base_zero = 0;
 
 		size_t precision = default_precision;
@@ -126,6 +126,7 @@ namespace wc
 		bool is_negative() const;
 		static bool is_negative(base_t n);
 
+		void shrink_if_can_raw(bool fixed_not_decimal);
 		void shrink_if_can();
 		size_t bytes() const;
 		size_t bytes_decimal() const;

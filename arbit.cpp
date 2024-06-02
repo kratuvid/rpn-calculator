@@ -180,12 +180,22 @@ namespace wc
 		else if (fixed_len == 0)
 			grow(1);
 		fixed_ptr[0] = 0;
+
+		if (decimal_len > 0)
+		{
+			if (decimal_len > 1)
+				shrink(decimal_len - 1);
+			decimal_ptr[0] = 0;
+		}
 	}
 
 	bool arbit::is_zero() const
 	{
 		for (size_t i=0; i < fixed_len; i++)
 			if (fixed_ptr[i] != 0)
+				return false;
+		for (size_t i=0; i < decimal_len; i++)
+			if (decimal_ptr[i] != 0)
 				return false;
 		return true;
 	}
@@ -202,25 +212,42 @@ namespace wc
 		return n >> (base_bits - 1);
 	}
 
-	void arbit::shrink_if_can()
+	void arbit::shrink_if_can_raw(bool fixed_not_decimal)
 	{
+		const auto len = fixed_not_decimal ? fixed_len : decimal_len;
+		const auto ptr = fixed_not_decimal ? fixed_ptr : decimal_ptr;
+
 		const auto neg = is_negative();
 		const auto check = neg ? base_max : 0;
 
-		ssize_t i = (ssize_t)fixed_len - 1;
+		ssize_t i = (ssize_t)len - 1;
 		for (; i >= 1; i--)
 		{
-			if (fixed_ptr[i] == check)
+			if (ptr[i] == check)
 			{
-				if (is_negative(fixed_ptr[i-1]) == neg)
+				if (is_negative(ptr[i-1]) == neg)
 					continue;
 				else break;
 			} else break;
 		}
 
-		const ssize_t by = (ssize_t)fixed_len - 1 - i;
-		if (by > 0)
-			shrink(by);
+		const ssize_t by = (ssize_t)len - 1 - i;
+		if (fixed_not_decimal)
+		{
+			if (by > 0)
+				shrink(by);
+		}
+		else
+		{
+			if (by > 0)
+				shrink_decimal(by);
+		}
+	}
+
+	void arbit::shrink_if_can()
+	{
+		shrink_if_can_raw(true);
+		shrink_if_can_raw(false);
 	}
 
 	size_t arbit::bytes() const

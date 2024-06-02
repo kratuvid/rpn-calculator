@@ -22,11 +22,16 @@ namespace wc
 
 		if (decimal.size() > 0)
 		{
-			grow_decimal(decimal.size());
+			const auto take = decimal.size() > precision ? precision : decimal.size();
+			
+			if (take > 0)
+			{
+				grow_decimal(take);
 
-			size_t i=0;
-			for (auto it = decimal.begin(); it != decimal.end(); it++, i++)
-				decimal_ptr[i] = *it;
+				size_t i=0;
+				for (auto it = decimal.begin(); i < take; it++, i++)
+					decimal_ptr[i] = *it;
+			}
 		}
 	}
 
