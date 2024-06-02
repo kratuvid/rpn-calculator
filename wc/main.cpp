@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 		{
 			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
 
-			int loop_max = 20;
+			int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
 			{
 				wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
@@ -29,13 +29,13 @@ int main(int argc, char** argv)
 				auto s = na + nb;
 				auto d = na - nb;
 
-				std::println("{} and {}", na.raw_format(way), nb.raw_format(way));
-				std::println("Sum: {}", s.raw_format(way));
-				std::println("Difference: {}\n", d.raw_format(way));
+				std::println("[{}] & [{}]", na.raw_format(way), nb.raw_format(way));
+				std::println("Sum: [{}]", s.raw_format(way));
+				std::println("Difference: [{}]\n", d.raw_format(way));
 			}
 		}
 
-			/*
+		/*
 		else if (false)
 		{
 			std::string a, b;
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 			}
 			std::cout << std::endl;
 		}
-			*/
+		*/
 	}
 	catch (wc::arbit::exception& e)
 	{
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 
 	auto cons = wc::arbit::stats.get_cons();
 	auto heap = wc::arbit::stats.get_heap();
-	std::println("\nArbit statistics:\n"
+	std::println("# arbit stats:\n"
 				 "Heap: max: {}B sitting on {} entries, current: {}B, "
 				 "mallocs: {}, reallocs: {}, frees: {}\n"
 				 "Constructors: copy: {}, move: {}, parse: {}, bare: {}, list: {}",
