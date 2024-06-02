@@ -100,73 +100,73 @@ namespace wc
 		actual_fixed_len = actual_decimal_len = 0;
 	}
 
-	bool arbit::bit_raw(size_t at, size_t len, base_t* ptr)
+	bool arbit::bit_raw(size_t at, size_t len, base_t* ptr, bool invert)
 	{
-		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		const size_t unit = invert ? len - 1 - (at / base_bits) : at / base_bits, unit_at = at % base_bits;
 		if (unit <= len-1)
 			return ptr[unit] & (1 << unit_at);
 		return false;
 	}
 
-	void arbit::clear_bit_raw(size_t at, size_t len, base_t* ptr)
+	void arbit::clear_bit_raw(size_t at, size_t len, base_t* ptr, bool invert)
 	{
-		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		const size_t unit = invert ? len - 1 - (at / base_bits) : at / base_bits, unit_at = at % base_bits;
 		if (unit <= len-1)
 			ptr[unit] &= ~(1 << unit_at);
 	}
 
-	void arbit::set_bit_raw(size_t at, size_t len, base_t* ptr)
+	void arbit::set_bit_raw(size_t at, size_t len, base_t* ptr, bool invert)
 	{
-		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		const size_t unit = invert ? len - 1 - (at / base_bits) : at / base_bits, unit_at = at % base_bits;
 		if (unit <= len-1)
 			ptr[unit] |= (1 << unit_at);
 	}
 
-	void arbit::flip_bit_raw(size_t at, size_t len, base_t* ptr)
+	void arbit::flip_bit_raw(size_t at, size_t len, base_t* ptr, bool invert)
 	{
-		const size_t unit = at / base_bits, unit_at = at % base_bits;
+		const size_t unit = invert ? len - 1 - (at / base_bits) : at / base_bits, unit_at = at % base_bits;
 		if (unit <= len-1)
 			ptr[unit] ^= (1 << unit_at);
 	}
 
 	bool arbit::bit(size_t at) const
 	{
-		return bit_raw(at, fixed_len, fixed_ptr);
+		return bit_raw(at, fixed_len, fixed_ptr, false);
 	}
 
 	void arbit::clear_bit(size_t at)
 	{
-		clear_bit_raw(at, fixed_len, fixed_ptr);
+		clear_bit_raw(at, fixed_len, fixed_ptr, false);
 	}
 
 	void arbit::set_bit(size_t at)
 	{
-		set_bit_raw(at, fixed_len, fixed_ptr);
+		set_bit_raw(at, fixed_len, fixed_ptr, false);
 	}
 
 	void arbit::flip_bit(size_t at)
 	{
-		flip_bit_raw(at, fixed_len, fixed_ptr);
+		flip_bit_raw(at, fixed_len, fixed_ptr, false);
 	}
 
 	bool arbit::bit_decimal(size_t at) const
 	{
-		return bit_raw(at, decimal_len, decimal_ptr);
+		return bit_raw(at, decimal_len, decimal_ptr, true);
 	}
 
 	void arbit::clear_decimal_bit(size_t at)
 	{
-		clear_bit_raw(at, decimal_len, decimal_ptr);
+		clear_bit_raw(at, decimal_len, decimal_ptr, true);
 	}
 
 	void arbit::set_decimal_bit(size_t at)
 	{
-		set_bit_raw(at, decimal_len, decimal_ptr);
+		set_bit_raw(at, decimal_len, decimal_ptr, true);
 	}
 
 	void arbit::flip_decimal_bit(size_t at)
 	{
-		flip_bit_raw(at, decimal_len, decimal_ptr);
+		flip_bit_raw(at, decimal_len, decimal_ptr, true);
 	}
 
 	void arbit::clear_first_bits_raw(size_t before, size_t len, base_t* ptr, bool invert)
@@ -197,6 +197,70 @@ namespace wc
 	void arbit::clear_decimal_first_bits(size_t before)
 	{
 		clear_first_bits_raw(before, fixed_len, fixed_ptr, true);
+	}
+
+	void arbit::clear_both_first_bits(size_t before)
+	{
+		const auto bits_fixed = bytes() * 8, bits_decimal = bytes_decimal() * 8;
+		const bool is_decimal_covered = before > 0 && bits_decimal != 0,
+			  is_fixed_covered = before > bits_decimal && bits_fixed != 0;
+
+		if (is_decimal_covered)
+		{
+			const size_t before_this = is_fixed_covered ? bits_decimal : before;
+			clear_decimal_first_bits(before_this);
+			before -= bits_decimal;
+		}
+
+		if (is_fixed_covered)
+		{
+			clear_first_bits(before);
+		}
+	}
+
+	bool arbit::bit_both(size_t at) const
+	{
+		const auto bits_decimal = bytes_decimal() * 8;
+		const bool is_decimal_covered = at >= 0 && at < bits_decimal && bits_decimal != 0;
+		if (is_decimal_covered)
+		{
+			return bit_decimal(at);
+		}
+		else
+		{
+			at -= bits_decimal;
+			return bit(at);
+		}
+	}
+
+	void arbit::clear_both_bit(size_t at)
+	{
+		const auto bits_decimal = bytes_decimal() * 8;
+		const bool is_decimal_covered = at >= 0 && at < bits_decimal && bits_decimal != 0;
+		if (is_decimal_covered)
+		{
+			clear_decimal_bit(at);
+		}
+		else
+		{
+			at -= bits_decimal;
+			clear_bit(at);
+		}
+	}
+
+	void arbit::set_both_bit(size_t at)
+	{
+		const auto bits_decimal = bytes_decimal() * 8;
+		const bool is_decimal_covered = at >= 0 && at < bits_decimal && bits_decimal != 0;
+		if (is_decimal_covered)
+		{
+			set_decimal_bit(at);
+		}
+		else
+		{
+			at -= bits_decimal;
+			set_bit(at);
+		}
 	}
 
 	void arbit::zero()
@@ -431,25 +495,28 @@ namespace wc
 
 	arbit& arbit::operator<<=(size_t by)
 	{
-		const auto bits = bytes() * 8;
-		if (by >= bits)
+		const auto bits_total = bytes_total() * 8;
+		if (by >= bits_total)
 		{
-			memset(fixed_ptr, 0, bytes());
+			if (fixed_len > 0)
+				memset(fixed_ptr, 0, bytes());
+			if (decimal_len > 0)
+				memset(decimal_ptr, 0, bytes_decimal());
 		}
 		else if (by > 0)
 		{
-			for (ssize_t i = (ssize_t)bits-1; i >= 0; i--)
+			for (ssize_t i = (ssize_t)bits_total-1; i >= 0; i--)
 			{
 				if ((size_t)i >= by)
 				{
 					const size_t at = (size_t)i - by;
-					if (bit(at)) set_bit(i);
-					else clear_bit(i);
+					if (bit_both(at)) set_both_bit(i);
+					else clear_both_bit(i);
 				}
 				else break;
 			}
 			const auto upto = by;
-			clear_first_bits(upto);
+			clear_both_first_bits(upto);
 		}
 
 		return *this;

@@ -20,6 +20,7 @@ Wtf Calculator: Another RPN calculator
 - [ ] optimized larger loops
 - [ ] implement decimal at all sorts of places
 - [ ] check if move cons is being called at relevant places
+= [ ] impl bitshift for fp
 - [x] fix shrink_if_can
 - [x] find out a way to prevent copy in operator-= and other cases - not possible
 - [x] add support for operations directly with integers?
