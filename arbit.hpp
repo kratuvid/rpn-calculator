@@ -105,11 +105,21 @@ namespace wc
 
 		void reset();
 
+		static bool bit_raw(size_t at, size_t len, base_t* ptr);
+		static void clear_bit_raw(size_t at, size_t len, base_t* ptr);
+		static void set_bit_raw(size_t at, size_t len, base_t* ptr);
+		static void flip_bit_raw(size_t at, size_t len, base_t* ptr);
+		static void clear_first_bits_raw(size_t before, size_t len, base_t* ptr, bool invert);
 		bool bit(size_t at) const;
 		void clear_bit(size_t at);
 		void clear_first_bits(size_t before);
 		void set_bit(size_t at);
 		void flip_bit(size_t at);
+		bool bit_decimal(size_t at) const;
+		void clear_decimal_bit(size_t at);
+		void clear_decimal_first_bits(size_t before);
+		void set_decimal_bit(size_t at);
+		void flip_decimal_bit(size_t at);
 
 		void zero();
 		bool is_zero() const;

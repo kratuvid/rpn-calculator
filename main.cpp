@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 		{
 			std::uniform_int_distribution<int> dist0(-1e3, 1e3), dist_loop(1, 2), dist1(-1e3, 1e3);
 
-			const int loop_max = 1e7;
+			const int loop_max = 1e6;
 			for (int i=0; i < loop_max; i++)
 			{
 				const auto s0l = dist_loop(engine), s1l = dist_loop(engine);
