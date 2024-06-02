@@ -33,20 +33,20 @@ namespace wc
 		other.precision = default_precision;
 	}
 
-	arbit::arbit(std::string_view both, base_t precision)
+	arbit::arbit(std::string_view both, size_t precision)
 		:precision(precision)
 	{
 		stats.cons.parse++;
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, base_t precision)
+	arbit::arbit(base_t fixed, size_t precision)
 		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
 	{
 		stats.cons.bare++;
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, base_t precision)
+	arbit::arbit(base_t fixed, base_t decimal, size_t precision)
 		:arbit(std::initializer_list<base_t>({fixed}), std::initializer_list<base_t>({decimal}), precision)
 	{
 		stats.cons.bare++;

@@ -1,7 +1,7 @@
 namespace wc
 {
 	template<class C>
-	arbit::arbit(const C& fixed, const C& decimal, base_t precision)
+	arbit::arbit(const C& fixed, const C& decimal, size_t precision)
 		:precision(precision)
 	{
 		static_assert(typeid(C) != typeid(std::string));
