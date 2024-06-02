@@ -1,35 +1,27 @@
 namespace wc
 {
-	template<class C>
-	arbit::arbit(const C& fixed, const C& decimal, size_t precision)
+	template<class It>
+	arbit::arbit(const std::pair<It, It>& fixed_it, size_t fixed_len, const std::pair<It, It>& decimal_it, size_t decimal_len, size_t precision)
 		:precision(precision)
 	{
-		static_assert(typeid(C) != typeid(std::string));
-		static_assert(typeid(C) != typeid(std::string_view));
-		static_assert(typeid(C) != typeid(const char*));
-		static_assert(typeid(C) != typeid(char*));
-
-		stats.cons.list++;
-
-		if (fixed.size() > 0)
+		if (fixed_len > 0)
 		{
-			grow(fixed.size());
+			grow(fixed_len);
 
 			size_t i=0;
-			for (auto it = fixed.begin(); it != fixed.end(); it++, i++)
+			for (auto it = fixed_it.first; it != fixed_it.second; it++, i++)
 				fixed_ptr[i] = *it;
 		}
 
-		if (decimal.size() > 0)
+		if (decimal_len > 0)
 		{
-			const auto take = decimal.size() > precision ? precision : decimal.size();
-			
+			const auto take = decimal_len > precision ? precision : decimal_len;
 			if (take > 0)
 			{
 				grow_decimal(take);
 
 				size_t i=0;
-				for (auto it = decimal.begin(); i < take; it++, i++)
+				for (auto it = decimal_it.first; i < take; it++, i++)
 					decimal_ptr[i] = *it;
 			}
 		}

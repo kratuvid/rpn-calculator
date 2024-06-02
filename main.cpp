@@ -17,7 +17,21 @@ int main(int argc, char** argv)
 		
 		const char print_way = 'x';
 
-		if (false)
+		if (true)
+		{
+			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
+
+			// wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
+			wc::arbit na(0u, 0b1u << 31), nb(0u, 0b11u << 30);
+
+			auto s = na + nb;
+			auto d = na - nb;
+
+			na.raw_print(print_way); std::cout << " ; "; nb.raw_print(print_way, 1);
+			std::cout << "+: "; s.raw_print(print_way, 1);
+			std::cout << "-: "; d.raw_print(print_way, 1);
+		}
+		else if (false)
 		{
 			std::string a, b;
 			std::cout << "Provide two numbers to add, subtract and multiply: \n";
@@ -42,7 +56,7 @@ int main(int argc, char** argv)
 			for (int i=0; i < loop_max; i++)
 			{
 				const auto s0l = dist_loop(engine), s1l = dist_loop(engine);
-				std::list<int> s0, s1;
+				std::vector<wc::arbit::base_t> s0, s1;
 				while ((int)s0.size() < s0l)
 				{
 					auto n = dist0(engine);
@@ -58,8 +72,8 @@ int main(int argc, char** argv)
 					s1.push_back(n);
 				}
 
-				wc::arbit n0(s0, {});
-				wc::arbit n1(s1, {});
+				wc::arbit n0(s0.data(), s0.size(), 0, 0);
+				wc::arbit n1(s1.data(), s0.size(), 0, 0);
 
 				bool neg = n0.is_negative();
 				bool neg_rhs = n1.is_negative();

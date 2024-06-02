@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cmath>
 #include <random>
+#include <iostream>
 using namespace std;
 
 using base_double_t = uint64_t;
@@ -114,4 +115,14 @@ int main()
 		println("p: {}", get_both_repr(p));
 		println("");
 	}
+
+	uint32_t x, y;
+	print("Enter x and y: ");
+	cin >> hex >> x >> y;
+	const auto nx = make_fp<uint64_t>(0, x, false);
+	const auto ny = make_fp<uint64_t>(0, y, false);
+	const auto ns = make_fp<uint64_t>(0, nx + ny, false);
+	const auto nd = make_fp<uint64_t>(0, nx - ny, false);
+	println("A: {}, B: {}", get_both_repr(nx), get_both_repr(ny));
+	println("+: {}, -: {}", get_both_repr(ns), get_both_repr(nd));
 }

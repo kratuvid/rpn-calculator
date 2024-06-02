@@ -40,16 +40,42 @@ namespace wc
 		parse(both);
 	}
 
-	arbit::arbit(base_t fixed, size_t precision)
-		:arbit(std::initializer_list<base_t>({fixed}), {}, precision)
+	arbit::arbit(arbit::base_t fixed, size_t precision)
+		:arbit(&fixed, 1, nullptr, 0, precision)
 	{
 		stats.cons.bare++;
 	}
 
-	arbit::arbit(base_t fixed, base_t decimal, size_t precision)
-		:arbit(std::initializer_list<base_t>({fixed}), std::initializer_list<base_t>({decimal}), precision)
+	arbit::arbit(arbit::base_t fixed, arbit::base_t decimal, size_t precision)
+		:arbit(&fixed, 1, &decimal, 1, precision)
 	{
 		stats.cons.bare++;
+	}
+
+	arbit::arbit(const arbit::base_t* fixed_ptr, size_t fixed_len, const arbit::base_t* decimal_ptr, size_t decimal_len, size_t precision)
+		:precision(precision)
+	{
+		stats.cons.list++;
+
+		if (fixed_len > 0)
+		{
+			grow(fixed_len);
+
+			for (size_t i=0; i < fixed_len; i++)
+				this->fixed_ptr[i] = fixed_ptr[i];
+		}
+
+		if (decimal_len > 0)
+		{
+			const auto take = decimal_len > precision ? precision : decimal_len;
+			if (take > 0)
+			{
+				grow_decimal(take);
+
+				for (size_t i=0; i < decimal_len; i++)
+					this->decimal_ptr[i] = decimal_ptr[i];
+			}
+		}
 	}
 
 	arbit::~arbit()
@@ -269,7 +295,23 @@ namespace wc
 	{
 		for (size_t i=0; i < fixed_len; i++)
 			fixed_ptr[i] = ~fixed_ptr[i];
-		*this += 1;
+		for (size_t i=0; i < decimal_len; i++)
+			decimal_ptr[i] = ~decimal_ptr[i];
+
+		base_double_t carry = 0;
+		for (ssize_t i=decimal_len-1; i >= 0; i--)
+		{
+			const auto unit = decimal_ptr[i];
+			const auto unit_rhs = i == (ssize_t)decimal_len-1 ? 1 : 0;
+			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
+			carry = sum >> base_bits;
+			decimal_ptr[i] = sum;
+		}
+
+		carry = decimal_len == 0 ? 1 : carry;
+		if (carry > 0)
+			*this += sbase_t(carry);
+
 		return *this;
 	}
 
@@ -278,15 +320,36 @@ namespace wc
 		if (rhs.fixed_len == 0)
 			return *this;
 
+		const auto neg = is_negative(), neg_rhs = rhs.is_negative();
+
 		if (fixed_len < rhs.fixed_len)
 		{
 			const size_t by = rhs.fixed_len - fixed_len;
 			grow(by);
 		}
 
-		const auto neg = is_negative(), neg_rhs = rhs.is_negative();
+		if (decimal_len < rhs.decimal_len)
+		{
+			size_t by = rhs.decimal_len - decimal_len;
+			if (rhs.decimal_len > precision)
+				by = precision > decimal_len ? precision - decimal_len : 0;
+			if (by > 0)
+				grow_decimal(by);
+		}
 
 		base_double_t carry = 0;
+
+		for (ssize_t i = decimal_len-1; i >= 0; i--)
+		{
+			const base_t unit = decimal_ptr[i];
+			const base_t unit_rhs = rhs.decimal_ptr[i];
+
+			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
+			carry = sum >> base_bits;
+
+			decimal_ptr[i] = sum;
+		}
+
 		for (size_t i=0; i < fixed_len; i++)
 		{
 			const base_t unit = fixed_ptr[i];
@@ -330,6 +393,7 @@ namespace wc
 		const auto neg = is_negative(), neg_rhs = rhs < 0;
 
 		base_double_t carry = 0;
+
 		for (size_t i=0; i < fixed_len; i++)
 		{
 			const base_t unit = fixed_ptr[i];
@@ -407,6 +471,7 @@ namespace wc
 		actual_fixed_len = actual_decimal_len = 0;
 
 		grow(rhs.fixed_len);
+		grow_decimal(std::min(rhs.decimal_len, precision));
 
 		if (fixed_len > 0)
 			memcpy(fixed_ptr, rhs.fixed_ptr, sizeof(base_t) * fixed_len);
@@ -572,6 +637,8 @@ namespace wc
 
 	void arbit::grow(size_t by, bool neg)
 	{
+		if (by == 0) return;
+
 		const auto has_len = actual_fixed_len - fixed_len;
 		if (by <= has_len)
 		{
@@ -622,6 +689,8 @@ namespace wc
 
 	void arbit::grow_decimal(size_t by, bool neg)
 	{
+		if (by == 0) return;
+
 		const auto has_len = actual_decimal_len - decimal_len;
 		if (by <= has_len)
 		{
