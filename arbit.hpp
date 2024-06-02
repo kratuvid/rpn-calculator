@@ -39,10 +39,8 @@ namespace wc
 
 	private:
 		static const size_t base_bits = sizeof(base_t) * 8;
-		static const size_t default_precision = 16;
 		static const base_t base_max = ~base_t(0), base_zero = 0;
 
-		size_t precision = default_precision;
 		base_t *fixed_ptr = nullptr, *decimal_ptr = nullptr;
 		size_t fixed_len = 0, decimal_len = 0;
 		size_t actual_fixed_len = 0, actual_decimal_len = 0;
@@ -96,11 +94,11 @@ namespace wc
 	public:
 		arbit(const arbit& other);
 		arbit(arbit&& other);
-		arbit(base_t fixed, size_t precision = default_precision);
-		arbit(base_t fixed, base_t decimal, size_t precision = default_precision);
-		arbit(std::string_view both, size_t precision = default_precision);
-		arbit(const base_t* fixed_ptr, size_t fixed_len, const base_t* decimal_ptr, size_t decimal_len, size_t precision = default_precision);
-		template<class It> arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len, size_t precision = default_precision);
+		arbit(base_t fixed);
+		arbit(base_t fixed, base_t decimal);
+		arbit(std::string_view both);
+		arbit(const base_t* fixed_ptr, size_t fixed_len, const base_t* decimal_ptr, size_t decimal_len);
+		template<class It> arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len);
 
 		~arbit();
 

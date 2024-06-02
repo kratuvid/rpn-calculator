@@ -9,8 +9,7 @@ namespace wc
 	}
 
 	arbit::arbit(arbit&& other)
-		:precision(other.precision),
-		 fixed_len(other.fixed_len), decimal_len(other.decimal_len),
+		:fixed_len(other.fixed_len), decimal_len(other.decimal_len),
 		 actual_fixed_len(other.actual_fixed_len), actual_decimal_len(other.actual_decimal_len)
 	{
 		stats.cons.move++;
@@ -30,52 +29,37 @@ namespace wc
 		other.fixed_ptr = other.decimal_ptr = nullptr;
 		other.fixed_len = other.decimal_len = 0;
 		other.actual_fixed_len = other.actual_decimal_len = 0;
-		other.precision = default_precision;
 	}
 
-	arbit::arbit(std::string_view both, size_t precision)
-		:precision(precision)
+	arbit::arbit(std::string_view both)
 	{
 		stats.cons.parse++;
 		parse(both);
 	}
 
-	arbit::arbit(arbit::base_t fixed, size_t precision)
-		:arbit(&fixed, 1, nullptr, 0, precision)
+	arbit::arbit(arbit::base_t fixed)
+		:arbit(&fixed, 1, nullptr, 0)
 	{
 		stats.cons.bare++;
 	}
 
-	arbit::arbit(arbit::base_t fixed, arbit::base_t decimal, size_t precision)
-		:arbit(&fixed, 1, &decimal, 1, precision)
+	arbit::arbit(arbit::base_t fixed, arbit::base_t decimal)
+		:arbit(&fixed, 1, &decimal, 1)
 	{
 		stats.cons.bare++;
 	}
 
-	arbit::arbit(const arbit::base_t* fixed_ptr, size_t fixed_len, const arbit::base_t* decimal_ptr, size_t decimal_len, size_t precision)
-		:precision(precision)
+	arbit::arbit(const arbit::base_t* fixed_ptr, size_t fixed_len, const arbit::base_t* decimal_ptr, size_t decimal_len)
 	{
 		stats.cons.list++;
 
-		if (fixed_len > 0)
-		{
-			grow(fixed_len);
+		grow(fixed_len);
+		for (size_t i=0; i < fixed_len; i++)
+			this->fixed_ptr[i] = fixed_ptr[i];
 
-			for (size_t i=0; i < fixed_len; i++)
-				this->fixed_ptr[i] = fixed_ptr[i];
-		}
-
-		if (decimal_len > 0)
-		{
-			const auto take = decimal_len > precision ? precision : decimal_len;
-			if (take > 0)
-			{
-				grow_decimal(take);
-
-				for (size_t i=0; i < decimal_len; i++)
-					this->decimal_ptr[i] = decimal_ptr[i];
-			}
-		}
+		grow_decimal(decimal_len);
+		for (size_t i=0; i < decimal_len; i++)
+			this->decimal_ptr[i] = decimal_ptr[i];
 	}
 
 	arbit::~arbit()
@@ -95,7 +79,6 @@ namespace wc
 			decimal_ptr = nullptr;
 		}
 
-		precision = default_precision;
 		fixed_len = decimal_len = 0;
 		actual_fixed_len = actual_decimal_len = 0;
 	}
@@ -394,11 +377,8 @@ namespace wc
 
 		if (decimal_len < rhs.decimal_len)
 		{
-			size_t by = rhs.decimal_len - decimal_len;
-			if (rhs.decimal_len > precision)
-				by = precision > decimal_len ? precision - decimal_len : 0;
-			if (by > 0)
-				grow_decimal(by);
+			const size_t by = rhs.decimal_len - decimal_len;
+			grow_decimal(by);
 		}
 
 		base_double_t carry = 0;
@@ -533,12 +513,11 @@ namespace wc
 			decimal_ptr = nullptr;
 		}
 
-		precision = rhs.precision;
 		fixed_len = decimal_len = 0;
 		actual_fixed_len = actual_decimal_len = 0;
 
 		grow(rhs.fixed_len);
-		grow_decimal(std::min(rhs.decimal_len, precision));
+		grow_decimal(rhs.decimal_len);
 
 		if (fixed_len > 0)
 			memcpy(fixed_ptr, rhs.fixed_ptr, sizeof(base_t) * fixed_len);
