@@ -135,8 +135,8 @@ namespace wc
 		size_t bytes_decimal() const;
 		size_t bytes_total() const;
 
-		void raw_print(char way, bool newline = false) const;
-		void print() const;
+		std::string raw_format(char way) const;
+		std::string format() const;
 
 		arbit& negate();
 		arbit operator-() const { arbit copy(*this); copy.negate(); return copy; }

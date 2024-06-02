@@ -15,13 +15,13 @@ int main(int argc, char** argv)
 		std::random_device rd;
 		std::mt19937 engine(rd());
 		
-		const char print_way = 'x';
+		const char way = 'x';
 
 		if (true)
 		{
 			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
 
-			int loop_max = 1e6;
+			int loop_max = 20;
 			for (int i=0; i < loop_max; i++)
 			{
 				wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
@@ -29,11 +29,13 @@ int main(int argc, char** argv)
 				auto s = na + nb;
 				auto d = na - nb;
 
-				na.raw_print(print_way); std::cout << " ; "; nb.raw_print(print_way, 1);
-				std::cout << "+: "; s.raw_print(print_way, 1);
-				std::cout << "-: "; d.raw_print(print_way, 1);
+				std::println("{} and {}", na.raw_format(way), nb.raw_format(way));
+				std::println("Sum: {}", s.raw_format(way));
+				std::println("Difference: {}\n", d.raw_format(way));
 			}
 		}
+
+			/*
 		else if (false)
 		{
 			std::string a, b;
@@ -119,6 +121,7 @@ int main(int argc, char** argv)
 			}
 			std::cout << std::endl;
 		}
+			*/
 	}
 	catch (wc::arbit::exception& e)
 	{

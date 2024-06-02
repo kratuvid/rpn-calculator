@@ -1,4 +1,5 @@
 #include "arbit.hpp"
+#include <sstream>
 
 namespace wc
 {
@@ -94,52 +95,65 @@ namespace wc
 		return bytes() + bytes_decimal();
 	}
 
-	void arbit::raw_print(char way, bool newline) const
+	std::string arbit::raw_format(char way) const
 	{
+		std::ostringstream oss;
+
 		if (fixed_len > 0)
 		{
-			std::print("F({},{}) ", actual_fixed_len, fixed_len);
-			if (is_negative()) std::print("!");
+			oss << "F(" << actual_fixed_len << "," << fixed_len << "): ";
+			if (is_negative()) oss << "!";
+
 			for (unsigned i=0; i < fixed_len; i++)
 			{
 				auto unit = fixed_ptr[i];
-				if (way == 'b')
-					std::print("{:#b}", unit);
-				else if (way == 'x')
-					std::print("{:#x}", unit);
-				else if (way == 's')
-					std::print("{}", sbase_t(unit));
-				else
-					std::print("{}", unit);
+				switch(way)
+				{
+				case 'b': oss << std::format("{:#b}", unit);
+					break;
+				case 'x': oss << std::hex << "0x" << unit;
+					break;
+				case 's': oss << sbase_t(unit);
+					break;
+				default: oss << unit;
+					break;
+				}
 				if (i != fixed_len-1)
-					std::print(" ");
+					oss << " ";
 			}
 		}
 
 		if (decimal_len > 0)
 		{
-			std::print(" D({},{}) ", actual_decimal_len, decimal_len);
+			if (fixed_len != 0) oss << ", ";
+			oss << "D(" << actual_decimal_len << "," << decimal_len << "): ";
+
 			for (unsigned i=0; i < decimal_len; i++)
 			{
 				auto unit = decimal_ptr[i];
-				if (way == 'b')
-					std::print("{:#b}", unit);
-				else if (way == 'x')
-					std::print("{:#x}", unit);
-				else if (way == 's')
-					std::print("{}", sbase_t(unit));
-				else
-					std::print("{}", unit);
+				switch(way)
+				{
+				case 'b': oss << std::format("{:#b}", unit);
+					break;
+				case 'x': oss << std::hex << "0x" << unit;
+					break;
+				case 's': oss << sbase_t(unit);
+					break;
+				default: oss << unit;
+					break;
+				}
 				if (i != decimal_len-1)
-					std::print(" ");
+					oss << " ";
 			}
 		}
 
-		if (newline)
-			std::println("");
+		if (fixed_len == 0 && decimal_len == 0)
+			oss << "EMPTY ARBIT!";
+
+		return oss.str();
 	}
 
-	void arbit::print() const
+	std::string arbit::format() const
 	{
 		WC_STD_EXCEPTION("{}:{}: print() is broken", __FILE__, __LINE__);
 		/*
@@ -177,6 +191,7 @@ namespace wc
 		if (decimal_len > 0)
 			WC_STD_EXCEPTION("{}:{}: Decimal printing is broken", __FILE__, __LINE__);
 		*/
+		return "";
 	}
 
 	void arbit::parse(std::string_view both)
