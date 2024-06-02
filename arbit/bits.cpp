@@ -98,7 +98,7 @@ namespace wc
 
 	void arbit::clear_decimal_first_bits(size_t before)
 	{
-		clear_first_bits_raw(before, fixed_len, fixed_ptr, true);
+		clear_first_bits_raw(before, decimal_len, decimal_ptr, true);
 	}
 
 	void arbit::clear_both_first_bits(size_t before)

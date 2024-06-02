@@ -21,10 +21,17 @@ int main(int argc, char** argv)
 		{
 			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
 
-			int loop_max = 1e5;
+			int loop_max = 1;
 			for (int i=0; i < loop_max; i++)
 			{
-				wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
+				wc::arbit na(839u, dist0(engine)), nb(3881u, dist0(engine));
+
+				wc::arbit copy(na);
+				for (size_t i=0; i <= 64; i++)
+				{
+					std::println("<<= {}: {}", i, copy.raw_format('b'));
+					copy <<= 1;
+				}
 
 				auto s = na + nb;
 				auto d = na - nb;

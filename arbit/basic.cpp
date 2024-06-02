@@ -109,7 +109,7 @@ namespace wc
 				auto unit = fixed_ptr[i];
 				switch(way)
 				{
-				case 'b': oss << std::format("{:#b}", unit);
+				case 'b': oss << std::format("0b{:0>32b}", unit);
 					break;
 				case 'x': oss << std::hex << "0x" << unit;
 					break;
@@ -133,7 +133,7 @@ namespace wc
 				auto unit = decimal_ptr[i];
 				switch(way)
 				{
-				case 'b': oss << std::format("{:#b}", unit);
+				case 'b': oss << std::format("0b{:0>32b}", unit);
 					break;
 				case 'x': oss << std::hex << "0x" << unit;
 					break;
