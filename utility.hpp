@@ -37,14 +37,17 @@ namespace wc
 		"repl_quit"
 	};
 
-	class exception : public std::runtime_error
+	class exception : public std::exception
 	{
 	public:
 		error_type type;
+		std::string msg;
 
-		exception(const std::string_view& msg, error_type e)
-			:std::runtime_error(msg.data()), type(e)
-		{
-		}
+		exception(std::string_view msg, error_type type)
+			:type(type), msg(msg)
+		{}
+
+		const char* what() const noexcept override
+		{ return msg.c_str(); }
 	};
 }; // namespace wc

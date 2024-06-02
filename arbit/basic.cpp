@@ -157,39 +157,39 @@ namespace wc
 	{
 		WC_STD_EXCEPTION("{}:{}: print() is broken", __FILE__, __LINE__);
 		/*
-		std::string digits;
+		  std::string digits;
 
-		const bool neg = is_negative();
+		  const bool neg = is_negative();
 
-		{
-			arbit copy;
-			const arbit* source = this;
-			if (neg)
-			{
-				source = &copy;
-				copy = *this;
-				copy.negate();
-			}
+		  {
+		  arbit copy;
+		  const arbit* source = this;
+		  if (neg)
+		  {
+		  source = &copy;
+		  copy = *this;
+		  copy.negate();
+		  }
 
-			for (size_t i=0; i < source->fixed_len; i++)
-			{
-				base_t n = source->fixed_ptr[i];
-				while (n != 0)
-				{
-					digits += std::to_string(n % 10);
-					n /= 10;
-				}
-			}
-		}
+		  for (size_t i=0; i < source->fixed_len; i++)
+		  {
+		  base_t n = source->fixed_ptr[i];
+		  while (n != 0)
+		  {
+		  digits += std::to_string(n % 10);
+		  n /= 10;
+		  }
+		  }
+		  }
 
-		if (digits.empty()) digits += "0";
-		std::reverse(digits.begin(), digits.end());
+		  if (digits.empty()) digits += "0";
+		  std::reverse(digits.begin(), digits.end());
 
-		if (neg) std::print("-");
-		std::print("{}", digits);
+		  if (neg) std::print("-");
+		  std::print("{}", digits);
 
-		if (decimal_len > 0)
-			WC_STD_EXCEPTION("{}:{}: Decimal printing is broken", __FILE__, __LINE__);
+		  if (decimal_len > 0)
+		  WC_STD_EXCEPTION("{}:{}: Decimal printing is broken", __FILE__, __LINE__);
 		*/
 		return "";
 	}

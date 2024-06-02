@@ -29,23 +29,43 @@ namespace wc
 	class arbit
 	{
 	public:
-		enum class error_type { parse };
-		static constexpr std::array<std::string_view, 1> error_type_str { "parse" };
-		class exception;
-
 		using base_t = uint32_t;
 		using sbase_t = int32_t;
 		using base_double_t = uint64_t;
 
-	private:
+		class _stats {
+			friend class wc::arbit;
+		private:
+			struct {
+				size_t copy = 0, move = 0, parse = 0;
+				size_t bare = 0, list = 0;
+			} cons;
+
+			struct {
+				std::unordered_map<void*, size_t> allocs;
+				size_t max = 0, max_entries = 0, current = 0;
+				size_t mallocs = 0, reallocs = 0, frees = 0;
+			} heap;
+
+		public:
+			_stats() {}
+			const auto& get_cons() { return cons; }
+			const auto& get_heap() { return heap; }
+		} static inline stats;
+
 		static const size_t base_bits = sizeof(base_t) * 8;
 		static const base_t base_max = ~base_t(0), base_zero = 0;
 
+		enum class error_type { parse };
+		static constexpr std::array<std::string_view, 1> error_type_str { "parse" };
+		class exception;
+
+	private: // essential member variables
 		base_t *fixed_ptr = nullptr, *decimal_ptr = nullptr;
 		size_t fixed_len = 0, decimal_len = 0;
 		size_t actual_fixed_len = 0, actual_decimal_len = 0;
 
-	private:
+	private: // helper functions
 		void parse(std::string_view both);
 		void parse(std::string_view fixed, std::string_view decimal, bool neg);
 
@@ -65,33 +85,12 @@ namespace wc
 
 		template<class T> static void is_valid_integer();
 
-	private:
+	private: // heap management
 		static void* internal_malloc(size_t size);
 		static void* internal_realloc(void* ptr, size_t new_size);
 		static void internal_free(void* ptr);
 
-	public:
-		class _stats {
-			friend class wc::arbit;
-			private:
-				struct {
-					size_t copy = 0, move = 0, parse = 0;
-					size_t bare = 0, list = 0;
-				} cons;
-
-				struct {
-					std::unordered_map<void*, size_t> allocs;
-					size_t max = 0, max_entries = 0, current = 0;
-					size_t mallocs = 0, reallocs = 0, frees = 0;
-				} heap;
-
-			public:
-				_stats() {}
-				const auto& get_cons() { return cons; }
-				const auto& get_heap() { return heap; }
-		} static inline stats;
-
-	public:
+	public: // construction
 		arbit(const arbit& other);
 		arbit(arbit&& other);
 		arbit(base_t fixed);
@@ -101,9 +100,9 @@ namespace wc
 		template<class It> arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len);
 
 		~arbit();
-
 		void reset();
 
+	public: // bit manipulation
 		static bool bit_raw(size_t at, size_t len, base_t* ptr, bool invert);
 		static void clear_bit_raw(size_t at, size_t len, base_t* ptr, bool invert);
 		static void set_bit_raw(size_t at, size_t len, base_t* ptr, bool invert);
@@ -124,6 +123,7 @@ namespace wc
 		void set_both_bit(size_t at);
 		void clear_both_first_bits(size_t before);
 
+	public: // basic
 		void zero();
 		bool is_zero() const;
 		bool is_negative() const;
@@ -138,6 +138,7 @@ namespace wc
 		std::string raw_format(char way) const;
 		std::string format() const;
 
+	public: // operations
 		arbit& negate();
 		arbit operator-() const { arbit copy(*this); copy.negate(); return copy; }
 		arbit& operator-=(const arbit& rhs) { *this += -rhs; return *this; }
@@ -158,60 +159,19 @@ namespace wc
 		arbit& operator=(const arbit& rhs);
 	};
 
-	class arbit::exception : public std::runtime_error
+	class arbit::exception : public std::exception
 	{
 	public:
 		arbit::error_type type;
+		std::string msg;
 
-		exception(const std::string_view& what, arbit::error_type type)
-			:std::runtime_error(what.data()), type(type)
+		exception(std::string_view msg, arbit::error_type type)
+			:type(type), msg(msg)
 		{}
+
+		const char* what() const noexcept override
+		{ return msg.c_str(); }
 	};
 };
 
 #include "arbit.inl"
-
-// size_t wc::arbit::heap_current = 0;
-// size_t wc::arbit::heap_max = 0;
-
-/* Test code
-
-   	try
-	{
-		const auto max_i = std::numeric_limits<int>::max();
-		const auto max_ll = std::numeric_limits<long long>::max();
-		const auto max_u = std::numeric_limits<unsigned>::max();
-
-		std::random_device rd;
-		std::mt19937 engine(rd());
-		std::uniform_int_distribution<int> dist(-1000, 1000);
-
-		// wc::arbit n100("109.8442");
-		const auto begin = max_i - 100;
-		std::println("Begin: {}", begin);
-
-		wc::arbit n0({begin, begin - 200, begin / 2}, {});
-		n0.negate();
-		for (int i=0; i < 10; i++)
-		{
-			auto by = dist(engine);
-			n0 += by;
-			std::print("+= {}: ", by); n0.print();
-			std::print(" <> ");
-			n0.raw_print(true);
-		}
-	}
-	catch (wc::arbit::exception& e)
-	{
-		std::println("Fatal arbit exception: {}: {}",
-					 wc::arbit::error_type_str[static_cast<int>(e.type)],
-					 e.what());
-		return 12;
-	}
-	catch (std::exception& e)
-	{
-		std::println("Fatal standard exception: {}", e.what());
-		return 11;
-	}
-*/
-
