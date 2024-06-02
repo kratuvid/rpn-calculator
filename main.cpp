@@ -21,15 +21,18 @@ int main(int argc, char** argv)
 		{
 			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
 
-			// wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
-			wc::arbit na(0u, 0b1u << 31), nb(0u, 0b11u << 30);
+			int loop_max = 1e6;
+			for (int i=0; i < loop_max; i++)
+			{
+				wc::arbit na(0u, dist0(engine)), nb(0u, dist0(engine));
 
-			auto s = na + nb;
-			auto d = na - nb;
+				auto s = na + nb;
+				auto d = na - nb;
 
-			na.raw_print(print_way); std::cout << " ; "; nb.raw_print(print_way, 1);
-			std::cout << "+: "; s.raw_print(print_way, 1);
-			std::cout << "-: "; d.raw_print(print_way, 1);
+				na.raw_print(print_way); std::cout << " ; "; nb.raw_print(print_way, 1);
+				std::cout << "+: "; s.raw_print(print_way, 1);
+				std::cout << "-: "; d.raw_print(print_way, 1);
+			}
 		}
 		else if (false)
 		{
@@ -72,8 +75,8 @@ int main(int argc, char** argv)
 					s1.push_back(n);
 				}
 
-				wc::arbit n0(s0.data(), s0.size(), 0, 0);
-				wc::arbit n1(s1.data(), s0.size(), 0, 0);
+				wc::arbit n0(s0.begin(), s0.size(), s0.end(), 0);
+				wc::arbit n1(s1.begin(), s0.size(), s1.end(), 0);
 
 				bool neg = n0.is_negative();
 				bool neg_rhs = n1.is_negative();

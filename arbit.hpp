@@ -100,7 +100,7 @@ namespace wc
 		arbit(base_t fixed, base_t decimal, size_t precision = default_precision);
 		arbit(std::string_view both, size_t precision = default_precision);
 		arbit(const base_t* fixed_ptr, size_t fixed_len, const base_t* decimal_ptr, size_t decimal_len, size_t precision = default_precision);
-		template<class It> arbit(const std::pair<It, It>& fixed_it, size_t fixed_len, const std::pair<It, It>& decimal_it, size_t decimal_len, size_t precision = default_precision);
+		template<class It> arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len, size_t precision = default_precision);
 
 		~arbit();
 

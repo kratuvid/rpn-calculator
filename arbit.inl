@@ -1,15 +1,17 @@
 namespace wc
 {
 	template<class It>
-	arbit::arbit(const std::pair<It, It>& fixed_it, size_t fixed_len, const std::pair<It, It>& decimal_it, size_t decimal_len, size_t precision)
+	arbit::arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len, size_t precision)
 		:precision(precision)
 	{
+		stats.cons.list++;
+
 		if (fixed_len > 0)
 		{
 			grow(fixed_len);
 
 			size_t i=0;
-			for (auto it = fixed_it.first; it != fixed_it.second; it++, i++)
+			for (auto it = fixed_begin; i < fixed_len; it++, i++)
 				fixed_ptr[i] = *it;
 		}
 
@@ -21,7 +23,7 @@ namespace wc
 				grow_decimal(take);
 
 				size_t i=0;
-				for (auto it = decimal_it.first; i < take; it++, i++)
+				for (auto it = decimal_begin; i < take; it++, i++)
 					decimal_ptr[i] = *it;
 			}
 		}
