@@ -1,25 +1,18 @@
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <cctype>
-#include <string_view>
-#include <cstring>
-#include <exception>
-#include <vector>
-#include <array>
-#include <cmath>
-#include <list>
 #include <any>
+#include <cctype>
+#include <chrono>
+#include <cmath>
+#include <cstring>
+#include <deque>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <print>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
-#include <deque>
-#include <iomanip>
-#include <chrono>
-#include <algorithm>
-#include <print>
-#include <iostream>
 
 #include <readline/readline.h>
 #include <readline/history.h>

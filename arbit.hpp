@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cstdint>
+#include <array>
 #include <cmath>
-#include <print>
-#include <string_view>
+#include <cstdint>
 #include <exception>
 #include <format>
-#include <array>
+#include <print>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "utility.hpp"

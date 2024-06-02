@@ -1,9 +1,9 @@
 #pragma once
 
-#include <exception>
-#include <string_view>
 #include <array>
+#include <exception>
 #include <format>
+#include <string_view>
 
 #define WC_EXCEPTION(type, ...) {						\
 		auto msg = std::format(__VA_ARGS__);			\
