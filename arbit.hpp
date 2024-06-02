@@ -1,20 +1,13 @@
 #pragma once
 
 #include <cstdint>
-#include <cstring>
 #include <cmath>
-#include <list>
 #include <print>
-#include <limits>
 #include <string_view>
-#include <cstdlib>
-#include <cctype>
 #include <exception>
 #include <format>
 #include <array>
 #include <string>
-#include <algorithm>
-#include <initializer_list>
 #include <unordered_map>
 
 #include "utility.hpp"
