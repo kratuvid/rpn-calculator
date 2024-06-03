@@ -51,7 +51,7 @@ namespace wc
 		for (ssize_t i = decimal_len-1; i >= 0; i--)
 		{
 			const base_t unit = decimal_ptr[i];
-			const base_t unit_rhs = rhs.decimal_ptr[i];
+			const base_t unit_rhs = i < (ssize_t)rhs.decimal_len ? rhs.decimal_ptr[i] : 0;
 
 			const base_double_t sum = base_double_t(unit) + base_double_t(unit_rhs) + carry;
 			carry = sum >> base_bits;
@@ -224,25 +224,30 @@ namespace wc
 		arbit& copy = lhs;
 		arbit copy_rhs(rhs);
 
-		const size_t total_len = std::max(lhs.fixed_len, rhs.fixed_len) * 2;
-		if (product.fixed_len < total_len)
-			product.grow(total_len - product.fixed_len);
-		if (copy.fixed_len < total_len)
-			copy.grow(total_len - copy.fixed_len);
-		if (copy_rhs.fixed_len < total_len)
-			copy_rhs.grow(total_len - copy_rhs.fixed_len);
+		const size_t need_decimal_len = std::max(copy.decimal_len, copy_rhs.decimal_len);
+		if (copy.decimal_len < need_decimal_len)
+			copy.grow_decimal(need_decimal_len - copy.decimal_len);
+		if (copy_rhs.decimal_len < need_decimal_len)
+			copy_rhs.grow_decimal(need_decimal_len - copy_rhs.decimal_len);
 
-		const auto bits = copy_rhs.bytes() * 8;
-		for (size_t i=0; i < bits; i++)
+		const size_t total_len = std::max(copy.fixed_len + copy.decimal_len, copy_rhs.fixed_len + copy_rhs.decimal_len) * 2;
+		if ((copy.fixed_len + copy.decimal_len) < total_len)
+			copy.grow(total_len - (copy.fixed_len + copy.decimal_len));
+		if ((copy_rhs.fixed_len + copy_rhs.decimal_len) < total_len)
+			copy_rhs.grow(total_len - (copy_rhs.fixed_len + copy_rhs.decimal_len));
+
+		const auto bits_total = copy_rhs.bytes_total() * 8;
+		for (size_t i=0; i < bits_total; i++)
 		{
-			if (copy_rhs.bit(i))
+			if (copy_rhs.bit_both(i))
 				product += copy;
-
 			copy <<= 1;
 		}
 
-		if (product.fixed_len > total_len)
-			product.shrink(product.fixed_len - total_len);
+		if ((product.decimal_len + product.fixed_len) > total_len)
+			product.shrink((product.decimal_len + product.fixed_len) - total_len);
+
+		product.shift_right_units(need_decimal_len);
 
 		product.shrink_if_can();
 		return product;

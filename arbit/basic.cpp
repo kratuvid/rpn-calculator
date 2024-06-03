@@ -42,6 +42,35 @@ namespace wc
 		return n >> (base_bits - 1);
 	}
 
+	void arbit::shift_right_units(size_t n)
+	{
+		if (n == 0 || n > fixed_len) return;
+
+		const auto old_decimal_len = decimal_len;
+
+		grow_decimal(n);
+
+		for (ssize_t i = old_decimal_len-1; i >= 0; i--)
+		{
+			const ssize_t dest = i + ssize_t(n);
+			decimal_ptr[dest] = decimal_ptr[i];
+		}
+
+		for (size_t i=0; i < n; i++)
+		{
+			const size_t dest = n - 1 - i;
+			decimal_ptr[dest] = fixed_ptr[i];
+		}
+
+		for (size_t i=n; i < fixed_len; i++)
+		{
+			const size_t dest = i - n;
+			fixed_ptr[dest] = fixed_ptr[i];
+		}
+
+		shrink(n);
+	}
+	
 	void arbit::shrink_if_can_raw(bool fixed_not_decimal)
 	{
 		const auto len = fixed_not_decimal ? fixed_len : decimal_len;

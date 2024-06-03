@@ -125,6 +125,7 @@ namespace wc
 		bool is_negative() const;
 		static bool is_negative(base_t n);
 
+		void shift_right_units(size_t n);
 		void shrink_if_can_raw(bool fixed_not_decimal);
 		void shrink_if_can();
 		size_t bytes() const;

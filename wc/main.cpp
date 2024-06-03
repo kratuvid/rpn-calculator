@@ -8,6 +8,8 @@ int main(int argc, char** argv)
 {
 	try
 	{
+		using base_t = wc::arbit::base_t;
+		
 		[[maybe_unused]] const auto max_i = std::numeric_limits<int>::max(), min_i = std::numeric_limits<int>::min();
 		[[maybe_unused]] const auto max_ll = std::numeric_limits<long long>::max();
 		[[maybe_unused]] const auto max_u = std::numeric_limits<unsigned>::max();
@@ -24,21 +26,16 @@ int main(int argc, char** argv)
 			int loop_max = 1;
 			for (int i=0; i < loop_max; i++)
 			{
-				wc::arbit na(839u, dist0(engine)), nb(3881u, dist0(engine));
-
-				wc::arbit copy(na);
-				for (size_t i=0; i <= 64; i++)
-				{
-					std::println("<<= {}: {}", i, copy.raw_format('b'));
-					copy <<= 1;
-				}
+				wc::arbit na(base_t(-1), ~0u), nb(base_t(-1), ~(1u << 31) + 1);
 
 				auto s = na + nb;
 				auto d = na - nb;
+				auto p = na * nb;
 
 				std::println("[{}] & [{}]", na.raw_format(way), nb.raw_format(way));
 				std::println("Sum: [{}]", s.raw_format(way));
-				std::println("Difference: [{}]\n", d.raw_format(way));
+				std::println("Difference: [{}]", d.raw_format(way));
+				std::println("Product: [{}]\n", p.raw_format(way));
 			}
 		}
 
