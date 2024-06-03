@@ -9,3 +9,4 @@ executable(
 )
 executable('mul', 'tests/mul.cpp')
 executable('fp', 'tests/fp.cpp')
+executable('floats', 'tests/floats.cpp')

@@ -22,7 +22,24 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
-			std::uniform_int_distribution<base_t> dist(0, 1024), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 2);
+			wc::arbit na(1234), nb(0, 0x19999999);
+
+			for (int i=0; i < 20; i++)
+			{
+				auto p = na * nb;
+
+				std::println("\r{}", i);
+				std::println("---\n'{}'\n\t'{}'", na.raw_format(way), nb.raw_format(way));
+				std::println("'{}'\n\t'{}'\n", (-na).raw_format(way), (-nb).raw_format(way));
+				std::println("*:\n'{}'", p.raw_format(way));
+				std::println("'{}'\n", (-p).raw_format(way));
+
+				na = p;
+			}
+		}
+		else if (false)
+		{
+			std::uniform_int_distribution<base_t> dist(0, ~unsigned(0)/3), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 2);
 
 			const int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
