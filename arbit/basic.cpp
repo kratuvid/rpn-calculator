@@ -77,7 +77,7 @@ namespace wc
 		const auto ptr = fixed_not_decimal ? fixed_ptr : decimal_ptr;
 
 		const auto neg = is_negative();
-		const auto check = neg ? base_max : 0;
+		const auto check = neg && fixed_not_decimal ? base_max : 0;
 
 		ssize_t i = (ssize_t)len - 1;
 		for (; i >= 1; i--)

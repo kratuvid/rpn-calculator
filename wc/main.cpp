@@ -26,16 +26,20 @@ int main(int argc, char** argv)
 			int loop_max = 1;
 			for (int i=0; i < loop_max; i++)
 			{
-				wc::arbit na(base_t(-1), ~0u), nb(base_t(-1), ~(1u << 31) + 1);
+				wc::arbit na(base_t(10)), nb(base_t(4), 1 << 31);
+				na.negate();
+				nb.negate();
 
 				auto s = na + nb;
 				auto d = na - nb;
 				auto p = na * nb;
+				auto pn = -p;
 
 				std::println("[{}] & [{}]", na.raw_format(way), nb.raw_format(way));
 				std::println("Sum: [{}]", s.raw_format(way));
 				std::println("Difference: [{}]", d.raw_format(way));
-				std::println("Product: [{}]\n", p.raw_format(way));
+				std::println("Product: [{}]", p.raw_format(way));
+				std::println("Product negated: [{}]\n", pn.raw_format(way));
 			}
 		}
 

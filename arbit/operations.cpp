@@ -216,7 +216,7 @@ namespace wc
 
 	arbit arbit::multiply_raw(arbit& lhs, const arbit& rhs)
 	{
-		arbit product(0);
+		arbit product(0u);
 
 		if (lhs.fixed_len == 0 || rhs.fixed_len == 0)
 			return product;
@@ -224,17 +224,14 @@ namespace wc
 		arbit& copy = lhs;
 		arbit copy_rhs(rhs);
 
-		const size_t need_decimal_len = std::max(copy.decimal_len, copy_rhs.decimal_len);
-		if (copy.decimal_len < need_decimal_len)
-			copy.grow_decimal(need_decimal_len - copy.decimal_len);
-		if (copy_rhs.decimal_len < need_decimal_len)
-			copy_rhs.grow_decimal(need_decimal_len - copy_rhs.decimal_len);
+		const auto total_decimal_len = copy.decimal_len + copy_rhs.decimal_len;
+		const auto total_copy_len = copy.fixed_len + copy.decimal_len, total_copy_rhs_len = copy_rhs.fixed_len + copy_rhs.decimal_len;
 
-		const size_t total_len = std::max(copy.fixed_len + copy.decimal_len, copy_rhs.fixed_len + copy_rhs.decimal_len) * 2;
-		if ((copy.fixed_len + copy.decimal_len) < total_len)
-			copy.grow(total_len - (copy.fixed_len + copy.decimal_len));
-		if ((copy_rhs.fixed_len + copy_rhs.decimal_len) < total_len)
-			copy_rhs.grow(total_len - (copy_rhs.fixed_len + copy_rhs.decimal_len));
+		const size_t total_len = std::max(total_copy_len, total_copy_rhs_len) * 2;
+		if (total_copy_len < total_len)
+			copy.grow(total_len - total_copy_len);
+		if (total_copy_rhs_len < total_len)
+			copy_rhs.grow(total_len - total_copy_rhs_len);
 
 		const auto bits_total = copy_rhs.bytes_total() * 8;
 		for (size_t i=0; i < bits_total; i++)
@@ -247,7 +244,7 @@ namespace wc
 		if ((product.decimal_len + product.fixed_len) > total_len)
 			product.shrink((product.decimal_len + product.fixed_len) - total_len);
 
-		product.shift_right_units(need_decimal_len);
+		product.shift_right_units(total_decimal_len - copy.decimal_len);
 
 		product.shrink_if_can();
 		return product;

@@ -57,17 +57,12 @@ namespace wc
 
 	void arbit::grow_decimal(size_t by)
 	{
-		grow_decimal(by, is_negative());
-	}
-
-	void arbit::grow_decimal(size_t by, bool neg)
-	{
 		if (by == 0) return;
 
 		const auto has_len = actual_decimal_len - decimal_len;
 		if (by <= has_len)
 		{
-			memset(&decimal_ptr[decimal_len], neg ? 0xff : 0, sizeof(base_t) * by);
+			memset(&decimal_ptr[decimal_len], 0, sizeof(base_t) * by);
 			decimal_len += by;
 		}
 		else
@@ -84,7 +79,7 @@ namespace wc
 				WC_STD_EXCEPTION("Failed to reallocate from length {} to {}",
 								 actual_decimal_len, new_actual_decimal_len);
 
-			memset(&decimal_ptr[decimal_len], neg ? 0xff : 0, sizeof(base_t) * by);
+			memset(&decimal_ptr[decimal_len], 0, sizeof(base_t) * by);
 
 			actual_decimal_len = new_actual_decimal_len;
 			decimal_len = new_decimal_len;

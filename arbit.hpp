@@ -66,7 +66,6 @@ namespace wc
 		void grow(size_t by, bool neg);
 		void shrink(size_t by);
 		void grow_decimal(size_t by);
-		void grow_decimal(size_t by, bool neg);
 		void shrink_decimal(size_t by);
 
 		arbit multiply(const arbit& rhs) const;
