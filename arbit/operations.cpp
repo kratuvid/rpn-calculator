@@ -228,6 +228,8 @@ namespace wc
 		const auto total_copy_len = copy.fixed_len + copy.decimal_len, total_copy_rhs_len = copy_rhs.fixed_len + copy_rhs.decimal_len;
 
 		const size_t total_len = std::max(total_copy_len, total_copy_rhs_len) * 2;
+		if (product.fixed_len < total_len)
+			product.grow(total_len - product.fixed_len);
 		if (total_copy_len < total_len)
 			copy.grow(total_len - total_copy_len);
 		if (total_copy_rhs_len < total_len)
@@ -261,24 +263,25 @@ namespace wc
 
 		arbit& copy = lhs;
 
-		const size_t total_len = std::max(lhs.fixed_len, (size_t)1) * 2;
+		const auto total_copy_len = copy.fixed_len + copy.decimal_len;
+
+		const size_t total_len = std::max(total_copy_len, (size_t)1) * 2;
 		if (product.fixed_len < total_len)
 			product.grow(total_len - product.fixed_len);
-		if (copy.fixed_len < total_len)
-			copy.grow(total_len - copy.fixed_len);
+		if (total_copy_len < total_len)
+			copy.grow(total_len - total_copy_len);
 
-		const auto bits = total_len * sizeof(base_t) * 8;
+		const auto bits = total_len * base_bits;
 		for (size_t i=0; i < bits; i++)
 		{
-			bool bit = i < sizeof(sbase_t) * 8 ? (rhs >> i) & 0x1 : neg_rhs;
+			const bool bit = i < sizeof(sbase_t) * 8 ? (rhs >> i) & 0x1 : neg_rhs;
 			if (bit)
 				product += copy;
-
 			copy <<= 1;
 		}
 
-		if (product.fixed_len > total_len)
-			product.shrink(product.fixed_len - total_len);
+		if ((product.decimal_len + product.fixed_len) > total_len)
+			product.shrink((product.decimal_len + product.fixed_len) - total_len);
 
 		product.shrink_if_can();
 		return product;
