@@ -15,11 +15,11 @@ Wtf Calculator: Another RPN calculator
 ```
 
 # Todo
-- [ ] arbitrary precision numbers
-- [ ] fixed and decimal numbers
 - [ ] optimized larger loops
-- [ ] implement decimal at all sorts of places
+- [ ] impl division and modulo
 - [ ] parse decimals
+- [x] arbitrary precision numbers
+- [x] fixed and decimal numbers
 - [x] figure out how to properly shrink and grow decimals
 - [x] check if move cons is being called at relevant places
 - [x] fix shrink_if_can
