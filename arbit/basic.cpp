@@ -143,7 +143,7 @@ namespace wc
 				{
 				case 'b': oss << std::format("0b{:0>32b}", unit);
 					break;
-				case 'x': oss << std::hex << "0x" << unit;
+				case 'x': oss << std::format("0x{:0>8x}", unit);
 					break;
 				case 's': oss << sbase_t(unit);
 					break;
@@ -167,7 +167,7 @@ namespace wc
 				{
 				case 'b': oss << std::format("0b{:0>32b}", unit);
 					break;
-				case 'x': oss << std::hex << "0x" << unit;
+				case 'x': oss << std::format("0x{:0>8x}", unit);
 					break;
 				case 's': oss << sbase_t(unit);
 					break;

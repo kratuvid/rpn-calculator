@@ -21,9 +21,9 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
-			std::uniform_int_distribution<wc::arbit::base_t> dist(0, 30), dist_decimal(0, 15), dist_bool(0, 1);
+			std::uniform_int_distribution<base_t> dist(0, 30), dist_decimal(0, 15), dist_bool(0, 1);
 
-			int loop_max = 1;
+			int loop_max = 20;
 			for (int i=0; i < loop_max; i++)
 			{
 				wc::arbit na(dist(eng), dist_decimal(eng) << 28), nb(dist(eng), dist_decimal(eng) << 28);
