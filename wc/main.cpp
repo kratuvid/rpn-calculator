@@ -15,31 +15,32 @@ int main(int argc, char** argv)
 		[[maybe_unused]] const auto max_u = std::numeric_limits<unsigned>::max();
 
 		std::random_device rd;
-		std::mt19937 engine(rd());
+		std::mt19937 eng(rd());
 		
 		const char way = 'x';
 
 		if (true)
 		{
-			std::uniform_int_distribution<wc::arbit::base_t> dist0(0, ~unsigned(0));
+			std::uniform_int_distribution<wc::arbit::base_t> dist(0, 30), dist_decimal(0, 15), dist_bool(0, 1);
 
 			int loop_max = 1;
 			for (int i=0; i < loop_max; i++)
 			{
-				wc::arbit na(base_t(10)), nb(base_t(4), 1 << 31);
-				na.negate();
-				nb.negate();
+				wc::arbit na(dist(eng), dist_decimal(eng) << 28), nb(dist(eng), dist_decimal(eng) << 28);
+				if (dist_bool(eng)) na.negate();
+				if (dist_bool(eng)) nb.negate();
 
 				auto s = na + nb;
 				auto d = na - nb;
 				auto p = na * nb;
 				auto pn = -p;
 
-				std::println("[{}] & [{}]", na.raw_format(way), nb.raw_format(way));
-				std::println("Sum: [{}]", s.raw_format(way));
-				std::println("Difference: [{}]", d.raw_format(way));
-				std::println("Product: [{}]", p.raw_format(way));
-				std::println("Product negated: [{}]\n", pn.raw_format(way));
+				std::println("'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
+				std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
+				std::println("Sum: '{}'", s.raw_format(way));
+				std::println("Difference: '{}'", d.raw_format(way));
+				std::println("Product: '{}'", p.raw_format(way));
+				std::println("Product negated: '{}'\n", pn.raw_format(way));
 			}
 		}
 
@@ -144,7 +145,7 @@ int main(int argc, char** argv)
 
 	auto cons = wc::arbit::stats.get_cons();
 	auto heap = wc::arbit::stats.get_heap();
-	std::println("# arbit stats:\n"
+	std::println("# Arbit:\n"
 				 "Heap: max: {}B sitting on {} entries, current: {}B, "
 				 "mallocs: {}, reallocs: {}, frees: {}\n"
 				 "Constructors: copy: {}, move: {}, parse: {}, bare: {}, list: {}",

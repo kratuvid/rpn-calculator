@@ -84,9 +84,12 @@ namespace wc
 		{
 			if (ptr[i] == check)
 			{
-				if (is_negative(ptr[i-1]) == neg)
-					continue;
-				else break;
+				if (fixed_not_decimal)
+				{
+					if (is_negative(ptr[i-1]) == neg)
+						continue;
+					else break;
+				}
 			} else break;
 		}
 
