@@ -11,7 +11,8 @@ namespace wc
 			decimal_ptr[i] = ~decimal_ptr[i];
 
 		base_double_t carry = 0;
-		for (ssize_t i=decimal_len-1; i >= 0; i--)
+
+		for (ssize_t i = decimal_len-1; i >= 0; i--)
 		{
 			const auto unit = decimal_ptr[i];
 			const auto unit_rhs = i == (ssize_t)decimal_len-1 ? 1 : 0;

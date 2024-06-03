@@ -1,6 +1,7 @@
 #include "wc.hpp"
 #include "arbit.hpp"
 
+#include <list>
 #include <random>
 #include <chrono>
 
@@ -21,26 +22,62 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
-			std::uniform_int_distribution<base_t> dist(0, 30), dist_decimal(0, 15), dist_bool(0, 1);
+			std::uniform_int_distribution<base_t> dist(0, ~unsigned(0)), dist_decimal(0, ~unsigned(0)), dist_bool(0, 1), dist_items(1, 2);
 
-			int loop_max = 20;
+			const int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
 			{
-				wc::arbit na(dist(eng), dist_decimal(eng) << 28), nb(dist(eng), dist_decimal(eng) << 28);
+				std::list<base_t> sa, sad, sb, sbd;
+				for (int i=0; i < (int)dist_items(eng); i++)
+					sa.push_back(dist(eng));
+				for (int i=0; i < (int)dist_items(eng); i++)
+					sad.push_back(dist_decimal(eng));
+				for (int i=0; i < (int)dist_items(eng); i++)
+					sb.push_back(dist(eng));
+				for (int i=0; i < (int)dist_items(eng); i++)
+					sbd.push_back(dist_decimal(eng));
+				
+				wc::arbit na(sa.begin(), sa.size(), sad.begin(), sad.size()),
+					nb(sb.begin(), sb.size(), sbd.begin(), sbd.size());
 				if (dist_bool(eng)) na.negate();
 				if (dist_bool(eng)) nb.negate();
 
 				auto s = na + nb;
 				auto d = na - nb;
 				auto p = na * nb;
-				auto pn = -p;
 
-				std::println("'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
-				std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
-				std::println("Sum: '{}'", s.raw_format(way));
-				std::println("Difference: '{}'", d.raw_format(way));
-				std::println("Product: '{}'", p.raw_format(way));
-				std::println("Product negated: '{}'\n", pn.raw_format(way));
+				const bool neg = na.is_negative(), neg_rhs = nb.is_negative();
+				const bool expected = neg ^ neg_rhs, got = p.is_negative();
+				if (expected != got && !(na.is_zero() || nb.is_zero()))
+				{
+					std::println("\r'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
+					std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
+					std::println("Sum: '{}'", s.raw_format(way));
+					std::println("Sum negated: '{}'", (-s).raw_format(way));
+					std::println("Difference: '{}'", d.raw_format(way));
+					std::println("Difference negated: '{}'", (-d).raw_format(way));
+					std::println("Product: '{}'", p.raw_format(way));
+					std::println("Product negated: '{}'", (-p).raw_format(way));
+					WC_STD_EXCEPTION("No!");
+				}
+
+				static auto tp_then = std::chrono::high_resolution_clock::now();
+				const auto tp_now = std::chrono::high_resolution_clock::now();
+				const auto tp_diff = std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_then).count();
+				if (tp_diff > 1000)
+				{
+					tp_then = tp_now;
+
+					std::println("\r'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
+					std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
+					std::println("Sum: '{}'", s.raw_format(way));
+					std::println("Sum negated: '{}'", (-s).raw_format(way));
+					std::println("Difference: '{}'", d.raw_format(way));
+					std::println("Difference negated: '{}'", (-d).raw_format(way));
+					std::println("Product: '{}'", p.raw_format(way));
+					std::println("Product negated: '{}'", (-p).raw_format(way));
+					std::println("{}%...\n", i * 100.0 / loop_max);
+				}
 			}
 		}
 
