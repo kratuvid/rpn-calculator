@@ -157,7 +157,7 @@ namespace wc
 
 		if (decimal_len > 0)
 		{
-			if (fixed_len != 0) oss << ", ";
+			if (fixed_len != 0) oss << "; ";
 			oss << "D(" << actual_decimal_len << "," << decimal_len << "): ";
 
 			for (unsigned i=0; i < decimal_len; i++)

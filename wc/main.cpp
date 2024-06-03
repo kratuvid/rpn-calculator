@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
-			std::uniform_int_distribution<base_t> dist(0, ~unsigned(0)), dist_decimal(0, ~unsigned(0)), dist_bool(0, 1), dist_items(1, 2);
+			std::uniform_int_distribution<base_t> dist(0, 30), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 1);
 
 			const int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
