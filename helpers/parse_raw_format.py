@@ -58,6 +58,9 @@ while not quit:
 
         n = fixed_one + dec_actual
         print('-' if neg else '', n, sep='')
-        
+
+    except EOFError:
+        quit = True
+
     except Exception as e:
-        print('Exception caught:', e)
+        print("Exception caught:", e)

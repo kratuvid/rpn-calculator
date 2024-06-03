@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
-			std::uniform_int_distribution<base_t> dist(0, 30), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 1);
+			std::uniform_int_distribution<base_t> dist(0, 1024), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 2);
 
 			const int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
@@ -50,14 +50,14 @@ int main(int argc, char** argv)
 				const bool expected = neg ^ neg_rhs, got = p.is_negative();
 				if (expected != got && !(na.is_zero() || nb.is_zero()))
 				{
-					std::println("\r'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
-					std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
-					std::println("Sum: '{}'", s.raw_format(way));
-					std::println("Sum negated: '{}'", (-s).raw_format(way));
-					std::println("Difference: '{}'", d.raw_format(way));
-					std::println("Difference negated: '{}'", (-d).raw_format(way));
-					std::println("Product: '{}'", p.raw_format(way));
-					std::println("Product negated: '{}'", (-p).raw_format(way));
+					std::println("\r---\n'{}'\n\t'{}'", na.raw_format(way), nb.raw_format(way));
+					std::println("'{}'\n\t'{}'\n", (-na).raw_format(way), (-nb).raw_format(way));
+					std::println("+:\n'{}'", s.raw_format(way));
+					std::println("'{}'\n", (-s).raw_format(way));
+					std::println("-:\n'{}'", d.raw_format(way));
+					std::println("'{}'\n", (-d).raw_format(way));
+					std::println("*:\n'{}'", p.raw_format(way));
+					std::println("'{}'", (-p).raw_format(way));
 					WC_STD_EXCEPTION("No!");
 				}
 
@@ -68,15 +68,15 @@ int main(int argc, char** argv)
 				{
 					tp_then = tp_now;
 
-					std::println("\r'{}' & '{}'", na.raw_format(way), nb.raw_format(way));
-					std::println("Negated: '{}' & '{}'", (-na).raw_format(way), (-nb).raw_format(way));
-					std::println("Sum: '{}'", s.raw_format(way));
-					std::println("Sum negated: '{}'", (-s).raw_format(way));
-					std::println("Difference: '{}'", d.raw_format(way));
-					std::println("Difference negated: '{}'", (-d).raw_format(way));
-					std::println("Product: '{}'", p.raw_format(way));
-					std::println("Product negated: '{}'", (-p).raw_format(way));
-					std::println("{}%...\n", i * 100.0 / loop_max);
+					std::println("\r---\n'{}'\n\t'{}'", na.raw_format(way), nb.raw_format(way));
+					std::println("'{}'\n\t'{}'\n", (-na).raw_format(way), (-nb).raw_format(way));
+					std::println("+:\n'{}'", s.raw_format(way));
+					std::println("'{}'\n", (-s).raw_format(way));
+					std::println("-:\n'{}'", d.raw_format(way));
+					std::println("'{}'\n", (-d).raw_format(way));
+					std::println("*:\n'{}'", p.raw_format(way));
+					std::println("'{}'", (-p).raw_format(way));
+					std::println("\n{}%...\n", i * 100.0 / loop_max);
 				}
 			}
 		}
