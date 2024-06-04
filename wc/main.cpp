@@ -23,6 +23,23 @@ int main(int argc, char** argv)
 
 		if (true)
 		{
+			float a, b;
+
+			std::print("Enter 'a': "); std::cin >> a;
+			std::print("Enter 'b': "); std::cin >> b;
+
+			wc::arbit na(a), nb(b);
+			auto s = na + nb;
+			auto d = na - nb;
+			auto p = na * nb;
+			std::println("{}: '{}'\n\t'{}'\n", a, na.raw_format(way), (-na).raw_format(way));
+			std::println("{}: '{}'\n\t'{}'\n", b, nb.raw_format(way), (-nb).raw_format(way));
+			std::println("+: '{}'\n\t'{}'\n", s.raw_format(way), (-s).raw_format(way));
+			std::println("-: '{}'\n\t'{}'\n", d.raw_format(way), (-d).raw_format(way));
+			std::println("*: '{}'\n\t'{}'\n", p.raw_format(way), (-p).raw_format(way));
+		}
+		else if (true)
+		{
 			std::uniform_real_distribution<float> dist(-1, 1);
 			std::uniform_int_distribution<unsigned> dist_mul(0, 1e9);
 
