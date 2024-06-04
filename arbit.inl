@@ -3,7 +3,7 @@ namespace wc
 	template<class It>
 	arbit::arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len)
 	{
-		stats.cons.list++;
+		stats.cons.normal++;
 
 		grow(fixed_len);
 		size_t i = 0;

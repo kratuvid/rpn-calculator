@@ -268,11 +268,11 @@ namespace wc
 
 	void arbit::parse(std::string_view fixed, std::string_view decimal, bool neg)
 	{
-		arbit multiplier(1);
+		arbit multiplier(1u);
 
 		for (auto it = fixed.rbegin(); it != fixed.rend(); it++)
 		{
-			arbit cur((*it) - '0');
+			arbit cur(base_t((*it) - '0'));
 			cur *= multiplier;
 			multiplier *= 10;
 

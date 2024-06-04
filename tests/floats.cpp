@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdint>
 #include <cmath>
+#include <limits>
 using namespace std;
 
 std::string binary(uint32_t i, int starting = 0, bool comma = true)
@@ -19,13 +20,17 @@ std::string binary(uint32_t i, int starting = 0, bool comma = true)
 	return str;
 }
 
-void extract(float f, uint32_t& sign, uint32_t& exp, int32_t& exp_norm, uint32_t& mantissa)
+void extract(float f, uint32_t& sign, uint32_t& exp, int32_t& exp_norm, uint32_t& mantissa, uint32_t& mantissa_real)
 {
 	const uint32_t* ff = (uint32_t*)&f;
 	sign = *ff >> 31;
 	exp = (*ff >> 23) & ~(1 << 8);
 	exp_norm = exp - 127;
 	mantissa = *ff & ~(0x1ff << 23);
+
+	mantissa_real = mantissa;
+	if (fpclassify(f) == FP_NORMAL)
+		mantissa_real |= 1 << 23;
 }
 
 int main()
@@ -53,9 +58,9 @@ int main()
 		
 		const uint32_t* ff = (uint32_t*)&f;
 
-		uint32_t sign, exp, mantissa;
+		uint32_t sign, exp, mantissa, mantissa_real;
 		int32_t exp_norm;
-		extract(f, sign, exp, exp_norm, mantissa);
+		extract(f, sign, exp, exp_norm, mantissa, mantissa_real);
 
 		auto category = fpclassify(f);
 		std::string category_str;
@@ -80,6 +85,7 @@ int main()
 		cout << "Exponent: " << exp << ", 0x" << hex << exp << dec << ", " << binary(exp, 7) << endl;
 		cout << "Exponent normalised: " << exp_norm << ", 0x" << hex << exp_norm << dec << ", " << binary(exp_norm, 7, false) << endl;
 		cout << "Mantissa: " << mantissa << ", 0x" << hex << mantissa << dec << ", " << binary(mantissa, 22) << endl;
+		cout << "Mantissa real: " << mantissa_real << ", 0x" << hex << mantissa_real << dec << ", " << binary(mantissa_real, 22, false) << endl;
 		cout << "Category: " << category_str << endl;
 	}
 }

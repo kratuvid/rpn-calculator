@@ -255,7 +255,7 @@ namespace wc
 
 	arbit arbit::multiply_raw(arbit& lhs, sbase_t rhs)
 	{
-		arbit product(0);
+		arbit product(0u);
 
 		if (lhs.fixed_len == 0 || rhs == 0)
 			return product;

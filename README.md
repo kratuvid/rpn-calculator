@@ -18,3 +18,5 @@ Wtf Calculator: Another RPN calculator
 - [ ] optimized larger loops
 - [ ] impl division and modulo
 - [ ] parse decimals
+- [ ] new constructor that asks the precision to take until. for example until when the repeating 0.2 (in binary) be parsed in
+- [ ] generalise arbit(float) constructor to any base_t size

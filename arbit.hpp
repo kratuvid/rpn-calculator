@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <cmath>
 #include <cstdint>
 #include <exception>
 #include <format>
@@ -30,8 +29,7 @@ namespace wc
 			friend class wc::arbit;
 		private:
 			struct {
-				size_t copy = 0, move = 0, parse = 0;
-				size_t bare = 0, list = 0;
+				size_t copy = 0, move = 0, normal = 0;
 			} cons;
 
 			struct {
@@ -85,9 +83,10 @@ namespace wc
 	public: // construction
 		arbit(const arbit& other);
 		arbit(arbit&& other);
+		arbit(float both);
+		arbit(std::string_view both);
 		arbit(base_t fixed);
 		arbit(base_t fixed, base_t decimal);
-		arbit(std::string_view both);
 		arbit(const base_t* fixed_ptr, size_t fixed_len, const base_t* decimal_ptr, size_t decimal_len);
 		template<class It> arbit(It fixed_begin, size_t fixed_len, It decimal_begin, size_t decimal_len);
 
