@@ -1,4 +1,4 @@
-#include "arbit/arbit.hpp"
+module arbit;
 
 namespace wc
 {

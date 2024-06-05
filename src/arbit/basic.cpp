@@ -1,6 +1,9 @@
-import <sstream>;
+module arbit;
 
-#include "arbit/arbit.hpp"
+#include "wc/defines.hpp"
+#include "arbit/defines.hpp"
+
+import <sstream>;
 
 namespace wc
 {

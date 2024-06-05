@@ -3,8 +3,9 @@ import <random>;
 import <chrono>;
 import <limits>;
 
+import arbit;
+
 #include "wc/wc.hpp"
-#include "arbit/arbit.hpp"
 
 int main(int argc, char** argv)
 {

@@ -33,7 +33,7 @@ SYS_MODULES_ALL := $(addsuffix .gcm,$(addprefix $(SYS_MODULES_LOCATION)/,$(SYS_M
 
 # HEADERS := $(wildcard $(HEADERS_LOCATION)/*.hpp $(HEADERS_LOCATION)/*.inl)
 WC_SOURCES := $(addprefix $(SOURCES_LOCATION)/wc/,$(addsuffix .cpp,main operations wc))
-ARBIT_SOURCES := $(addprefix $(SOURCES_LOCATION)/arbit/,$(addsuffix .cpp,basic bits construction heap operations))
+ARBIT_SOURCES := $(addprefix $(SOURCES_LOCATION)/arbit/,$(addsuffix .cpp,arbit basic bits construction heap operations))
 SOURCES := $(WC_SOURCES) $(ARBIT_SOURCES)
 OBJECTS := $(SOURCES:$(SOURCES_LOCATION)/%.cpp=$(OBJECTS_LOCATION)/%.o)
 MAIN_OBJECTS := $(addprefix $(OBJECTS_LOCATION)/,wc/main.o)

@@ -1,7 +1,6 @@
-import <cmath>;
-import <vector>;
+module arbit;
 
-#include "arbit/arbit.hpp"
+#include "arbit/defines.hpp"
 
 namespace wc
 {
@@ -48,7 +47,7 @@ namespace wc
 		const int32_t exp_norm = exp - 127;
 		const uint32_t mantissa = *ff & ~(uint32_t(0x1ff) << 23);
 		
-		std::vector<base_t> fixed, decimal;
+		std::vector<base_t, std::allocator<base_t>> fixed, decimal;
 
 		if (category == FP_NORMAL)
 		{

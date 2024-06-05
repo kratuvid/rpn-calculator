@@ -1,22 +1,17 @@
-#pragma once
+export module arbit;
 
 import <array>;
 import <cstdint>;
 import <exception>;
+import <vector>;
 import <format>;
 import <print>;
 import <string>;
 import <string_view>;
 import <unordered_map>;
+import <cmath>;
 
-#include "wc/utility.hpp"
-
-#define WC_ARBIT_EXCEPTION(type, ...) {									\
-		auto msg = std::format(__VA_ARGS__);							\
-		throw wc::arbit::exception(msg, wc::arbit::error_type::type);	\
-	}
-
-namespace wc
+export namespace wc
 {
 	class arbit
 	{

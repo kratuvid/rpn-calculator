@@ -1,6 +1,8 @@
-import <cstring>;
+module arbit;
 
-#include "arbit/arbit.hpp"
+#include "wc/defines.hpp"
+
+import <cstring>;
 
 namespace wc
 {
