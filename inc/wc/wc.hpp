@@ -1,18 +1,18 @@
 #pragma once
 
-#include <any>
-#include <cctype>
-#include <chrono>
-#include <cmath>
-#include <cstring>
-#include <deque>
-#include <fstream>
-#include <iostream>
-#include <list>
-#include <print>
-#include <string_view>
-#include <tuple>
-#include <unordered_map>
+import <any>;
+import <cctype>;
+import <chrono>;
+import <cmath>;
+import <cstring>;
+import <deque>;
+import <fstream>;
+import <iostream>;
+import <list>;
+import <print>;
+import <string_view>;
+import <tuple>;
+import <unordered_map>;
 
 #include <readline/readline.h>
 #include <readline/history.h>

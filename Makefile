@@ -14,18 +14,21 @@ DEPENDENCIES := readline
 
 DEBUG_FLAGS := -g -DDEBUG
 RELEASE_FLAGS := -O3 -DNDEBUG
-CURRENT_FLAGS := $(DEBUG_FLAGS)
+CURRENT_FLAGS := -std=c++23 -fmodules-ts
 ifdef release
-	CURRENT_FLAGS := $(RELEASE_FLAGS)
+	CURRENT_FLAGS += $(RELEASE_FLAGS)
+else
+	CURRENT_FLAGS += $(DEBUG_FLAGS)
 endif
 
 CXX := g++
-CXXFLAGS := -std=c++23 -I$(HEADERS_LOCATION) $(CURRENT_FLAGS)
+CXXFLAGS := -I$(HEADERS_LOCATION) $(CURRENT_FLAGS)
 CXXFLAGS += $(shell pkg-config $(DEPENDENCIES) --cflags)
 LDFLAGS := $(shell pkg-config $(DEPENDENCIES) --libs)
 
 SYS_MODULES_LOCATION := gcm.cache/usr/include/c++/14.1.1
-SYS_MODULES := iostream print format cstdint cmath random limits
+SYS_MODULES := iostream print format cstdint cmath random limits array exception string string_view unordered_map \
+	any cctype chrono cstring deque fstream list tuple sstream vector
 SYS_MODULES_ALL := $(addsuffix .gcm,$(addprefix $(SYS_MODULES_LOCATION)/,$(SYS_MODULES)))
 
 # HEADERS := $(wildcard $(HEADERS_LOCATION)/*.hpp $(HEADERS_LOCATION)/*.inl)
@@ -52,16 +55,16 @@ $(BINARIES): $(CLEAN_OBJECTS)
 
 $(TEST_BINARIES): $(BUILD_LOCATION)/%: $(SOURCES_LOCATION)/tests/%.cpp
 	@-mkdir $(BUILD_LOCATION) 2>/dev/null; true
-	$(CXX) -std=c++23 $(CURRENT_FLAGS) -fmodules-ts $(@:$(BUILD_LOCATION)/%=$(SOURCES_LOCATION)/tests/%.cpp) -o $@
+	$(CXX) $(CURRENT_FLAGS) $(@:$(BUILD_LOCATION)/%=$(SOURCES_LOCATION)/tests/%.cpp) -o $@
 
--include $(DEPENDS)
+# -include $(DEPENDS)
 
 $(OBJECTS): $(OBJECTS_LOCATION)/%.o: $(SOURCES_LOCATION)/%.cpp $(SYS_MODULES_ALL)
 	@-mkdir -p $(OBJECTS_SPECIFIC_LOCATION) 2>/dev/null; true
 	$(CXX) $(CXXFLAGS) -MMD -MP $< -c -o $@
 
 $(SYS_MODULES_ALL):
-	$(CXX) $(CXXFLAGS) -fmodules-ts -xc++-system-header $(basename $(notdir $@))
+	$(CXX) $(CXXFLAGS) -xc++-system-header $(basename $(notdir $@))
 
 clean: clean-tests
 	rm -rf $(BINARIES) $(OBJECTS_LOCATION)

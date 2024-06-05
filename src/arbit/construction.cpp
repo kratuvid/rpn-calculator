@@ -1,6 +1,7 @@
+import <cmath>;
+import <vector>;
+
 #include "arbit/arbit.hpp"
-#include <cmath>
-#include <vector>
 
 namespace wc
 {

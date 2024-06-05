@@ -1,10 +1,10 @@
+import <list>;
+import <random>;
+import <chrono>;
+import <limits>;
+
 #include "wc/wc.hpp"
 #include "arbit/arbit.hpp"
-
-#include <list>
-#include <random>
-#include <chrono>
-#include <limits>
 
 int main(int argc, char** argv)
 {

@@ -1,5 +1,6 @@
+import <sstream>;
+
 #include "arbit/arbit.hpp"
-#include <sstream>
 
 namespace wc
 {
