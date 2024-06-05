@@ -1,8 +1,8 @@
-#include <print>
-#include <iostream>
-#include <cstdint>
-#include <cmath>
-#include <limits>
+import <limits>;
+import <cmath>;
+import <cstdint>;
+import <print>;
+import <iostream>;
 using namespace std;
 
 std::string binary(uint32_t i, int starting = 0, bool comma = true)

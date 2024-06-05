@@ -1,6 +1,6 @@
-#include <print>
-#include <cstdint>
-#include <iostream>
+import <print>;
+import <iostream>;
+import <cstdint>;
 using namespace std;
 
 using use_t = uint8_t;

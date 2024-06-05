@@ -25,7 +25,7 @@ CXXFLAGS += $(shell pkg-config $(DEPENDENCIES) --cflags)
 LDFLAGS := $(shell pkg-config $(DEPENDENCIES) --libs)
 
 SYS_MODULES_LOCATION := gcm.cache/usr/include/c++/14.1.1
-SYS_MODULES := iostream
+SYS_MODULES := iostream print format cstdint cmath random limits
 SYS_MODULES_ALL := $(addsuffix .gcm,$(addprefix $(SYS_MODULES_LOCATION)/,$(SYS_MODULES)))
 
 # HEADERS := $(wildcard $(HEADERS_LOCATION)/*.hpp $(HEADERS_LOCATION)/*.inl)
@@ -38,7 +38,7 @@ CLEAN_OBJECTS := $(filter-out $(MAIN_OBJECTS),$(OBJECTS))
 DEPENDS := $(SOURCES:$(SOURCES_LOCATION)/%.cpp=$(OBJECTS_LOCATION)/%.d)
 BINARIES := $(addprefix $(BUILD_LOCATION)/,wc)
 
-TEST_BARE = floats fp mul
+TEST_BARE = floats fp mul modules
 # TEST_SOURCES := $(addprefix $(SOURCES_LOCATION)/tests/,$(addsuffix .cpp,$(TEST_BARE)))
 # TEST_OBJECTS := $(TEST_SOURCES:$(SOURCES_LOCATION)/%.cpp=$(OBJECTS_LOCATION)/%.o)
 TEST_BINARIES := $(addprefix $(BUILD_LOCATION)/,$(TEST_BARE))
@@ -52,7 +52,7 @@ $(BINARIES): $(CLEAN_OBJECTS)
 
 $(TEST_BINARIES): $(BUILD_LOCATION)/%: $(SOURCES_LOCATION)/tests/%.cpp
 	@-mkdir $(BUILD_LOCATION) 2>/dev/null; true
-	$(CXX) -std=c++23 $(CURRENT_FLAGS) $(@:$(BUILD_LOCATION)/%=$(SOURCES_LOCATION)/tests/%.cpp) -o $@
+	$(CXX) -std=c++23 $(CURRENT_FLAGS) -fmodules-ts $(@:$(BUILD_LOCATION)/%=$(SOURCES_LOCATION)/tests/%.cpp) -o $@
 
 -include $(DEPENDS)
 

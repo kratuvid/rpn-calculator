@@ -1,9 +1,9 @@
-#include <print>
-#include <format>
-#include <cstdint>
-#include <cmath>
-#include <random>
-#include <iostream>
+import <print>;
+import <iostream>;
+import <format>;
+import <cstdint>;
+import <cmath>;
+import <random>;
 using namespace std;
 
 using base_double_t = uint64_t;
