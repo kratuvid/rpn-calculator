@@ -1,4 +1,3 @@
-*.out
+gcm.cache/
 build/
-.cache/
 samples/tests/

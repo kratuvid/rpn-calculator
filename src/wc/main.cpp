@@ -1,5 +1,5 @@
-#include "wc.hpp"
-#include "arbit.hpp"
+#include "wc/wc.hpp"
+#include "arbit/arbit.hpp"
 
 #include <list>
 #include <random>

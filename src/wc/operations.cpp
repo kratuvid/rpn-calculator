@@ -1,4 +1,4 @@
-#include "wc.hpp"
+#include "wc/wc.hpp"
 
 namespace wc
 {

@@ -1,4 +1,4 @@
-#include "arbit.hpp"
+#include "arbit/arbit.hpp"
 #include <sstream>
 
 namespace wc

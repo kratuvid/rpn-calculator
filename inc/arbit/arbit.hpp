@@ -9,7 +9,7 @@
 #include <string_view>
 #include <unordered_map>
 
-#include "utility.hpp"
+#include "wc/utility.hpp"
 
 #define WC_ARBIT_EXCEPTION(type, ...) {									\
 		auto msg = std::format(__VA_ARGS__);							\
