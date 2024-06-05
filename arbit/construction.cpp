@@ -110,7 +110,6 @@ namespace wc
 		else if (category == FP_ZERO)
 		{
 			fixed.push_back(0);
-			decimal.push_back(0);
 		}
 
 		grow(fixed.size());
