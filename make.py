@@ -35,10 +35,12 @@ libraries = {
 sources = {
     'arbit': [[True, []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
     'wc': [[False, ['arbit']], ['operations.cpp', 'wc.cpp']],
-    'main': [[False, ['arbit', 'wc']], ['main.cpp']]
+    'main': [[False, ['arbit', 'wc']], ['main.cpp']],
+    'ats': [[False, ['arbit']], ['main.cpp']]
 }
 targets = {
-    'wc': ['main', 'arbit', 'wc']
+    'wc': ['main', 'arbit', 'wc'],
+    'ats': ['ats', 'arbit']
 }
 
 lone_sources = {
