@@ -24,7 +24,7 @@ ld_flags = []
 
 sys_modules = ['iostream', 'limits', 'cmath', 'cstdint', 'print', 'format', 'random', 'array', 'exception',
                'vector', 'string', 'string_view', 'unordered_map', 'sstream', 'cstring', 'list', 'chrono',
-               'any', 'cctype', 'deque', 'fstream', 'tuple']
+               'any', 'cctype', 'deque', 'fstream', 'tuple', 'source_location']
 
 # Common to all executables for now
 libraries = {
@@ -237,3 +237,4 @@ if __name__ == '__main__':
         instance = Builder()
     except Exception as e:
         eprint('Exception caught:', e)
+        exit(2)
