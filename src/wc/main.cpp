@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		using base_t = wc::arbit::base_t;
+		using base_t = arbit::base_t;
 
 		[[maybe_unused]] const auto max_i = std::numeric_limits<int>::max(), min_i = std::numeric_limits<int>::min();
 		[[maybe_unused]] const auto max_ll = std::numeric_limits<long long>::max();
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 			std::print("Enter 'a': "); std::cin >> a;
 			std::print("Enter 'b': "); std::cin >> b;
 
-			wc::arbit na(a), nb(b);
+			arbit na(a), nb(b);
 			auto s = na + nb;
 			auto d = na - nb;
 			auto p = na * nb;
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 			std::uniform_int_distribution<unsigned> dist_mul(0, 1e9);
 
 			float a = 0.f, b = 1.f, c = -1.f, d = 1024.f, e = 0.00000000314159f, f = -4e-39f;
-			wc::arbit na(a), nb(b), nc(c), nd(d), ne(e), nf(f);
+			arbit na(a), nb(b), nc(c), nd(d), ne(e), nf(f);
 			std::println("{}: '{}'\n\t'{}'\n", a, na.raw_format(way), (-na).raw_format(way));
 			std::println("{}: '{}'\n\t'{}'\n", b, nb.raw_format(way), (-nb).raw_format(way));
 			std::println("{}: '{}'\n\t'{}'\n", c, nc.raw_format(way), (-nc).raw_format(way));
@@ -57,13 +57,13 @@ int main(int argc, char** argv)
 			for (int i=0; i < 20; i++)
 			{
 				float g = dist(eng) * dist_mul(eng) / 1e20f;
-				wc::arbit ng(g);
+				arbit ng(g);
 				std::println("{}: '{}'\n\t'{}'\n", g, ng.raw_format(way), (-ng).raw_format(way));
 			}
 		}
 		else if (true)
 		{
-			wc::arbit na(0u, 0b00110011001100110011001 << 9), nb(2u);
+			arbit na(0u, 0b00110011001100110011001 << 9), nb(2u);
 
 			for (int i=0; i < 30; i++)
 			{
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 				for (int i=0; i < (int)dist_items(eng); i++)
 					sbd.push_back(dist_decimal(eng));
 
-				wc::arbit na(sa.begin(), sa.size(), sad.begin(), sad.size()),
+				arbit na(sa.begin(), sa.size(), sad.begin(), sad.size()),
 					nb(sb.begin(), sb.size(), sbd.begin(), sbd.size());
 				if (dist_bool(eng)) na.negate();
 				if (dist_bool(eng)) nb.negate();
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 			std::cout << "Provide two numbers to add, subtract and multiply: \n";
 			std::cin >> a >> b;
 
-			wc::arbit na(a), nb(b);
+			arbit na(a), nb(b);
 
 			auto s = na + nb;
 			auto d = na - nb;
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 			for (int i=0; i < loop_max; i++)
 			{
 				const auto s0l = dist_loop(engine), s1l = dist_loop(engine);
-				std::vector<wc::arbit::base_t> s0, s1;
+				std::vector<arbit::base_t> s0, s1;
 				while ((int)s0.size() < s0l)
 				{
 					auto n = dist0(engine);
@@ -181,8 +181,8 @@ int main(int argc, char** argv)
 					s1.push_back(n);
 				}
 
-				wc::arbit n0(s0.begin(), s0.size(), s0.end(), 0);
-				wc::arbit n1(s1.begin(), s0.size(), s1.end(), 0);
+				arbit n0(s0.begin(), s0.size(), s0.end(), 0);
+				arbit n1(s1.begin(), s0.size(), s1.end(), 0);
 
 				bool neg = n0.is_negative();
 				bool neg_rhs = n1.is_negative();
@@ -227,10 +227,10 @@ int main(int argc, char** argv)
 		}
 		*/
 	}
-	catch (wc::arbit::exception& e)
+	catch (arbit::exception& e)
 	{
 		std::println("Fatal arbit exception: {}: {}",
-					 wc::arbit::error_type_str[static_cast<int>(e.type)],
+					 arbit::error_type_str[static_cast<int>(e.type)],
 					 e.what());
 	}
 	catch (std::exception& e)
@@ -238,8 +238,8 @@ int main(int argc, char** argv)
 		std::println("Fatal standard exception: {}", e.what());
 	}
 
-	auto cons = wc::arbit::stats.get_cons();
-	auto heap = wc::arbit::stats.get_heap();
+	auto cons = arbit::stats.get_cons();
+	auto heap = arbit::stats.get_heap();
 	std::println("# Arbit:\n"
 				 "Heap: max: {}B sitting on {} entries, current: {}B, "
 				 "mallocs: {}, reallocs: {}, frees: {}\n"
