@@ -14,7 +14,6 @@ int main(int argc, char** argv)
 {
 	const unsigned part_last = 3;
 	unsigned part = 0;
-
 	if (argc > 1)
 	{
 		try {
@@ -24,13 +23,14 @@ int main(int argc, char** argv)
 			std::println("Failed to parse {} as an integer", argv[1]);
 			return 1;
 		}
-
 		if (part > part_last)
 		{
 			std::println("Part {} is the last available", part_last);
 			return 2;
 		}
 	}
+
+	int exit_code = 0;
 
 	try
 	{
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
 		case 3:
 		{
-			std::uniform_int_distribution<base_t> dist(0, ~unsigned(0)/3), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 2);
+			std::uniform_int_distribution<base_t> dist(0, ~base_t(0)), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(5, 10);
 
 			const int loop_max = 1e5;
 			for (int i=0; i < loop_max; i++)
@@ -177,10 +177,12 @@ int main(int argc, char** argv)
 		std::println("Fatal arbit exception: {}: {}",
 					 arbit::error_type_str[static_cast<int>(e.type)],
 					 e.what());
+		exit_code = 2;
 	}
 	catch (std::exception& e)
 	{
 		std::println("Fatal standard exception: {}", e.what());
+		exit_code = 1;
 	}
 
 	auto cons = arbit::stats.get_cons();
@@ -192,4 +194,6 @@ int main(int argc, char** argv)
 				 heap.max, heap.max_entries, heap.current,
 				 heap.mallocs, heap.reallocs, heap.frees,
 				 cons.copy, cons.move, cons.normal);
+
+	return exit_code;
 }
