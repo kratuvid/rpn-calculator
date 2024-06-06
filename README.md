@@ -22,3 +22,8 @@ Wtf Calculator: Another RPN calculator
 - [ ] generalise arbit(float) constructor to any base_t size
 - [ ] add round function
 - [ ] convert to float
+- [ ] move all #defines to templates
+- [ ] separate arbit from namespace wc?
+- [ ] use std::allocator?
+- [ ] try to use modules with meson
+- [ ] separate main from wc
