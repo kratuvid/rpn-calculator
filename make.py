@@ -50,7 +50,8 @@ lone_targets = {
 class Builder:
     args_nature = {
         'help': False,
-        'release': False
+        'release': False,
+        'run': True
     }
 
     def __init__(self):
@@ -61,6 +62,17 @@ class Builder:
         self.make_lone_targets()
         self.resolve_library_flags()
         self.make_targets()
+
+        if 'run' in self.args:
+            exe = self.args['run']
+            exe_path = self.dirs['build'] + '/' + exe
+
+            if exe not in targets:
+                raise Exception('No such executable is registered')
+            if not self.is_exists(exe_path):
+                raise Exception(f'File {exe_path} doesn\'t exist. This shouldn\'t have happened')
+
+            subprocess.run([exe_path])
 
     def make_sys_modules(self):
         for module in sys_modules:
@@ -206,7 +218,7 @@ class Builder:
             if this in self.args_nature:
                 if self.args_nature[this] is True:
                     if i == len(sys.argv)-1:
-                        raise Exception(f'Argument {this} needs a parameter')
+                        raise Exception(f'Argument \'{this}\' needs a parameter')
                     self.args[this] = sys.argv[i+1]
                     i += 1
                 else:
@@ -221,4 +233,7 @@ class Builder:
         self.this_flags = release_flags if 'release' in self.args else debug_flags
 
 if __name__ == '__main__':
-    instance = Builder()
+    try:
+        instance = Builder()
+    except Exception as e:
+        eprint('Exception caught:', e)
