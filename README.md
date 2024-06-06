@@ -23,8 +23,8 @@ Wtf Calculator: Another RPN calculator
 - [ ] add round function
 - [ ] convert to float
 - [ ] move all #defines to templates
-- [ ] separate arbit from namespace wc?
 - [ ] use std::allocator?
 - [ ] try to use modules with meson
-- [ ] separate main.cpp from wc
 - [ ] build if headers change
+- [x] separate arbit from namespace wc
+- [x] separate main.cpp from wc

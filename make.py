@@ -33,15 +33,16 @@ libraries = {
 
 # Properties: is_module, dependency
 sources = {
-    'arbit': ((True, ()), ('arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp')),
-    'wc': ((False, ('arbit',)), ('main.cpp', 'operations.cpp', 'wc.cpp'))
+    'arbit': [[True, []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
+    'wc': [[False, ['arbit']], ['operations.cpp', 'wc.cpp']],
+    'main': [[False, ['arbit', 'wc']], ['main.cpp']]
 }
 targets = {
-    'wc': ('arbit', 'wc')
+    'wc': ['main', 'arbit', 'wc']
 }
 
 lone_sources = {
-    'tests': ('floats.cpp', 'fp.cpp', 'modules.cpp', 'mul.cpp'),
+    'tests': ['floats.cpp', 'fp.cpp', 'modules.cpp', 'mul.cpp'],
 }
 lone_targets = {
     'tests'
