@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wc/defines.hpp"
+
 import <any>;
 import <cctype>;
 import <chrono>;
@@ -13,17 +15,22 @@ import <print>;
 import <string_view>;
 import <tuple>;
 import <unordered_map>;
+import <array>;
+import <exception>;
+import <string>;
 
 #include <readline/readline.h>
 #include <readline/history.h>
-
-#include "utility.hpp"
 
 namespace wc
 {
 	class wtf_calculator
 	{
 	public:
+		enum class error_type { init, init_help, parse, eval, exec, file, repl_quit };
+		static constexpr std::array<std::string_view, 7> error_type_str { "init", "init_help", "parse", "eval", "exec", "file", "repl_quit" };
+		class exception;
+
 		enum class operand_type { number, string };
 		enum class scope_type { function, loop };
 
@@ -191,5 +198,19 @@ namespace wc
 		wtf_calculator();
 		void start(int argc, char** argv);
 		~wtf_calculator();
+	};
+
+	class wtf_calculator::exception : public std::exception
+	{
+	public:
+		error_type type;
+		std::string msg;
+
+		exception(std::string_view msg, error_type type)
+			:type(type), msg(msg)
+		{}
+
+		const char* what() const noexcept override
+		{ return msg.c_str(); }
 	};
 };

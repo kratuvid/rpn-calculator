@@ -635,22 +635,22 @@ namespace wc
 					op_top(this);
 				}
 			}
-			catch (const wc::exception& e)
+			catch (const wtf_calculator::exception& e)
 			{
 				switch (e.type)
 				{
-				case wc::error_type::parse:
-				case wc::error_type::eval:
-				case wc::error_type::exec:
-				case wc::error_type::file:
+				case wtf_calculator::error_type::parse:
+				case wtf_calculator::error_type::eval:
+				case wtf_calculator::error_type::exec:
+				case wtf_calculator::error_type::file:
 					break;
-				case wc::error_type::repl_quit:
+				case wtf_calculator::error_type::repl_quit:
 					quit = true;
 					continue;
 				default:
 					throw;
 				}
-				std::println(stderr, "Error: {}: {}", wc::error_type_str[static_cast<int>(e.type)], e.what());
+				std::println(stderr, "Error: {}: {}", wtf_calculator::error_type_str[static_cast<int>(e.type)], e.what());
 			}
 		}
 	}

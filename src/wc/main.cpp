@@ -255,13 +255,13 @@ int main(int argc, char** argv)
 	{
 		app.start(argc, argv);
 	}
-	catch (const wc::exception& e)
+	catch (const wc::wtf_calculator::exception& e)
 	{
-		if (e.type == wc::error_type::init_help)
+		if (e.type == wc::wtf_calculator::error_type::init_help)
 			return 0;
 
 		std::println(stderr, "Fatal exception: {}: {}",
-					 wc::error_type_str[static_cast<int>(e.type)], e.what());
+					 wc::wtf_calculator::error_type_str[static_cast<int>(e.type)], e.what());
 		return 2;
 	}
 	catch (const std::exception& e)
