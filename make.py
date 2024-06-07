@@ -41,7 +41,7 @@ targets = {
 }
 
 lone_sources = {
-    'tests': ['floats.cpp', 'fp.cpp', 'modules.cpp', 'mul.cpp'],
+    'tests': ['floats.cpp', 'fp.cpp', 'mul.cpp', 'div.cpp'],
 }
 lone_targets = {
     'tests'
