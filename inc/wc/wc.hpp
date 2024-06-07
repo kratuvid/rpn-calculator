@@ -2,7 +2,6 @@
 
 #include "wc/defines.hpp"
 
-import <any>;
 import <array>;
 import <cctype>;
 import <chrono>;
@@ -20,6 +19,7 @@ import <string>;
 import <string_view>;
 import <tuple>;
 import <unordered_map>;
+import <variant>;
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -35,12 +35,7 @@ public:
 	enum class scope_type { function, loop };
 
 	using number_t = long double;
-	using element_t = std::any;
 
-	template<typename T> using stack_base_t = std::deque<T>;
-	using stack_t = stack_base_t<element_t>;
-
-	using function_t = std::tuple<unsigned, stack_t>;
 	using operation_t = std::tuple<std::vector<operand_type>, void(*)(wtf_calculator*)>;
 	using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 
@@ -56,6 +51,13 @@ public:
 		function_ref_t(const std::string& name) :name(name) {}
 		function_ref_t(std::string&& name) :name(name) {}
 	};
+
+	using element_t = std::variant<number_t, std::string, operations_iter_t, variable_ref_t, function_ref_t>;
+	
+	template<typename T> using stack_base_t = std::deque<T>;
+	using stack_t = stack_base_t<element_t>;
+
+	using function_t = std::tuple<unsigned, stack_t>;
 
 private:
 	const std::unordered_map<std::string, operation_t> operations {{

@@ -177,9 +177,9 @@ void wtf_calculator::parse_arguments(int argc, char** argv)
 
 void wtf_calculator::execute()
 {
-	while (stack.size() > 0 && stack.back().type() == typeid(operations_iter_t))
+	while (stack.size() > 0 && std::holds_alternative<operations_iter_t>(stack.back()))
 	{
-		auto op = std::any_cast<operations_iter_t&&>(std::move(stack.back()));
+		auto op = std::move(std::get<operations_iter_t>(stack.back()));
 		stack.pop_back();
 
 		const auto& [opr_list, op_func] = op->second;
@@ -198,15 +198,15 @@ void wtf_calculator::execute()
 				const auto need_opr_type = opr_list[opr_index];
 
 				operand_type opr_type;
-				if (opr.type() == typeid(number_t))
+				if (std::holds_alternative<number_t>(opr))
 					opr_type = operand_type::number;
-				else if (opr.type() == typeid(std::string))
+				else if (std::holds_alternative<std::string>(opr))
 					opr_type = operand_type::string;
 				else
 				{
 					WC_STD_EXCEPTION("Unknown operand type '{}' encountered while"
 									 "executing operation '{}'. This is a program error",
-									 opr.type().name(), op->first);
+									 opr.index(), op->first);
 				}
 
 				if (need_opr_type != opr_type)
@@ -225,8 +225,7 @@ void wtf_calculator::execute()
 
 void wtf_calculator::ensure_clean_stack()
 {
-	const auto it_pop_locals = operations.find("_pop_locals"),
-		it_push_locals = operations.find("_push_locals");
+	const auto it_pop_locals = operations.find("_pop_locals"), it_push_locals = operations.find("_push_locals");
 	std::list<std::string> names;
 
 	if (variables_local.size() > 0)
@@ -234,9 +233,9 @@ void wtf_calculator::ensure_clean_stack()
 		std::list<stack_t::iterator> it_names;
 		for (auto it = secondary_stack.begin(); it != secondary_stack.end(); it++)
 		{
-			if ((*it).type() == typeid(operations_iter_t))
+			if (std::holds_alternative<operations_iter_t>(*it))
 			{
-				auto it_op = std::any_cast<operations_iter_t>(*it);
+				const auto& it_op = std::get<operations_iter_t>(*it);
 				if (it_op == it_pop_locals)
 				{
 					it_names.push_back(it-1);
@@ -248,7 +247,7 @@ void wtf_calculator::ensure_clean_stack()
 			}
 		}
 		for (auto& it_name : it_names)
-			names.push_back(std::any_cast<std::string&&>(std::move(*it_name)));
+			names.push_back(std::move(std::get<std::string>(*it_name)));
 	}
 
 	secondary_stack.clear();
@@ -271,20 +270,19 @@ void wtf_calculator::evaluate()
 
 			if (current_eval_function.empty() && current_eval_times.empty())
 			{
-				if (elem.type() == typeid(variable_ref_t))
+				if (std::holds_alternative<variable_ref_t>(elem))
 				{
-					auto var = std::any_cast<variable_ref_t const&>(elem);
+					const auto& var = std::get<variable_ref_t>(elem);
 
 					number_t out;
 					if (!dereference_variable(var, out))
-						WC_EXCEPTION(eval, "No such variable '{}' exists in relevant scopes",
-									 var.name);
+						WC_EXCEPTION(eval, "No such variable '{}' exists in relevant scopes", var.name);
 
 					elem = out;
 				}
-				else if (elem.type() == typeid(function_ref_t))
+				else if (std::holds_alternative<function_ref_t>(elem))
 				{
-					auto func = std::any_cast<function_ref_t const&>(elem);
+					const auto& func = std::get<function_ref_t>(elem);
 
 					const auto it_func = functions.find(func.name);
 					if (it_func == functions.end())
@@ -307,8 +305,7 @@ void wtf_calculator::evaluate()
 								const auto& opr = stack[stack.size() - i - 1];
 								const auto opr_index = opr_count - i - 1;
 
-								if (opr.type() != typeid(number_t) &&
-									opr.type() != typeid(variable_ref_t))
+								if (!std::holds_alternative<number_t>(opr) && !std::holds_alternative<variable_ref_t>(opr))
 								{
 									WC_EXCEPTION(eval, "Expected operand of type number or"
 												 "variable at index {} for function '{}'",
@@ -331,12 +328,12 @@ void wtf_calculator::evaluate()
 				}
 			}
 
-			const bool is_op = elem.type() == typeid(operations_iter_t);
+			const bool is_op = std::holds_alternative<operations_iter_t>(elem);
 			bool is_only_stack = false;
 
 			if (is_op)
 			{
-				const auto& name = std::any_cast<operations_iter_t const&>(elem)->first;
+				const auto& name = std::get<operations_iter_t>(elem)->first;
 				for (const auto& what : {"defun", "end", "times", "end-times"})
 					if (name == what)
 					{
@@ -404,7 +401,7 @@ bool wtf_calculator::dereference_variable(const wtf_calculator::variable_ref_t& 
 
 wtf_calculator::number_t wtf_calculator::resolve_variable_if(const element_t& e)
 {
-	if (e.type() == typeid(variable_ref_t))
+	if (std::holds_alternative<variable_ref_t>(e))
 	{
 		WC_STD_EXCEPTION("Variables shouldn't be on the stack. This is a removed feature");
 		// auto var = std::any_cast<variable_ref_t const&>(e);
@@ -419,7 +416,7 @@ wtf_calculator::number_t wtf_calculator::resolve_variable_if(const element_t& e)
 	}
 	else
 	{
-		auto num = std::any_cast<number_t>(e);
+		auto num = std::move(std::get<number_t>(e));
 		return num;
 	}
 }
@@ -486,14 +483,16 @@ void wtf_calculator::parse(std::string_view what)
 	for (const auto& sub : subs)
 	{
 		element_t elem;
+		bool assigned = false;
 
 		const auto it_op = operations.find(sub);
 		if (it_op != operations.end())
 		{
-			elem = it_op;
+			elem.emplace<operations_iter_t>(it_op);
+			assigned = true;
 		}
 
-		if (!elem.has_value())
+		if (!assigned)
 		{
 			if (sub[0] == ':')
 			{
@@ -503,7 +502,8 @@ void wtf_calculator::parse(std::string_view what)
 				}
 				else
 				{
-					elem = std::move(sub.substr(1));
+					elem.emplace<std::string>(std::move(sub.substr(1)));
+					assigned = true;
 				}
 			}
 			else if (sub[0] == '$')
@@ -514,7 +514,8 @@ void wtf_calculator::parse(std::string_view what)
 				}
 				else
 				{
-					elem = variable_ref_t(std::move(sub.substr(1)));
+					elem.emplace<variable_ref_t>(std::move(sub.substr(1)));
+					assigned = true;
 				}
 			}
 			else if (sub[0] == '@')
@@ -525,24 +526,27 @@ void wtf_calculator::parse(std::string_view what)
 				}
 				else
 				{
-					elem = function_ref_t(std::move(sub.substr(1)));
+					elem.emplace<function_ref_t>(std::move(sub.substr(1)));
+					assigned = true;
 				}
 			}
 
-			if (!elem.has_value())
+			if (!assigned)
 			{
 				try
 				{
-					elem = std::stold(sub);
+					elem.emplace<number_t>(std::stold(sub));
+					assigned = true;
 				}
 				catch (const std::out_of_range&) {}
 				catch (const std::invalid_argument&) {}
 			}
 		}
 
-		if (elem.has_value())
+		if (assigned)
 		{
 			secondary_stack.push_back(std::move(elem));
+			assigned = true;
 		}
 		else
 		{
@@ -657,29 +661,29 @@ void wtf_calculator::display_stack(const stack_t& what_stack)
 {
 	for (const auto& elem : what_stack)
 	{
-		if (elem.type() == typeid(variable_ref_t))
+		if (std::holds_alternative<variable_ref_t>(elem))
 		{
-			auto var = std::any_cast<variable_ref_t const&>(elem);
+			const auto& var = std::get<variable_ref_t>(elem);
 			std::print("${}", var.name);
 		}
-		else if (elem.type() == typeid(function_ref_t))
+		else if (std::holds_alternative<function_ref_t>(elem))
 		{
-			auto func = std::any_cast<function_ref_t const&>(elem);
+			const auto& func = std::get<function_ref_t>(elem);
 			std::print("@{}", func.name);
 		}
-		else if (elem.type() == typeid(std::string))
+		else if (std::holds_alternative<std::string>(elem))
 		{
-			auto str = std::any_cast<std::string const&>(elem);
+			const auto& str = std::get<std::string>(elem);
 			std::print(":{}", str);
 		}
-		else if (elem.type() == typeid(operations_iter_t))
+		else if (std::holds_alternative<operations_iter_t>(elem))
 		{
-			auto op_it = std::any_cast<operations_iter_t>(elem);
+			const auto& op_it = std::get<operations_iter_t>(elem);
 			std::print("{}", op_it->first);
 		}
 		else
 		{
-			auto num = std::any_cast<number_t const&>(elem);
+			const auto& num = std::get<number_t>(elem);
 			std::print("{}", num);
 		}
 		std::print(" ");

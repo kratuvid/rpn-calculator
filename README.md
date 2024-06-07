@@ -27,7 +27,8 @@ Wtf Calculator: Another RPN calculator
 - [ ] try to use modules with meson
 - [ ] build if headers change
 - [ ] custom memory allocator
-- [ ] replace std::any to std::variant
-- [ ] make wc a module
+- [ ] replace all push_* with emplace_*
+- [x] replace std::any to std::variant
+- [x] make wc a module - not working
 - [x] separate arbit from namespace wc
 - [x] separate main.cpp from wc

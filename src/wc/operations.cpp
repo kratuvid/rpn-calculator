@@ -12,7 +12,7 @@ void wtf_calculator::op_add(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = {} + {}", ins->stack.size()+1, r, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_subtract(wtf_calculator* ins)
@@ -27,7 +27,7 @@ void wtf_calculator::op_subtract(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = {} - {}", ins->stack.size()+1, r, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_multiply(wtf_calculator* ins)
@@ -42,7 +42,7 @@ void wtf_calculator::op_multiply(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = {} * {}", ins->stack.size()+1, r, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_divide(wtf_calculator* ins)
@@ -59,7 +59,7 @@ void wtf_calculator::op_divide(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = {} / {}", ins->stack.size()+1, r, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_power(wtf_calculator* ins)
@@ -74,7 +74,7 @@ void wtf_calculator::op_power(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = {} ^ {}", ins->stack.size()+1, r, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_stack(wtf_calculator* ins)
@@ -82,13 +82,14 @@ void wtf_calculator::op_stack(wtf_calculator* ins)
 	for (unsigned i = 0; i < ins->stack.size(); i++)
 	{
 		const auto& e = ins->stack[i];
-		if (e.type() == typeid(number_t))
+		if (std::holds_alternative<number_t>(e))
 		{
-			std::print("{}: {}", i, std::any_cast<number_t>(e));
+			const auto& n = std::get<number_t>(e);
+			std::print("{}: {}", i, n);
 		}
 		else
 			WC_STD_EXCEPTION("There shouldn't be non-number_t '{}' on the stack. "
-							 "This is a program error", e.type().name());
+							 "This is a program error", e.index());
 		std::println("");
 	}
 }
@@ -108,7 +109,7 @@ void wtf_calculator::op_replace(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> replace {} > {}", ins->stack.size()+1, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(a));
+	ins->stack.emplace_back<element_t>(a);
 }
 
 void wtf_calculator::op_swap(wtf_calculator* ins)
@@ -121,8 +122,8 @@ void wtf_calculator::op_swap(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> swap {} <> {}", ins->stack.size()+2, b, a);
 
-	ins->stack.push_back(std::make_any<number_t>(a));
-	ins->stack.push_back(std::make_any<number_t>(b));
+	ins->stack.emplace_back<element_t>(a);
+	ins->stack.emplace_back<element_t>(b);
 }
 
 void wtf_calculator::op_pop(wtf_calculator* ins)
@@ -141,7 +142,7 @@ void wtf_calculator::op_clear(wtf_calculator* ins)
 
 void wtf_calculator::op_file(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	ins->file(name);
 }
@@ -159,7 +160,7 @@ void wtf_calculator::op_top(wtf_calculator* ins)
 
 void wtf_calculator::op_topb(wtf_calculator* ins)
 {
-	auto a = std::any_cast<number_t>(ins->stack.back());
+	auto a = std::move(std::get<number_t>(ins->stack.back()));
 
 	std::print("{}", a);
 }
@@ -174,7 +175,7 @@ void wtf_calculator::op_neg(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = -({})", ins->stack.size()+1, r, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_help(wtf_calculator* ins)
@@ -239,7 +240,7 @@ void wtf_calculator::op_sin(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = sin({})", ins->stack.size()+1, r, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_cos(wtf_calculator* ins)
@@ -252,7 +253,7 @@ void wtf_calculator::op_cos(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = cos({})", ins->stack.size()+1, r, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_floor(wtf_calculator* ins)
@@ -265,7 +266,7 @@ void wtf_calculator::op_floor(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = floor({})", ins->stack.size()+1, r, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_ceil(wtf_calculator* ins)
@@ -278,12 +279,12 @@ void wtf_calculator::op_ceil(wtf_calculator* ins)
 	if (ins->verbose && !ins->suppress_verbose)
 		std::println(stderr, "{}> {} = ceil({})", ins->stack.size()+1, r, a);
 
-	ins->stack.push_back(std::make_any<number_t>(r));
+	ins->stack.emplace_back<element_t>(r);
 }
 
 void wtf_calculator::op_var(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	auto value = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -329,7 +330,7 @@ void wtf_calculator::op_var(wtf_calculator* ins)
 
 void wtf_calculator::op_set(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	auto value = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -379,7 +380,7 @@ void wtf_calculator::op_set(wtf_calculator* ins)
 
 void wtf_calculator::op_varg(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	auto value = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -421,7 +422,7 @@ void wtf_calculator::op_vars(wtf_calculator* ins)
 
 void wtf_calculator::op_del(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	const auto it = ins->variables.find(name);
@@ -447,7 +448,7 @@ void wtf_calculator::op_delall(wtf_calculator* ins)
 
 void wtf_calculator::op_defun(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	auto num = (unsigned) ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -473,7 +474,7 @@ void wtf_calculator::op_end(wtf_calculator* ins)
 
 void wtf_calculator::op_desc(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	const auto it = ins->functions.find(name);
@@ -499,7 +500,7 @@ void wtf_calculator::op_funcs(wtf_calculator* ins)
 
 void wtf_calculator::op__push_locals(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	auto scope = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -515,7 +516,7 @@ void wtf_calculator::op__push_locals(wtf_calculator* ins)
 
 void wtf_calculator::op__pop_locals(wtf_calculator* ins)
 {
-	auto name = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	if (ins->variables_local.empty())
@@ -555,7 +556,7 @@ void wtf_calculator::op_loops(wtf_calculator* ins)
 
 void wtf_calculator::op_desc_loop(wtf_calculator* ins)
 {
-	auto index = (unsigned)std::any_cast<number_t>(ins->stack.back());
+	auto index = (unsigned) std::move(std::get<number_t>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	if (index >= ins->times.size())
@@ -578,9 +579,9 @@ void wtf_calculator::op_end_times(wtf_calculator* ins)
 
 void wtf_calculator::op__use_times(wtf_calculator* ins)
 {
-	auto index = (unsigned)std::any_cast<number_t>(ins->stack.back());
+	auto index = (unsigned) std::move(std::get<number_t>(ins->stack.back()));
 	ins->stack.pop_back();
-	auto loops = (unsigned)std::any_cast<number_t>(ins->stack.back());
+	auto loops = (unsigned) std::move(std::get<number_t>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	std::string name = "times:";
@@ -611,7 +612,7 @@ void wtf_calculator::op_verbose(wtf_calculator* ins)
 
 void wtf_calculator::op_print(wtf_calculator* ins)
 {
-	auto what = std::any_cast<std::string&&>(std::move(ins->stack.back()));
+	auto what = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 
 	for (unsigned i=0; i < what.size(); i++)

@@ -7,5 +7,5 @@
 end
 
 funcs
-:f describe
+:f desc
 @f

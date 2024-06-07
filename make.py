@@ -24,9 +24,9 @@ ld_flags = []
 
 sys_modules = ['iostream', 'limits', 'cmath', 'cstdint', 'print', 'format', 'random', 'array', 'exception',
                'vector', 'string', 'string_view', 'unordered_map', 'sstream', 'cstring', 'list', 'chrono',
-               'any', 'cctype', 'deque', 'fstream', 'tuple', 'source_location']
+               'cctype', 'deque', 'fstream', 'tuple', 'source_location', 'variant']
 
-# Properties: is_module, primary dependencies, library_dependencies
+# Properties: is module, primary dependencies, library_dependencies
 sources = {
     'arbit': [[True, [], []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
     'wc': [[False, ['arbit'], ['readline']], ['operations.cpp', 'wc.cpp']],
