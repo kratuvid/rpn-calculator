@@ -163,7 +163,7 @@ public:
 
 	static exception generate(std::source_location sl, arbit::error_type type, std::string_view msg)
 	{
-		return exception(std::format("{}:{} in {}: {}", sl.file_name(), sl.line(), sl.function_name(), msg), type);
+		return exception(std::format("{}: {}", sl.function_name(), msg), type);
 	}
 
 	template<class... Args>
