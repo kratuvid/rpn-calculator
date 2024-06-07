@@ -4,18 +4,18 @@ import <print>;
 
 int main(int argc, char** argv)
 {
-	wtf_calculator app;
+	why_calculator app;
 	try
 	{
 		app.start(argc, argv);
 	}
-	catch (const wtf_calculator::exception& e)
+	catch (const why_calculator::exception& e)
 	{
-		if (e.type == wtf_calculator::error_type::init_help)
+		if (e.type == why_calculator::error_type::init_help)
 			return 0;
 
 		std::println(stderr, "Fatal exception: {}: {}",
-					 wtf_calculator::error_type_str[static_cast<int>(e.type)], e.what());
+					 why_calculator::error_type_str[static_cast<int>(e.type)], e.what());
 		return 2;
 	}
 	catch (const std::exception& e)

@@ -1,16 +1,16 @@
 #include "wc/wc.hpp"
 
-wtf_calculator::wtf_calculator()
+why_calculator::why_calculator()
 {
 	tp_begin = std::chrono::high_resolution_clock::now();
 }
 
-void wtf_calculator::start(int argc, char** argv)
+void why_calculator::start(int argc, char** argv)
 {
 	parse_arguments(argc, argv);
 }
 
-wtf_calculator::~wtf_calculator()
+why_calculator::~why_calculator()
 {
 #ifndef WC_USE_TRADITIONAL_GETLINE
 	rl_clear_history();
@@ -30,9 +30,9 @@ wtf_calculator::~wtf_calculator()
 	}
 }
 
-void wtf_calculator::show_help(char* name)
+void why_calculator::show_help(char* name)
 {
-	std::println(stderr, "{}: Wtf Calculator: Another RPN calculator\n"
+	std::println(stderr, "{}: Why Calculator: Yet another RPN calculator\n"
 				 "\t-h, --help: Show this\n"
 				 "\t-e, --expr [EXPRESSION]: Calculates EXPRESSION\n"
 				 "\t-f, --file [FILE]: Read expressions from FILE\n"
@@ -43,7 +43,7 @@ void wtf_calculator::show_help(char* name)
 				 "\t-v, --verbose: Be verbose", name);
 }
 
-void wtf_calculator::parse_arguments(int argc, char** argv)
+void why_calculator::parse_arguments(int argc, char** argv)
 {
 	enum class work_type { expression, file, stdin };
 	struct _parsed_t {
@@ -53,7 +53,7 @@ void wtf_calculator::parse_arguments(int argc, char** argv)
 		bool *const is_time_ptr, *const is_prefix_ptr, *const is_verbose_ptr;
 		char **argv;
 
-		_parsed_t(wtf_calculator* ins, int argc, char** argv)
+		_parsed_t(why_calculator* ins, int argc, char** argv)
 			:is_repl(argc == 1),
 			 is_time_ptr(&ins->is_time), is_prefix_ptr(&ins->is_prefix),
 			 is_verbose_ptr(&ins->verbose), argv(argv)
@@ -62,7 +62,7 @@ void wtf_calculator::parse_arguments(int argc, char** argv)
 
 	const std::array<std::tuple<std::string_view, int, void(*)(_parsed_t&, int)>, 8> arguments {{
 			{"help", 0, [](_parsed_t& p, int i) {
-				wtf_calculator::show_help(p.argv[0]);
+				why_calculator::show_help(p.argv[0]);
 				WC_EXCEPTION(init_help, "");
 			}},
 			{"expr", 1, [](_parsed_t& p, int i) {
@@ -175,7 +175,7 @@ void wtf_calculator::parse_arguments(int argc, char** argv)
 		repl();
 }
 
-void wtf_calculator::execute()
+void why_calculator::execute()
 {
 	while (stack.size() > 0 && std::holds_alternative<operations_iter_t>(stack.back()))
 	{
@@ -223,7 +223,7 @@ void wtf_calculator::execute()
 	}
 }
 
-void wtf_calculator::ensure_clean_stack()
+void why_calculator::ensure_clean_stack()
 {
 	const auto it_pop_locals = operations.find("_pop_locals"), it_push_locals = operations.find("_push_locals");
 	std::list<std::string> names;
@@ -259,7 +259,7 @@ void wtf_calculator::ensure_clean_stack()
 	}
 }
 
-void wtf_calculator::evaluate()
+void why_calculator::evaluate()
 {
 	try
 	{
@@ -366,7 +366,7 @@ void wtf_calculator::evaluate()
 	}
 }
 
-bool wtf_calculator::dereference_variable(const wtf_calculator::variable_ref_t& what, number_t& out)
+bool why_calculator::dereference_variable(const why_calculator::variable_ref_t& what, number_t& out)
 {
 	bool found = false;
 
@@ -399,7 +399,7 @@ bool wtf_calculator::dereference_variable(const wtf_calculator::variable_ref_t& 
 	return found;
 }
 
-wtf_calculator::number_t wtf_calculator::resolve_variable_if(const element_t& e)
+why_calculator::number_t why_calculator::resolve_variable_if(const element_t& e)
 {
 	if (std::holds_alternative<variable_ref_t>(e))
 	{
@@ -421,7 +421,7 @@ wtf_calculator::number_t wtf_calculator::resolve_variable_if(const element_t& e)
 	}
 }
 
-void wtf_calculator::parse(std::string_view what)
+void why_calculator::parse(std::string_view what)
 {
 	secondary_stack.clear();
 
@@ -557,7 +557,7 @@ void wtf_calculator::parse(std::string_view what)
 	evaluate();
 }
 
-void wtf_calculator::file(std::string_view what)
+void why_calculator::file(std::string_view what)
 {
 	std::ifstream ifs(what.data());
 	if (ifs.is_open())
@@ -570,7 +570,7 @@ void wtf_calculator::file(std::string_view what)
 	}
 }
 
-void wtf_calculator::file(std::istream& is)
+void why_calculator::file(std::istream& is)
 {
 	std::string line;
 	while (std::getline(is, line))
@@ -579,7 +579,7 @@ void wtf_calculator::file(std::istream& is)
 	}
 }
 
-void wtf_calculator::repl()
+void why_calculator::repl()
 {
 	auto cleanup_local = [](char*& what) {
 		if (what)
@@ -637,27 +637,27 @@ void wtf_calculator::repl()
 				op_top(this);
 			}
 		}
-		catch (const wtf_calculator::exception& e)
+		catch (const why_calculator::exception& e)
 		{
 			switch (e.type)
 			{
-			case wtf_calculator::error_type::parse:
-			case wtf_calculator::error_type::eval:
-			case wtf_calculator::error_type::exec:
-			case wtf_calculator::error_type::file:
+			case why_calculator::error_type::parse:
+			case why_calculator::error_type::eval:
+			case why_calculator::error_type::exec:
+			case why_calculator::error_type::file:
 				break;
-			case wtf_calculator::error_type::repl_quit:
+			case why_calculator::error_type::repl_quit:
 				quit = true;
 				continue;
 			default:
 				throw;
 			}
-			std::println(stderr, "Error: {}: {}", wtf_calculator::error_type_str[static_cast<int>(e.type)], e.what());
+			std::println(stderr, "Error: {}: {}", why_calculator::error_type_str[static_cast<int>(e.type)], e.what());
 		}
 	}
 }
 
-void wtf_calculator::display_stack(const stack_t& what_stack)
+void why_calculator::display_stack(const stack_t& what_stack)
 {
 	for (const auto& elem : what_stack)
 	{

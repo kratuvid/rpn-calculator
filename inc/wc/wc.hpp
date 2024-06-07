@@ -24,7 +24,7 @@ import <variant>;
 #include <readline/readline.h>
 #include <readline/history.h>
 
-class wtf_calculator
+class why_calculator
 {
 public:
 	enum class error_type { init, init_help, parse, eval, exec, file, repl_quit };
@@ -36,7 +36,7 @@ public:
 
 	using number_t = long double;
 
-	using operation_t = std::tuple<std::vector<operand_type>, void(*)(wtf_calculator*)>;
+	using operation_t = std::tuple<std::vector<operand_type>, void(*)(why_calculator*)>;
 	using operations_iter_t = std::unordered_map<std::string, operation_t>::const_iterator;
 
 	struct variable_ref_t {
@@ -128,56 +128,56 @@ private:
 	std::chrono::high_resolution_clock::time_point tp_begin;
 
 private:
-	static void op_add(wtf_calculator* ins);
-	static void op_subtract(wtf_calculator* ins);
-	static void op_multiply(wtf_calculator* ins);
-	static void op_divide(wtf_calculator* ins);
-	static void op_power(wtf_calculator* ins);
+	static void op_add(why_calculator* ins);
+	static void op_subtract(why_calculator* ins);
+	static void op_multiply(why_calculator* ins);
+	static void op_divide(why_calculator* ins);
+	static void op_power(why_calculator* ins);
 
-	static void op_replace(wtf_calculator* ins);
-	static void op_swap(wtf_calculator* ins);
-	static void op_pop(wtf_calculator* ins);
-	static void op_top(wtf_calculator* ins);
-	static void op_topb(wtf_calculator* ins);
+	static void op_replace(why_calculator* ins);
+	static void op_swap(why_calculator* ins);
+	static void op_pop(why_calculator* ins);
+	static void op_top(why_calculator* ins);
+	static void op_topb(why_calculator* ins);
 
-	static void op_neg(wtf_calculator* ins);
-	static void op_sin(wtf_calculator* ins);
-	static void op_cos(wtf_calculator* ins);
-	static void op_floor(wtf_calculator* ins);
-	static void op_ceil(wtf_calculator* ins);
+	static void op_neg(why_calculator* ins);
+	static void op_sin(why_calculator* ins);
+	static void op_cos(why_calculator* ins);
+	static void op_floor(why_calculator* ins);
+	static void op_ceil(why_calculator* ins);
 
-	static void op_help(wtf_calculator* ins);
-	static void op_stack(wtf_calculator* ins);
-	static void op_quit(wtf_calculator* ins);
-	static void op_clear(wtf_calculator* ins);
-	static void op_file(wtf_calculator* ins);
-	static void op__view(wtf_calculator* ins);
+	static void op_help(why_calculator* ins);
+	static void op_stack(why_calculator* ins);
+	static void op_quit(why_calculator* ins);
+	static void op_clear(why_calculator* ins);
+	static void op_file(why_calculator* ins);
+	static void op__view(why_calculator* ins);
 
-	static void op_var(wtf_calculator* ins);
-	static void op_set(wtf_calculator* ins);
-	static void op_varg(wtf_calculator* ins);
-	static void op_vars(wtf_calculator* ins);
-	static void op_del(wtf_calculator* ins);
-	static void op_delall(wtf_calculator* ins);
+	static void op_var(why_calculator* ins);
+	static void op_set(why_calculator* ins);
+	static void op_varg(why_calculator* ins);
+	static void op_vars(why_calculator* ins);
+	static void op_del(why_calculator* ins);
+	static void op_delall(why_calculator* ins);
 
-	static void op_defun(wtf_calculator* ins);
-	static void op_end(wtf_calculator* ins);
-	static void op_desc(wtf_calculator* ins);
-	static void op_funcs(wtf_calculator* ins);
-	static void op__push_locals(wtf_calculator* ins);
-	static void op__pop_locals(wtf_calculator* ins);
+	static void op_defun(why_calculator* ins);
+	static void op_end(why_calculator* ins);
+	static void op_desc(why_calculator* ins);
+	static void op_funcs(why_calculator* ins);
+	static void op__push_locals(why_calculator* ins);
+	static void op__pop_locals(why_calculator* ins);
 
-	static void op_times(wtf_calculator* ins);
-	static void op_loops(wtf_calculator* ins);
-	static void op_desc_loop(wtf_calculator* ins);
-	static void op_end_times(wtf_calculator* ins);
-	static void op__use_times(wtf_calculator* ins);
+	static void op_times(why_calculator* ins);
+	static void op_loops(why_calculator* ins);
+	static void op_desc_loop(why_calculator* ins);
+	static void op_end_times(why_calculator* ins);
+	static void op__use_times(why_calculator* ins);
 
-	static void op_noverbose(wtf_calculator* ins);
-	static void op_verbose(wtf_calculator* ins);
+	static void op_noverbose(why_calculator* ins);
+	static void op_verbose(why_calculator* ins);
 
-	static void op_print(wtf_calculator* ins);
-	static void op_println(wtf_calculator* ins);
+	static void op_print(why_calculator* ins);
+	static void op_println(why_calculator* ins);
 
 private:
 	static void show_help(char* name);
@@ -197,12 +197,12 @@ private:
 	static void display_stack(const stack_t& what_stack);
 
 public:
-	wtf_calculator();
+	why_calculator();
 	void start(int argc, char** argv);
-	~wtf_calculator();
+	~why_calculator();
 };
 
-class wtf_calculator::exception : public std::exception
+class why_calculator::exception : public std::exception
 {
 public:
 	error_type type;

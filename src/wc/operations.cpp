@@ -1,6 +1,6 @@
 #include "wc/wc.hpp"
 
-void wtf_calculator::op_add(wtf_calculator* ins)
+void why_calculator::op_add(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -15,7 +15,7 @@ void wtf_calculator::op_add(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_subtract(wtf_calculator* ins)
+void why_calculator::op_subtract(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -30,7 +30,7 @@ void wtf_calculator::op_subtract(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_multiply(wtf_calculator* ins)
+void why_calculator::op_multiply(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -45,7 +45,7 @@ void wtf_calculator::op_multiply(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_divide(wtf_calculator* ins)
+void why_calculator::op_divide(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -62,7 +62,7 @@ void wtf_calculator::op_divide(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_power(wtf_calculator* ins)
+void why_calculator::op_power(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -77,7 +77,7 @@ void wtf_calculator::op_power(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_stack(wtf_calculator* ins)
+void why_calculator::op_stack(why_calculator* ins)
 {
 	for (unsigned i = 0; i < ins->stack.size(); i++)
 	{
@@ -94,12 +94,12 @@ void wtf_calculator::op_stack(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_quit(wtf_calculator* ins)
+void why_calculator::op_quit(why_calculator* ins)
 {
 	WC_EXCEPTION(repl_quit, "");
 }
 
-void wtf_calculator::op_replace(wtf_calculator* ins)
+void why_calculator::op_replace(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -112,7 +112,7 @@ void wtf_calculator::op_replace(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(a);
 }
 
-void wtf_calculator::op_swap(wtf_calculator* ins)
+void why_calculator::op_swap(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -126,7 +126,7 @@ void wtf_calculator::op_swap(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(b);
 }
 
-void wtf_calculator::op_pop(wtf_calculator* ins)
+void why_calculator::op_pop(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -135,37 +135,37 @@ void wtf_calculator::op_pop(wtf_calculator* ins)
 		std::println(stderr, "{}> pop {}", ins->stack.size(), a);
 }
 
-void wtf_calculator::op_clear(wtf_calculator* ins)
+void why_calculator::op_clear(why_calculator* ins)
 {
 	ins->stack.clear();
 }
 
-void wtf_calculator::op_file(wtf_calculator* ins)
+void why_calculator::op_file(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
 	ins->file(name);
 }
 
-void wtf_calculator::op__view(wtf_calculator* ins)
+void why_calculator::op__view(why_calculator* ins)
 {
 	ins->display_stack(ins->stack);
 }
 
-void wtf_calculator::op_top(wtf_calculator* ins)
+void why_calculator::op_top(why_calculator* ins)
 {
-	wtf_calculator::op_topb(ins);
+	why_calculator::op_topb(ins);
 	std::println("");
 }
 
-void wtf_calculator::op_topb(wtf_calculator* ins)
+void why_calculator::op_topb(why_calculator* ins)
 {
 	auto a = std::move(std::get<number_t>(ins->stack.back()));
 
 	std::print("{}", a);
 }
 
-void wtf_calculator::op_neg(wtf_calculator* ins)
+void why_calculator::op_neg(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -178,7 +178,7 @@ void wtf_calculator::op_neg(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_help(wtf_calculator* ins)
+void why_calculator::op_help(why_calculator* ins)
 {
 	std::println(stderr, R"(operation: operand size: description:
 -------------------------------------
@@ -230,7 +230,7 @@ quit: quit the REPL
 help: show this screen)");
 }
 
-void wtf_calculator::op_sin(wtf_calculator* ins)
+void why_calculator::op_sin(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -243,7 +243,7 @@ void wtf_calculator::op_sin(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_cos(wtf_calculator* ins)
+void why_calculator::op_cos(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -256,7 +256,7 @@ void wtf_calculator::op_cos(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_floor(wtf_calculator* ins)
+void why_calculator::op_floor(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -269,7 +269,7 @@ void wtf_calculator::op_floor(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_ceil(wtf_calculator* ins)
+void why_calculator::op_ceil(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());
 	ins->stack.pop_back();
@@ -282,7 +282,7 @@ void wtf_calculator::op_ceil(wtf_calculator* ins)
 	ins->stack.emplace_back<element_t>(r);
 }
 
-void wtf_calculator::op_var(wtf_calculator* ins)
+void why_calculator::op_var(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -328,7 +328,7 @@ void wtf_calculator::op_var(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_set(wtf_calculator* ins)
+void why_calculator::op_set(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -378,7 +378,7 @@ void wtf_calculator::op_set(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_varg(wtf_calculator* ins)
+void why_calculator::op_varg(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -402,7 +402,7 @@ void wtf_calculator::op_varg(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_vars(wtf_calculator* ins)
+void why_calculator::op_vars(why_calculator* ins)
 {
 	for (const auto& [name, value] : ins->variables)
 	{
@@ -420,7 +420,7 @@ void wtf_calculator::op_vars(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_del(wtf_calculator* ins)
+void why_calculator::op_del(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -441,12 +441,12 @@ void wtf_calculator::op_del(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_delall(wtf_calculator* ins)
+void why_calculator::op_delall(why_calculator* ins)
 {
 	ins->variables.clear();
 }
 
-void wtf_calculator::op_defun(wtf_calculator* ins)
+void why_calculator::op_defun(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -462,7 +462,7 @@ void wtf_calculator::op_defun(wtf_calculator* ins)
 	ins->current_eval_function = name;
 }
 
-void wtf_calculator::op_end(wtf_calculator* ins)
+void why_calculator::op_end(why_calculator* ins)
 {
 	if (ins->current_eval_function.empty())
 	{
@@ -472,7 +472,7 @@ void wtf_calculator::op_end(wtf_calculator* ins)
 	ins->current_eval_function.clear();
 }
 
-void wtf_calculator::op_desc(wtf_calculator* ins)
+void why_calculator::op_desc(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -485,11 +485,11 @@ void wtf_calculator::op_desc(wtf_calculator* ins)
 	else
 	{
 		const auto& func_stack = std::get<1>(it->second);
-		wtf_calculator::display_stack(func_stack);
+		why_calculator::display_stack(func_stack);
 	}
 }
 
-void wtf_calculator::op_funcs(wtf_calculator* ins)
+void why_calculator::op_funcs(why_calculator* ins)
 {
 	for (const auto& [name, stuff] : ins->functions)
 	{
@@ -498,7 +498,7 @@ void wtf_calculator::op_funcs(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op__push_locals(wtf_calculator* ins)
+void why_calculator::op__push_locals(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -514,7 +514,7 @@ void wtf_calculator::op__push_locals(wtf_calculator* ins)
 	ins->variables_local.push_back({static_cast<scope_type>(scope), {}});
 }
 
-void wtf_calculator::op__pop_locals(wtf_calculator* ins)
+void why_calculator::op__pop_locals(why_calculator* ins)
 {
 	auto name = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -538,13 +538,13 @@ void wtf_calculator::op__pop_locals(wtf_calculator* ins)
 	ins->variables_local.pop_back();
 }
 
-void wtf_calculator::op_times(wtf_calculator* ins)
+void why_calculator::op_times(why_calculator* ins)
 {
 	ins->current_eval_times.push_back(ins->times.size());
 	ins->times.push_back({});
 }
 
-void wtf_calculator::op_loops(wtf_calculator* ins)
+void why_calculator::op_loops(why_calculator* ins)
 {
 	unsigned i=0;
 	for (const auto& s : ins->times)
@@ -554,7 +554,7 @@ void wtf_calculator::op_loops(wtf_calculator* ins)
 	}
 }
 
-void wtf_calculator::op_desc_loop(wtf_calculator* ins)
+void why_calculator::op_desc_loop(why_calculator* ins)
 {
 	auto index = (unsigned) std::move(std::get<number_t>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -565,10 +565,10 @@ void wtf_calculator::op_desc_loop(wtf_calculator* ins)
 	}
 
 	const auto& times_stack = ins->times[index];
-	wtf_calculator::display_stack(times_stack);
+	why_calculator::display_stack(times_stack);
 }
 
-void wtf_calculator::op_end_times(wtf_calculator* ins)
+void why_calculator::op_end_times(why_calculator* ins)
 {
 	if (ins->current_eval_times.empty())
 	{
@@ -577,7 +577,7 @@ void wtf_calculator::op_end_times(wtf_calculator* ins)
 	ins->current_eval_times.pop_back();
 }
 
-void wtf_calculator::op__use_times(wtf_calculator* ins)
+void why_calculator::op__use_times(why_calculator* ins)
 {
 	auto index = (unsigned) std::move(std::get<number_t>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -596,21 +596,21 @@ void wtf_calculator::op__use_times(wtf_calculator* ins)
 		}
 		ins->secondary_stack.push_front(ins->operations.find("_push_locals"));
 		ins->secondary_stack.push_front(name);
-		ins->secondary_stack.push_front(static_cast<number_t>(wtf_calculator::scope_type::loop));
+		ins->secondary_stack.push_front(static_cast<number_t>(why_calculator::scope_type::loop));
 	}
 }
 
-void wtf_calculator::op_noverbose(wtf_calculator* ins)
+void why_calculator::op_noverbose(why_calculator* ins)
 {
 	ins->suppress_verbose = true;
 }
 
-void wtf_calculator::op_verbose(wtf_calculator* ins)
+void why_calculator::op_verbose(why_calculator* ins)
 {
 	ins->suppress_verbose = false;
 }
 
-void wtf_calculator::op_print(wtf_calculator* ins)
+void why_calculator::op_print(why_calculator* ins)
 {
 	auto what = std::move(std::get<std::string>(ins->stack.back()));
 	ins->stack.pop_back();
@@ -622,7 +622,7 @@ void wtf_calculator::op_print(wtf_calculator* ins)
 	std::print("{}", what);
 }
 
-void wtf_calculator::op_println(wtf_calculator* ins)
+void why_calculator::op_println(why_calculator* ins)
 {
 	op_print(ins);
 	std::println("");
