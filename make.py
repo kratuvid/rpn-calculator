@@ -26,21 +26,18 @@ sys_modules = ['iostream', 'limits', 'cmath', 'cstdint', 'print', 'format', 'ran
                'vector', 'string', 'string_view', 'unordered_map', 'sstream', 'cstring', 'list', 'chrono',
                'any', 'cctype', 'deque', 'fstream', 'tuple', 'source_location']
 
-# Common to all executables for now
-libraries = {
-    'readline'
-}
-
-# Properties: is_module, dependency
+# Properties: is_module, primary dependencies
 sources = {
     'arbit': [[True, []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
     'wc': [[False, ['arbit']], ['operations.cpp', 'wc.cpp']],
     'main': [[False, ['arbit', 'wc']], ['main.cpp']],
     'ats': [[False, ['arbit']], ['main.cpp']]
 }
+
+# Properties: library dependencies
 targets = {
-    'wc': ['main', 'arbit', 'wc'],
-    'ats': ['ats', 'arbit']
+    'wc': [['readline'], ['main', 'arbit', 'wc']],
+    'ats': [[], ['ats', 'arbit']]
 }
 
 lone_sources = {
@@ -63,7 +60,6 @@ class Builder:
         self.make_directories()
         self.make_sys_modules()
         self.make_lone_targets()
-        self.resolve_library_flags()
         self.make_targets()
 
         if 'run' in self.args:
@@ -98,15 +94,22 @@ class Builder:
         for exe in targets:
             exe_path = self.dirs['build'] + '/' + exe
 
-            for primary in targets[exe]:
+            lib_cflags, lib_libs = [], []
+            for library in targets[exe][0]:
+                cflags, libs = self.resolve_library_flags(library)
+                lib_cflags += cflags
+                lib_libs += libs
+
+            for primary in targets[exe][1]:
                 stuff = self.is_primary_needs_update(primary)
                 if len(stuff) != 0:
-                    self.make_primary(primary, stuff)
+                    self.make_primary(primary, stuff, lib_cflags)
             
             if not self.is_exists(exe_path) or len(self.primaries_updated) != 0:
-                self.link(exe)
+                lib_cflags
+                self.link(exe, lib_libs)
 
-    def make_primary(self, primary, stuff):
+    def make_primary(self, primary, stuff, extra_flags):
         if primary in self.primaries_updated:
             return
 
@@ -115,13 +118,13 @@ class Builder:
         for dep in deps:
             new_stuff = self.is_primary_needs_update(dep)
             if len(new_stuff) != 0:
-                self.make_primary(dep, new_stuff)
+                self.make_primary(dep, new_stuff, extra_flags)
 
         if len(stuff) != 0:
             for task in stuff:
                 file_path = task[0]
                 object_path = task[1]
-                self.compile(file_path, object_path)
+                self.compile(file_path, object_path, extra_flags)
 
             self.primaries_updated.add(primary)
 
@@ -142,13 +145,13 @@ class Builder:
             current_stuff = []
 
             if not self.is_exists(object_path) or self.is_later(file_path, object_path):
-                current_stuff += ((file_path, object_path),)
+                current_stuff += [[file_path, object_path]]
 
             if is_module and file_basename == primary:
                 bmi_path = dirs['bmi'] + '/' + primary + '.gcm'
                 if not self.is_exists(bmi_path) or self.is_later(file_path, bmi_path):
                     if len(current_stuff) == 0:
-                        current_stuff += ((file_path, object_path),)
+                        current_stuff += [[file_path, object_path]]
 
             stuff += current_stuff
 
@@ -156,18 +159,18 @@ class Builder:
 
         return stuff
 
-    def compile(self, source, target):
-        self.run(cxx + self.this_flags + cxx_flags + ['-c', source, '-o', target])
+    def compile(self, source, target, extra_flags):
+        self.run(cxx + self.this_flags + cxx_flags + extra_flags + ['-c', source, '-o', target])
 
-    def link(self, exe):
+    def link(self, exe, extra_flags):
         exe_path = self.dirs['build'] + '/' + exe
 
         objects = []
-        for primary in targets[exe]:
+        for primary in targets[exe][1]:
             for file in sources[primary][1]:
                 objects += [self.dirs['objects'] + '/' + primary + '/' + file.removesuffix('.cpp') + '.o']
             
-        self.run(cxx + self.this_flags + ld_flags + objects + ['-o', exe_path])
+        self.run(cxx + self.this_flags + ld_flags + extra_flags + objects + ['-o', exe_path])
 
     def make_directories(self):
         self.dirs = {'build': dirs['build'] + '/' + self.type}
@@ -179,25 +182,21 @@ class Builder:
             os.makedirs(self.dirs['objects'] + '/' + primary, exist_ok = True)
         os.makedirs(dirs['bmi'], exist_ok = True)
 
-    def resolve_library_flags(self):
+    def resolve_library_flags(self, library):
         lib_cflags = []
         lib_libs = []
 
-        for library in libraries:
-            status = subprocess.run(('pkg-config', library, '--cflags'), capture_output=True)
-            if status.returncode != 0:
-                raise Exception(f'Failed to resolve library {library}\'s cflags')
-            lib_cflags += [status.stdout.decode().strip()]
+        status = subprocess.run(('pkg-config', library, '--cflags'), capture_output=True)
+        if status.returncode != 0:
+            raise Exception(f'Failed to resolve library {library}\'s cflags')
+        lib_cflags += [status.stdout.decode().strip()]
 
-            status = subprocess.run(('pkg-config', library, '--libs'), capture_output=True)
-            if status.returncode != 0:
-                raise Exception(f'Failed to resolve library {library}\'s libs')
-            lib_libs += [status.stdout.decode().strip()]
+        status = subprocess.run(('pkg-config', library, '--libs'), capture_output=True)
+        if status.returncode != 0:
+            raise Exception(f'Failed to resolve library {library}\'s libs')
+        lib_libs += [status.stdout.decode().strip()]
 
-        global cxx_flags
-        global ld_flags
-        cxx_flags += lib_cflags
-        ld_flags += lib_libs
+        return [lib_cflags, lib_libs]
 
     def is_later(self, path, path2):
         ts = os.path.getmtime(path)
