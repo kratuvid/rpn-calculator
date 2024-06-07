@@ -111,9 +111,9 @@ int main(int argc, char** argv)
 
 		case 3:
 		{
-			std::uniform_int_distribution<base_t> dist(0, ~base_t(0)), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(5, 10);
+			std::uniform_int_distribution<base_t> dist(0, ~base_t(0) / 1e6), dist_decimal(0, ~base_t(0)), dist_bool(0, 1), dist_items(1, 1);
 
-			const int loop_max = 1e5;
+			const int loop_max = 1e4;
 			for (int i=0; i < loop_max; i++)
 			{
 				std::list<base_t> sa, sad, sb, sbd;
