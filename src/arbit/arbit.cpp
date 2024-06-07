@@ -160,6 +160,17 @@ public:
 
 	const char* what() const noexcept override
 	{ return msg.c_str(); }
+
+	static exception generate(std::source_location sl, arbit::error_type type, std::string_view msg)
+	{
+		return exception(std::format("{}:{} in {}: {}", sl.file_name(), sl.line(), sl.function_name(), msg), type);
+	}
+
+	template<class... Args>
+	static exception generate(std::source_location sl, arbit::error_type type, const std::format_string<Args...>& format, Args&&... args)
+	{
+		return generate(sl, type, std::format(format, args...));
+	}
 };
 
 #include "arbit.inl"
