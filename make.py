@@ -26,18 +26,18 @@ sys_modules = ['iostream', 'limits', 'cmath', 'cstdint', 'print', 'format', 'ran
                'vector', 'string', 'string_view', 'unordered_map', 'sstream', 'cstring', 'list', 'chrono',
                'any', 'cctype', 'deque', 'fstream', 'tuple', 'source_location']
 
-# Properties: is_module, primary dependencies
+# Properties: is_module, primary dependencies, library_dependencies
 sources = {
-    'arbit': [[True, []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
-    'wc': [[False, ['arbit']], ['operations.cpp', 'wc.cpp']],
-    'main': [[False, ['arbit', 'wc']], ['main.cpp']],
-    'ats': [[False, ['arbit']], ['main.cpp']]
+    'arbit': [[True, [], []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
+    'wc': [[False, ['arbit'], ['readline']], ['operations.cpp', 'wc.cpp']],
+    'main': [[False, ['arbit', 'wc'], []], ['main.cpp']],
+    'main-ats': [[False, ['arbit'], []], ['main.cpp']]
 }
 
 # Properties: library dependencies
 targets = {
-    'wc': [['readline'], ['main', 'arbit', 'wc']],
-    'ats': [[], ['ats', 'arbit']]
+    'main': [['readline'], ['main', 'arbit', 'wc']],
+    'main-ats': [[], ['main-ats', 'arbit']]
 }
 
 lone_sources = {
@@ -94,22 +94,19 @@ class Builder:
         for exe in targets:
             exe_path = self.dirs['build'] + '/' + exe
 
-            lib_cflags, lib_libs = [], []
-            for library in targets[exe][0]:
-                cflags, libs = self.resolve_library_flags(library)
-                lib_cflags += cflags
-                lib_libs += libs
-
             for primary in targets[exe][1]:
                 stuff = self.is_primary_needs_update(primary)
                 if len(stuff) != 0:
-                    self.make_primary(primary, stuff, lib_cflags)
+                    self.make_primary(primary, stuff)
             
             if not self.is_exists(exe_path) or len(self.primaries_updated) != 0:
-                lib_cflags
+                lib_libs = []
+                for library in targets[exe][0]:
+                    lib_libs += self.resolve_library_libs(library)
+
                 self.link(exe, lib_libs)
 
-    def make_primary(self, primary, stuff, extra_flags):
+    def make_primary(self, primary, stuff):
         if primary in self.primaries_updated:
             return
 
@@ -118,13 +115,18 @@ class Builder:
         for dep in deps:
             new_stuff = self.is_primary_needs_update(dep)
             if len(new_stuff) != 0:
-                self.make_primary(dep, new_stuff, extra_flags)
+                self.make_primary(dep, new_stuff)
 
         if len(stuff) != 0:
             for task in stuff:
                 file_path = task[0]
                 object_path = task[1]
-                self.compile(file_path, object_path, extra_flags)
+                
+                lib_cflags = []
+                for library in sources[primary][0][2]:
+                    lib_cflags += self.resolve_library_cflags(library)
+
+                self.compile(file_path, object_path, lib_cflags)
 
             self.primaries_updated.add(primary)
 
@@ -182,21 +184,25 @@ class Builder:
             os.makedirs(self.dirs['objects'] + '/' + primary, exist_ok = True)
         os.makedirs(dirs['bmi'], exist_ok = True)
 
-    def resolve_library_flags(self, library):
-        lib_cflags = []
-        lib_libs = []
+    def resolve_library_cflags(self, library):
+        cflags = []
 
         status = subprocess.run(('pkg-config', library, '--cflags'), capture_output=True)
         if status.returncode != 0:
             raise Exception(f'Failed to resolve library {library}\'s cflags')
-        lib_cflags += [status.stdout.decode().strip()]
+        cflags += [status.stdout.decode().strip()]
+
+        return cflags
+
+    def resolve_library_libs(self, library):
+        libs = []
 
         status = subprocess.run(('pkg-config', library, '--libs'), capture_output=True)
         if status.returncode != 0:
             raise Exception(f'Failed to resolve library {library}\'s libs')
-        lib_libs += [status.stdout.decode().strip()]
+        libs += [status.stdout.decode().strip()]
 
-        return [lib_cflags, lib_libs]
+        return libs
 
     def is_later(self, path, path2):
         ts = os.path.getmtime(path)
