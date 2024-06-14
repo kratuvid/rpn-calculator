@@ -1,4 +1,4 @@
-#include "wc/wc.hpp"
+module wc;
 
 void why_calculator::op_add(why_calculator* ins)
 {

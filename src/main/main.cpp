@@ -1,6 +1,6 @@
 import <print>;
 
-#include "wc/wc.hpp"
+import wc;
 
 int main(int argc, char** argv)
 {

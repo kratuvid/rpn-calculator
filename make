@@ -24,12 +24,12 @@ ld_flags = []
 
 sys_modules = ['iostream', 'limits', 'cmath', 'cstdint', 'print', 'format', 'random', 'array', 'exception',
                'vector', 'string', 'string_view', 'unordered_map', 'sstream', 'cstring', 'list', 'chrono',
-               'cctype', 'deque', 'fstream', 'tuple', 'source_location', 'variant']
+               'cctype', 'deque', 'fstream', 'tuple', 'source_location', 'variant', 'cstdio']
 
 # Properties: is module, primary dependencies, library_dependencies
 sources = {
     'arbit': [[True, [], []], ['arbit.cpp', 'basic.cpp', 'bits.cpp', 'construction.cpp', 'heap.cpp', 'operations.cpp']],
-    'wc': [[False, ['arbit'], ['readline']], ['operations.cpp', 'wc.cpp']],
+    'wc': [[True, ['arbit'], ['readline']], ['wc.cpp', 'operations.cpp', 'basic.cpp']],
     'main': [[False, ['arbit', 'wc'], []], ['main.cpp']],
     'main-ats': [[False, ['arbit'], []], ['main.cpp']]
 }
