@@ -1,5 +1,27 @@
 module wc;
 
+import <array>;
+import <cctype>;
+import <chrono>;
+import <math.h>;
+import <cstring>;
+import <deque>;
+import <exception>;
+import <format>;
+import <fstream>;
+import <iostream>;
+import <list>;
+import <print>;
+import <source_location>;
+import <string>;
+import <string_view>;
+import <tuple>;
+import <unordered_map>;
+import <variant>;
+import <cstdio>;
+
+#include "wc/defines.hpp"
+
 void why_calculator::op_add(why_calculator* ins)
 {
 	auto a = ins->resolve_variable_if(ins->stack.back());

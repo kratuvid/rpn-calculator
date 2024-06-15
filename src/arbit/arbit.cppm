@@ -1,7 +1,7 @@
 export module arbit;
 
 import <array>;
-import <cmath>;
+import <math.h>;
 import <cstdint>;
 import <exception>;
 import <format>;

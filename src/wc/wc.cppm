@@ -3,7 +3,7 @@ export module wc;
 import <array>;
 import <cctype>;
 import <chrono>;
-import <cmath>;
+import <math.h>;
 import <cstring>;
 import <deque>;
 import <exception>;
@@ -19,10 +19,6 @@ import <tuple>;
 import <unordered_map>;
 import <variant>;
 import <cstdio>;
-
-#include "wc/defines.hpp"
-#include <readline/readline.h>
-#include <readline/history.h>
 
 class why_calculator
 {

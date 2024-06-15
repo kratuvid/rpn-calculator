@@ -1,0 +1,12 @@
+{
+	"flags": {
+		"base": ["-std=c++23", "-Wno-experimental-header-units", "-Iinc"]
+	},
+	"targets": {
+		"main": ["main/main.cpp",
+				 "wc/wc.cppm", "wc/operations.cpp", "wc/basic.cpp"]
+	},
+	"stuff": {
+		"nice": ["arbit/arbit.cppm", "arbit/basic.cpp", "arbit/bits.cpp", "arbit/construction.cpp", "arbit/heap.cpp", "arbit/operations.cpp"]
+	}
+}
