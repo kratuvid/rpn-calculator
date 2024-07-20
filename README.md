@@ -1,4 +1,4 @@
-# Why Calculator
+# RPN Calculator
 Yet another RPN calculator
 
 # Arguments
